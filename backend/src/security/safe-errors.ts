@@ -14,6 +14,7 @@ const errors: Record<ErrorCode, [number, string, boolean]> = {
   ACTIVITY_UNAVAILABLE: [404, '活動已不可用，請使用老師提供的新活動連結。', false],
   MAPPING_AMBIGUOUS: [409, '無法確認全部題目與作答位置，請修正來源教材後重讀。', false],
   SOURCE_CONFLICT: [409, '來源教材已改動，請重新核對題目及填空位置。', false],
+  SOURCE_TOO_LARGE: [400, '教材範圍超過本機可處理上限，請縮小多餘空白範圍或調整執行設定。', false],
   GOOGLE_AUTH_REQUIRED: [401, '請由老師重新完成 Google 授權。', false],
   GOOGLE_FORBIDDEN: [403, 'Google 權限不足或存取受限，請檢查共用權限及配額。', false],
   SHEET_NOT_FOUND_OR_INACCESSIBLE: [

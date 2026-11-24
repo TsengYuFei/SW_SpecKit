@@ -65,21 +65,21 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 
 ### Tests for User Story 1
 
-- [ ] T012 [P] [US1] 在 `tests/contract/source-http.test.ts` 編寫 POST /api/google/start、GET /api/google/callback、POST /api/activities、POST /api/activities/:id/source 與 /source/confirm 的契約測試，涵蓋正常輸出、權限、輸入及 mappingVersion 過期。
-- [ ] T013 [P] [US1] 在 `tests/unit/guided-notes-parser.test.ts`、`tests/fixtures/guided-notes.ts` 編寫不同表頭位置、跨分頁、合併格、單題、題組、重複題號及歧義測試；使用合成 Sheets 回覆資料，避免教材讀寫流程依賴中介檔案。
-- [ ] T014 [P] [US1] 在 `tests/integration/google-source.test.ts` 編寫授權正常與取消、state 重用或過期、無效 URL/ID、401/403/404/429/5xx、網路中斷、部分掃描失敗、重載及非同步舊回覆測試，確認沒有部分成功或機密洩漏。
+- [X] T012 [P] [US1] 在 `tests/contract/source-http.test.ts` 編寫 POST /api/google/start、GET /api/google/callback、POST /api/activities、POST /api/activities/:id/source 與 /source/confirm 的契約測試，涵蓋正常輸出、權限、輸入及 mappingVersion 過期。
+- [X] T013 [P] [US1] 在 `tests/unit/guided-notes-parser.test.ts`、`tests/fixtures/guided-notes.ts` 編寫不同表頭位置、跨分頁、合併格、單題、題組、重複題號及歧義測試；使用合成 Sheets 回覆資料，避免教材讀寫流程依賴中介檔案。
+- [X] T014 [P] [US1] 在 `tests/integration/google-source.test.ts` 編寫授權正常與取消、state 重用或過期、無效 URL/ID、401/403/404/429/5xx、網路中斷、部分掃描失敗、重載及非同步舊回覆測試，確認沒有部分成功或機密洩漏。
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] 在 `shared/src/schemas/source.ts` 定義並驗證 data-model.md 的 Source.spreadsheetId、Source.sheetIds、Source.baseline、Source.mappingVersion、Source.confirmed、Source.loadState、Question.id、Question.displayNumber、Question.kind、Question.items、Item.id、Item.label、Item.prompt、Item.target、Item.baselineValue、Target.sheetId、Target.rowIndex、Target.columnIndex、Target.mergeRange，保留完整原值與結構基線。
-- [ ] T016 [P] [US1] 依 T015 在 `backend/src/google/oauth.ts` 實作 data-model.md 的 OAuthSession.state、OAuthSession.teacherSessionId、OAuthSession.expiresAt、OAuthSession.accessToken、OAuthSession.refreshToken、OAuthSession.tokenExpiresAt 約束，採 Web application client、固定 loopback callback、state 驗證及記憶體 token 更新，授權後導向乾淨 URL。
-- [ ] T017 [P] [US1] 依 T015 在 `backend/src/google/sheets-client.ts` 實作固定 Google API 端點、field mask、全部分頁的分段讀取及安全錯誤映射，遵守 research.md 的有限退避及未知寫入結果處理邊界，保留可替換的 adapter 供測試。
-- [ ] T018 [P] [US1] 依 T015 在 `backend/src/google/guided-notes-parser.ts` 實作表頭、跨列題號、小題標記及合併格辨識，套用 data-model.md 的 Question.id、Question.items、Item.id、Item.target、Target.mergeRange 唯一性及對應規則，回傳明確歧義，完整掃描才產出可確認預覽。
-- [ ] T019 [US1] 依 T016–T018 在 `backend/src/activity/source-service.ts` 實作 URL/ID 解析、載入協調、原值保存、來源版本及確認；依 data-model.md 的 Source.loadState、Source.mappingVersion、Source.confirmed、Activity.source 在非同步回覆時重新驗證版本和階段。
-- [ ] T020 [US1] 在 `backend/src/http/google-routes.ts`、`backend/src/http/activity-routes.ts`、`backend/src/http/source-routes.ts` 串接 T012 的全部端點，建立活動與固定組數，僅允許合法階段操作，將服務接入 T010 的教師 listener。
-- [ ] T021 [US1] 在 `frontend/src/teacher/SourcePage.tsx`、`frontend/src/transport/http.ts` 建立授權、組數設定、URL/ID、載入狀態、題目及目標格預覽、確認與修正來源後重讀流程，呈現契約錯誤及輸入限制。
-- [ ] T022 [US1] 在 `tests/e2e/source-preview.spec.ts` 驗證教師頁從建立活動到對應確認，含載入中操作、授權失敗、歧義及重試；使用合成 adapter，通過 T012–T014 及本故事測試。
-- [ ] T023 [US1] 依 `specs/001-classroom-sheets-buzzer/quickstart.md` 的來源讀取情境完成真實 URL 與 ID 的獨立驗收，核對兩份線上教材完整對應，在同檔記錄不含機密的指令、日期與結果，覆蓋 FR-003、FR-004 與 SC-002。
+- [X] T015 [US1] 在 `shared/src/schemas/source.ts` 定義並驗證 data-model.md 的 Source.spreadsheetId、Source.sheetIds、Source.baseline、Source.mappingVersion、Source.confirmed、Source.loadState、Question.id、Question.displayNumber、Question.kind、Question.items、Item.id、Item.label、Item.prompt、Item.target、Item.baselineValue、Target.sheetId、Target.rowIndex、Target.columnIndex、Target.mergeRange，保留完整原值與結構基線。
+- [X] T016 [P] [US1] 依 T015 在 `backend/src/google/oauth.ts` 實作 data-model.md 的 OAuthSession.state、OAuthSession.teacherSessionId、OAuthSession.expiresAt、OAuthSession.accessToken、OAuthSession.refreshToken、OAuthSession.tokenExpiresAt 約束，採 Web application client、固定 loopback callback、state 驗證及記憶體 token 更新，授權後導向乾淨 URL。
+- [X] T017 [P] [US1] 依 T015 在 `backend/src/google/sheets-client.ts` 實作固定 Google API 端點、field mask、全部分頁的分段讀取及安全錯誤映射，遵守 research.md 的有限退避及未知寫入結果處理邊界，保留可替換的 adapter 供測試。
+- [X] T018 [P] [US1] 依 T015 在 `backend/src/google/guided-notes-parser.ts` 實作表頭、跨列題號、小題標記及合併格辨識，套用 data-model.md 的 Question.id、Question.items、Item.id、Item.target、Target.mergeRange 唯一性及對應規則，回傳明確歧義，完整掃描才產出可確認預覽。
+- [X] T019 [US1] 依 T016–T018 在 `backend/src/activity/source-service.ts` 實作 URL/ID 解析、載入協調、原值保存、來源版本及確認；依 data-model.md 的 Source.loadState、Source.mappingVersion、Source.confirmed、Activity.source 在非同步回覆時重新驗證版本和階段。
+- [X] T020 [US1] 在 `backend/src/http/google-routes.ts`、`backend/src/http/activity-routes.ts`、`backend/src/http/source-routes.ts` 串接 T012 的全部端點，建立活動與固定組數，僅允許合法階段操作，將服務接入 T010 的教師 listener。
+- [X] T021 [US1] 在 `frontend/src/teacher/SourcePage.tsx`、`frontend/src/transport/http.ts` 建立授權、組數設定、URL/ID、載入狀態、題目及目標格預覽、確認與修正來源後重讀流程，呈現契約錯誤及輸入限制。
+- [X] T022 [US1] 在 `tests/e2e/source-preview.spec.ts` 驗證教師頁從建立活動到對應確認，含載入中操作、授權失敗、歧義及重試；使用合成 adapter，通過 T012–T014 及本故事測試。
+- [X] T023 [US1] 依 `specs/001-classroom-sheets-buzzer/quickstart.md` 的來源讀取情境完成真實 URL 與 ID 的獨立驗收，核對兩份線上教材完整對應，在同檔記錄不含機密的指令、日期與結果，覆蓋 FR-003、FR-004 與 SC-002。
 
 **Checkpoint**: 老師可獨立完成授權、動態讀題與確認，具備第一個可展示增量。
 

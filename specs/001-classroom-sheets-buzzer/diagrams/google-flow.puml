@@ -13,6 +13,9 @@ S -> S : validate teacher session + state
 S -> G : exchange code (web application client)
 G --> S : tokens
 S -> S : tokens in memory only
+S --> B : redirect to clean teacher URL
+B -> S : GET authorization status
+S --> B : authorized / safe error (no tokens)
 T -> S : spreadsheet URL or ID
 S -> G : read cell values, merges, sheet metadata
 G --> S : source grid

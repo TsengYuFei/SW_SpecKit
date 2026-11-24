@@ -124,3 +124,13 @@ AI 文件須由人工依實作與測試核對，確認原理與操作均相符�
 ## Phase 2 執行結果
 
 2026-11-24 完成 T006–T011。typecheck、lint、format:check、build 通過；test:unit 12 項、test:contract 2 項、test:integration 4 項、test:e2e 1 項全部通過。HTTP 與 Socket.IO 測試需允許 localhost 連線；Playwright 使用本機 Edge 無頭瀏覽器。已驗證正式建置的老師及學生入口。
+
+## Phase 3 自動驗證與待驗項目
+
+2026-11-24 完成 T012–T022 的程式與自動測試，包含 Google 授權狀態、分段讀取、單題與題組對應、來源確認及教師重新整理恢復。typecheck、lint、format:check、build 通過；test:unit 26 項、test:contract 4 項、test:integration 8 項、test:e2e 2 項全部通過。Google 遠端操作均使用合成 adapter 或 SDK mock，自動測試不是實際授權與真實教材驗收。
+
+## Phase 3 真實教材驗收
+
+2026-11-24 已重用使用者現有授權，透過 Chrome 的老師頁實際重新讀取兩份線上 Google Sheets，並各完成對應確認。教材「搶答系統_題目_1」以完整 URL 讀取，辨識 4 題（2 題題組、2 題單題），共 6 個作答項目，目標為 H5、H6、H8、H9、G11、G13。教材「搶答系統_題目_2」以純 Spreadsheet ID 讀取，辨識 6 個單題，目標為 G5、G7、G9、G11、G13、G15。所有題幹及目標均逐一對照原線上試算表版面，相符且確認成功。全程直接網路讀取。
+
+T023 完成。兩份真實教材分頁名稱均為「學習單」，不同分頁名稱與跨分頁情境已由合成 fixture 測試覆蓋，本次真實教材未覆蓋這兩項變體。Google 相關機密值未寫入驗收紀錄。

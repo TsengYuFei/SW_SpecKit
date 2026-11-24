@@ -3,15 +3,19 @@ import { createStore } from './activity/store.js';
 import { createSessions } from './security/sessions.js';
 import { createListener } from './server.js';
 import { createLogger } from './security/logger.js';
+import { createSourceModule } from './source-module.js';
 
 const config = readConfig();
 const store = createStore(config.MAX_GROUPS);
 const sessions = createSessions();
+const source = createSourceModule(config, store);
 const teacher = createListener('teacher', store, sessions, config, {
   publicOrigin: `http://127.0.0.1:${config.TEACHER_PORT}`,
+  registerRoutes: source.registerRoutes,
 });
 const student = createListener('student', store, sessions, config, {
   publicOrigin: config.STUDENT_PUBLIC_ORIGIN,
+  registerRoutes: source.registerRoutes,
 });
 const log = createLogger();
 for (const listener of [teacher, student]) {

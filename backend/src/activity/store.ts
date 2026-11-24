@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { groupCountSchema, type Phase } from '@classroom/shared/schemas/common';
 import { AppError } from '../security/safe-errors.js';
+import type { Question, Source } from '@classroom/shared/schemas/source';
 
 export interface Group {
   id: string;
@@ -20,8 +21,8 @@ export interface Activity {
   phase: Phase;
   revision: number;
   groupCount: number;
-  source: unknown;
-  questions: unknown[];
+  source: Source | null;
+  questions: Question[];
   groups: Map<string, Group>;
   submissions: Map<string, unknown>;
   nextSequence: number;

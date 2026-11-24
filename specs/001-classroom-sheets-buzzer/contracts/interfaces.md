@@ -27,8 +27,10 @@ HTTP 狀態碼採輸入錯誤 400、未授權 401、越權 403、活動不存在
 | --- | --- | --- | --- |
 | GET /api/session | 各 listener | 無 | 初始化角色 cookie，回公開角色、CSRF token 及 bootId；教師另取得 currentActivityId 或 null |
 | POST /api/google/start | 教師 | CSRF header | 產生一次性 state，回系統瀏覽器使用的授權 URL |
+| GET /api/google/status | 教師 | 無 | 回授權與設定是否存在的布林值及安全錯誤訊息，供乾淨 URL 重新載入後使用 |
 | GET /api/google/callback | loopback | code、state | 換取 token 後導向不帶 query 的教師頁 |
 | POST /api/activities | 教師 | groupCount | 建立新 activityId；既有未結束場次回衝突 |
+| GET /api/activities/:id | 教師 | 無 | 回目前階段、組數及安全來源預覽，供重新整理恢復讀題頁面 |
 | POST /api/activities/:id/source | 教師 | spreadsheetUrlOrId | 教材預覽及 mappingVersion |
 | POST /api/activities/:id/source/confirm | 教師 | mappingVersion | 確認未過期對應 |
 | POST /api/activities/:id/writeback | 教師 | requestId | Ended 才建立操作，回 operationId |
@@ -47,6 +49,9 @@ writing、pending 阻擋新場；verified、conflict、failed 視為已終止，
 上游 404 可能同時表示不存在或不可見，顯示「找不到試算表，或目前帳號無權存取」，
 不得假稱已辨識不可見資源存在。403 提示權限或配額問題，429/5xx 及網路錯誤提供重試。
 讀取最多三次退避，寫入未知結果先 verify，再決定是否重送。
+來源預覽的版本值統一位於 data.source.mappingVersion，沒有重複的頂層版本欄位。
+OAuth callback 成功或失敗均導向不含機密的根路徑，錯誤由教師 status 端點讀取。
+MAX_SOURCE_CELLS 預設為 2000000，超過則回 SOURCE_TOO_LARGE，拒絕整次讀取。
 
 ## Socket.IO
 
