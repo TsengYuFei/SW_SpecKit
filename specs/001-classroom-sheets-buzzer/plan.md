@@ -106,3 +106,5 @@ Phase 1 尚未完成套件安裝、型別、格式、測試環境與建置驗證
 Phase 1 已完成 T001–T005。依賴以鎖定檔重現安裝成功，typecheck、lint、format:check、5 項單元測試及三個 workspace 建置均通過。由 Codex 完成設計與程式差異核對，交付前人工文件核對仍由 T052 追蹤。
 
 Phase 2 已完成 T006–T011。實作兩個 HTTP / Socket.IO listener、角色 session、CSRF、Host / Origin、頻率限制、安全錯誤及記憶體 store。12 項單元、2 項契約、4 項整合及 1 項 Edge 端到端測試通過，型別、lint、格式與正式建置通過。
+
+Phase 3 已完成 T012–T022，自動驗證共 40 項通過，Google 遠端使用 mock。Google-flow 圖已同步授權狀態讀取及乾淨回呼流程，四份 PlantUML 檢查及渲染通過。T023 因本機 OAuth 設定與兩份線上驗收教材尚缺，保留待驗，Phase 3 不合併 main，尚未進入 Phase 4。

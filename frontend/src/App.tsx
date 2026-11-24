@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { SourcePage } from './teacher/SourcePage';
 
 export function App() {
   const [role, setRole] = useState<string>();
   const [error, setError] = useState('');
+  const [teacher, setTeacher] = useState<{ csrfToken: string; currentActivityId: string | null }>();
   useEffect(() => {
     const controller = new AbortController();
     fetch('/api/session', { signal: controller.signal })
@@ -10,6 +12,7 @@ export function App() {
       .then((result) => {
         if (!result.ok) throw new Error(result.error.message);
         setRole(result.data.role);
+        if (result.data.role === 'teacher') setTeacher(result.data);
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted)
@@ -28,6 +31,9 @@ export function App() {
         </p>
       )}
       {role === 'teacher' && <p>服務重啟後，請重新授權並建立活動。</p>}
+      {teacher && (
+        <SourcePage csrfToken={teacher.csrfToken} currentActivityId={teacher.currentActivityId} />
+      )}
     </main>
   );
 }

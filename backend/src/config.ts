@@ -7,6 +7,7 @@ const configSchema = z.object({
   STUDENT_BIND_HOST: z.ipv4().default('127.0.0.1'),
   STUDENT_PUBLIC_ORIGIN: z.url().default('http://127.0.0.1:3001'),
   MAX_GROUPS: z.coerce.number().int().min(1).max(10000).default(100),
+  MAX_SOURCE_CELLS: z.coerce.number().int().min(1).max(10000000).default(2000000),
   GOOGLE_CLIENT_ID: z.string().min(1).optional(),
   GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
   GOOGLE_REDIRECT_URI: z.literal('http://127.0.0.1:3000/api/google/callback').optional(),
