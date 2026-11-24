@@ -35,11 +35,11 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 
 **Purpose**: 完成 Diagram First 審查並建立 TypeScript 開發與驗證環境。
 
-- [ ] T001 核對 `specs/001-classroom-sheets-buzzer/diagrams/architecture.puml`、`lifecycle.puml`、`submission.puml`、`google-flow.puml` 與規格及契約，重現 PlantUML 語法檢查和渲染；由維護者人工審查後，在 `specs/001-classroom-sheets-buzzer/plan.md` 記錄結果，作為後續程式實作的先決條件。
-- [ ] T002 依 T001 建立 npm workspaces，配置 `package.json`、`package-lock.json`、`tsconfig.base.json`、`frontend/package.json`、`backend/package.json`、`shared/package.json` 與各 workspace 的 `tsconfig.json`；依 plan.md 安裝相容套件並鎖版，預先建立 quickstart.md 所列全部 scripts，建立 React/Vite 前端與 Node.js 後端入口。
-- [ ] T003 [P] 依 T002 在 `eslint.config.mjs`、`.prettierrc.json` 配置 strict TypeScript 對應的 lint 及格式規則，驗證既有 typecheck、lint 與 format:check scripts 可檢查三個 workspace。
-- [ ] T004 [P] 依 T002 在 `vitest.config.ts`、`playwright.config.ts`、`tests/helpers/server.ts` 與 `tests/helpers/google-adapter.ts` 建立可控制時序的測試伺服器及 Google adapter，配合 quickstart.md 所列既有測試 scripts，真實授權測試停用敏感追蹤產物。
-- [ ] T005 [P] 依 T002 在 `.gitignore` 與 `backend/src/config.ts` 設定建置產物與機密檔案排除、執行環境驗證、教師與學生 listener 位址、Google 環境變數及可配置資源預算，錯誤訊息僅列設定名稱。
+- [X] T001 核對 `specs/001-classroom-sheets-buzzer/diagrams/architecture.puml`、`lifecycle.puml`、`submission.puml`、`google-flow.puml` 與規格及契約，重現 PlantUML 語法檢查和渲染；完成設計一致性審查後，在 `specs/001-classroom-sheets-buzzer/plan.md` 記錄結果，作為後續程式實作的先決條件；交付前的維護者人工文件核對依 T052 執行。
+- [X] T002 依 T001 建立 npm workspaces，配置 `package.json`、`package-lock.json`、`tsconfig.base.json`、`frontend/package.json`、`backend/package.json`、`shared/package.json` 與各 workspace 的 `tsconfig.json`；依 plan.md 安裝相容套件並鎖版，預先建立 quickstart.md 所列全部 scripts，建立 React/Vite 前端與 Node.js 後端入口。
+- [X] T003 [P] 依 T002 在 `eslint.config.mjs`、`.prettierrc.json` 配置 strict TypeScript 對應的 lint 及格式規則，驗證既有 typecheck、lint 與 format:check scripts 可檢查三個 workspace。
+- [X] T004 [P] 依 T002 在 `vitest.config.ts`、`playwright.config.ts`、`tests/helpers/server.ts` 與 `tests/helpers/google-adapter.ts` 建立可控制時序的測試伺服器及 Google adapter，配合 quickstart.md 所列既有測試 scripts，真實授權測試停用敏感追蹤產物。
+- [X] T005 [P] 依 T002 在 `.gitignore` 與 `backend/src/config.ts` 設定建置產物與機密檔案排除、執行環境驗證、教師與學生 listener 位址、Google 環境變數及可配置資源預算，錯誤訊息僅列設定名稱。
 
 **Checkpoint**: 設計審查結果已記錄，套件與工具可安裝執行，機密值由環境注入。
 
@@ -52,7 +52,7 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 - [ ] T008 [P] 依 Phase 1 在 `backend/src/security/safe-errors.ts`、`backend/src/security/logger.ts` 實作契約的安全錯誤轉換與日誌允許欄位，確保授權 URL、callback query、標頭、本文、cookie 及上游錯誤中的機密值均被排除。
 - [ ] T009 依 T006–T008 在 `backend/src/activity/store.ts` 建立記憶體狀態與新 bootId，實作 data-model.md 的 Activity.source、Activity.questions、Activity.groups、Activity.submissions、Activity.nextSequence、Activity.commandReceipts 及 Activity.id、Activity.bootId、Activity.revision 的生命週期，提供同步命令執行與去重入口，程序重啟使舊活動失效。
 - [ ] T010 依 T009 在 `backend/src/server.ts`、`backend/src/http/session-routes.ts`、`frontend/vite.config.ts`、`frontend/src/App.tsx` 建立同一行程的兩個 listener、GET /api/session、GET /api/health、同源前端資產及學生路由；教師端與學生端共用 store 並隔離操作權限。
-- [ ] T011 在 `tests/contract/session.test.ts`、`tests/integration/server-security.test.ts`、`tests/unit/safe-errors.test.ts` 驗證 session 與 health 正常流程、偽造角色、cookie 屬性、OAuth callback 所需 cookie 行為、CSRF、Origin、超限輸入及合成機密過濾，通過後結束 Phase 2。
+- [ ] T011 在 `tests/contract/session.test.ts`、`tests/integration/server-security.test.ts`、`tests/unit/safe-errors.test.ts` 驗證 session 與 health 正常流程、教師 currentActivityId 與學生欄位隔離、偽造角色、cookie 屬性、OAuth callback 所需 cookie 行為、CSRF、Origin、超限輸入及合成機密過濾，通過後結束 Phase 2。
 
 **Checkpoint**: 兩個 listener 可用，共用記憶體與安全邊界通過測試。
 
@@ -108,8 +108,8 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 - [ ] T034 [P] [US2] 依 T033 在 `frontend/src/student/GroupPage.tsx` 實作免登入選組、占用提示、組名及固定編號、原瀏覽器重新加入，失去原身分時顯示拒絕接管的原因。
 - [ ] T035 [P] [US2] 依 T033 在 `frontend/src/student/AnswerPage.tsx` 建立單題與題組表單、完整性檢查、階段鎖定及自組受理提示，呈現 data-model.md 的 Submission.answers 限制，題組一次提交所有小題。
 - [ ] T036 [P] [US2] 依 T033 在 `frontend/src/teacher/ActivityPage.tsx` 建立學生加入連結、開始與結束控制、組別進度及暫定成功組畫面，狀態與按鈕依目前階段及來源確認結果更新。
-- [ ] T037 [US2] 在 `frontend/src/App.tsx` 與 `frontend/src/components/ConnectionStatus.tsx` 串接來源頁、老師控制頁及學生選組作答頁，顯示中斷、舊活動不可用及老師重啟後重建活動提示。
-- [ ] T038 [US2] 在 `tests/e2e/classroom-activity.spec.ts` 驗證兩組完整流程、併發占用、多分頁、清除 cookie、2 秒同步、封包隱私及程序重啟，通過 T024–T026 與本故事測試，覆蓋 FR-001、FR-002、FR-005–FR-008、FR-013、FR-014 及 SC-003、SC-004、SC-006、SC-007。
+- [ ] T037 [US2] 在 `frontend/src/App.tsx` 與 `frontend/src/components/ConnectionStatus.tsx` 串接來源頁、老師控制頁及學生選組作答頁，教師重新整理時由 session 的 currentActivityId 恢復訂閱，顯示中斷、舊活動不可用及老師重啟後重建活動提示。
+- [ ] T038 [US2] 在 `tests/e2e/classroom-activity.spec.ts` 驗證兩組完整流程、教師重新整理後恢復控制、併發占用、多分頁、清除 cookie、2 秒同步、封包隱私及程序重啟，通過 T024–T026 與本故事測試，覆蓋 FR-001、FR-002、FR-005–FR-008、FR-013、FR-014 及 SC-003、SC-004、SC-006、SC-007。
 
 **Checkpoint**: 可獨立驗證一位老師與兩組學生的完整搶答活動；結果回寫由 US3 交付。
 
@@ -123,7 +123,7 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 ### Tests for User Story 3
 
 - [ ] T039 [P] [US3] 在 `tests/contract/writeback-http.test.ts` 編寫 POST /api/activities/:id/writeback、GET /api/activities/:id/writeback/:op、POST /api/activities/:id/writeback/:op/verify 及 writeback:status 測試，包含老師權限、階段、去重與狀態回覆。
-- [ ] T040 [P] [US3] 在 `tests/integration/writeback.test.ts` 編寫精確寫入、題組原子性、格式保留、字串答案、來源或合併結構改動、權限撤銷、429/5xx、寫逾時、讀回失敗、verify 三路判定及序列化測試。
+- [ ] T040 [P] [US3] 在 `tests/integration/writeback.test.ts` 編寫精確寫入、題組原子性、格式保留、字串答案、來源或合併結構改動、權限撤銷、429/5xx、寫逾時、讀回失敗、verify 三路判定及序列化測試，驗證 writing/pending 阻擋新場而 verified/conflict/failed 允許新場。
 - [ ] T041 [P] [US3] 在 `tests/unit/results.test.ts` 編寫 results:published、ended 快照與結果選擇測試，包含無成功組、跨分頁同題號、題組共同成功組及中斷活動拒絕公布。
 
 ### Implementation for User Story 3
@@ -242,3 +242,24 @@ Phase 1 → Phase 2 → US1 → US2 → US3 → Phase 6。
 - 不建立資料庫，活動與 Google token 均限單一行程記憶體，程序重啟後重新開場。
 - 所有教材匯入及答案匯出均直接讀寫線上 Google Sheets。
 - 完成任務或邏輯批次後檢查差異與測試結果，再更新對應核取方塊。
+
+## Phase 7: Convergence
+
+2026-11-24 收斂評估結果為 tasks_appended。原 T001–T052 已逐項檢查，目前只有規格與設計文件，
+尚無應用程式、套件設定或測試程式。以下 F1–F8 依現況分組記錄剩餘工作。
+CRITICAL 表示缺少 P1 基線功能；本次沒有已實作程式違反憲章的證據。
+
+**Execution**：先依原 Phase 1–6 的相依順序完成尚未完成的任務。維持每個 Phase 使用新分支、
+階段測試全部通過後才合併 main 及進入下一階段的既定流程。T001 仍為原實作前置條件。
+Phase 7 在原階段完成後使用新的 Phase 分支，逐一複核並補齊當時仍缺少的部分。
+原階段已完成的功能以測試確認，避免重複建立。既有編號、次序及核取狀態均保留。
+所有原資料模型欄位引用、機密限制及正常與特殊情境測試要求持續適用。
+
+- [ ] T053 CRITICAL 補齊並驗證原 T002–T005 的 TypeScript npm workspaces、套件鎖版、前後端入口、工具與設定，完成 `package.json`、`package-lock.json`、`tsconfig.base.json`、`frontend/package.json`、`backend/package.json`、`shared/package.json`、`eslint.config.mjs`、`.prettierrc.json`、`.gitignore`、`vitest.config.ts`、`playwright.config.ts`、`backend/src/config.ts` 與 `tests/helpers/` 所列工作；依 T001 完成後才開始程式實作 per F1、T002–T005、plan: Technical Context / Project Structure (missing)
+- [ ] T054 CRITICAL 補齊並驗證原 T006–T011 的 `shared/src/schemas/common.ts`、`shared/src/events/envelope.ts`、`backend/src/security/`、`backend/src/activity/store.ts`、`backend/src/server.ts`、`backend/src/http/session-routes.ts`、`frontend/src/App.tsx` 及對應測試，落實原欄位約束、單一行程記憶體、角色入口、安全錯誤、教師活動恢復及重啟失效 per F2、T006–T011、FR-001、FR-002、FR-011、FR-012、FR-014、plan: Storage (missing)
+- [ ] T055 CRITICAL 補齊並驗證原 T012–T023 的 `shared/src/schemas/source.ts`、`backend/src/google/oauth.ts`、`backend/src/google/sheets-client.ts`、`backend/src/google/guided-notes-parser.ts`、`backend/src/activity/source-service.ts`、`backend/src/http/` 來源與授權路由、`frontend/src/teacher/SourcePage.tsx`、`frontend/src/transport/http.ts` 及對應測試，完成 URL/ID 線上授權、全部分頁單題與題組辨識、對應確認及錯誤處理，取得兩份真實教材的比對結果 per F3、T012–T023、FR-003、FR-004、FR-011、US1/AC1–AC3、SC-002 (missing)
+- [ ] T056 CRITICAL 補齊並驗證原 T024–T038 的 `shared/src/schemas/activity.ts`、`shared/src/projections/activity.ts`、`backend/src/activity/` reducers、`backend/src/sockets/activity-handlers.ts`、`frontend/src/transport/socket.ts`、`frontend/src/student/`、`frontend/src/teacher/ActivityPage.tsx`、`frontend/src/components/ConnectionStatus.tsx` 及對應測試，完成匿名選組、唯一綁定、完整題組提交、共同排序、私密同步與重連，驗證雙組併發、2 秒同步及活動重啟 per F4、T024–T038、FR-005–FR-008、FR-013、FR-014、US2/AC1–AC10、SC-003、SC-004、SC-006、SC-007 (missing)
+- [ ] T057 CRITICAL 補齊並驗證原 T039–T048 的 `shared/src/schemas/writeback.ts`、`backend/src/activity/results.ts`、`backend/src/google/writeback-service.ts`、`backend/src/http/writeback-routes.ts`、`frontend/src/components/ResultsView.tsx`、`frontend/src/student/ResultsPage.tsx`、`frontend/src/teacher/WritebackPanel.tsx` 及對應測試，完成結果公布、原線上教材逐小題回寫、來源預檢、題組原子更新、讀回確認與 pending 查核，遵循現有終止狀態及新場限制 per F5、T039–T048、FR-009–FR-011、US3/AC1–AC3、SC-005 (missing)
+- [ ] T058 HIGH 完成原 T049–T050 的全套型別、lint、格式、單元、整合、契約、e2e、建置及正式啟動驗證，補齊 `tests/integration/secret-exposure.test.ts` 的合成機密測試，依原 T050 執行安全檢查，將指令、工具版本與不含機密的結果記錄於 `specs/001-classroom-sheets-buzzer/quickstart.md` per F6、T049–T050、FR-012、plan: Testing、Constitution II / III / IV / VI (missing)
+- [ ] T059 HIGH 完成原 T051，依 `specs/001-classroom-sheets-buzzer/quickstart.md` 在老師本機與至少兩組學生裝置逐一執行 SC-001–SC-007，記錄真實 Google 授權、URL/ID 讀題、完整作答、結束、結果、原表回寫及重啟的驗收證據，各項只在實際通過後標示完成 per F7、T051、SC-001–SC-007 (missing)
+- [ ] T060 HIGH 完成並核對原 T001、T052 尚缺的設計一致性審查與維護者人工文件一致性核對，在 `specs/001-classroom-sheets-buzzer/plan.md` 記錄真實審查結果，對照 `spec.md`、`tasks.md` 與 `diagrams/*.puml` 重新渲染及確認差異；T001 必須在原 T002 開始前完成，不得以本任務位置延後原前置條件 per F8、T001、T052、plan: Phase Execution Record、Constitution I / V (partial)

@@ -48,5 +48,6 @@ note over S,R
 No await between validation and mutation.
 Socket timeout does not imply rejection.
 Reconnect requests role-filtered snapshot.
+Teacher reload gets currentActivityId from session.
 end note
 @enduml

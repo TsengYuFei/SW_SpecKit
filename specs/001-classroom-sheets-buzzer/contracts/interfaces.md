@@ -25,7 +25,7 @@ HTTP 狀態碼採輸入錯誤 400、未授權 401、越權 403、活動不存在
 
 | Method/path | 身分 | 輸入 | 成功結果 |
 | --- | --- | --- | --- |
-| GET /api/session | 各 listener | 無 | 初始化角色 cookie，回公開角色、CSRF token 及 bootId |
+| GET /api/session | 各 listener | 無 | 初始化角色 cookie，回公開角色、CSRF token 及 bootId；教師另取得 currentActivityId 或 null |
 | POST /api/google/start | 教師 | CSRF header | 產生一次性 state，回系統瀏覽器使用的授權 URL |
 | GET /api/google/callback | loopback | code、state | 換取 token 後導向不帶 query 的教師頁 |
 | POST /api/activities | 教師 | groupCount | 建立新 activityId；既有未結束場次回衝突 |
@@ -40,6 +40,9 @@ HTTP 狀態碼採輸入錯誤 400、未授權 401、越權 403、活動不存在
 Google URL/ID 只擷取合法 spreadsheetId，伺服端僅向固定 Google API 網域送出請求。
 只在 waiting 讀取及確認來源；重載來源使舊 mappingVersion 失效。
 建立新場只允許目前無場次，或已結束且無未完成回寫。進行中回衝突。
+writing、pending 阻擋新場；verified、conflict、failed 視為已終止，idle 表示未開始回寫。
+只有確定未寫入的失敗可標示 failed。pending 無法查核時保留活動及答案，允許重新授權
+或稍後重試查核，維持阻擋新場。教師重新整理後以 currentActivityId 恢復訂閱與控制。
 授權 URL 僅存在教師瀏覽器短暫導向及後端記憶體，排除測試追蹤與存取日誌。
 上游 404 可能同時表示不存在或不可見，顯示「找不到試算表，或目前帳號無權存取」，
 不得假稱已辨識不可見資源存在。403 提示權限或配額問題，429/5xx 及網路錯誤提供重試。

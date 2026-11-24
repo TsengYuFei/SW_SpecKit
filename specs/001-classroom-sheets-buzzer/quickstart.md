@@ -60,6 +60,7 @@ e2e 使用 Playwright 的獨立瀏覽器 context 表示兩組匿名身分，測�
    用另一單題互換兩組先後順序，保留至少一題無提交供結果檢查。
 6. 在仍進行中的活動重新整理及短暫中斷第一組連線，原瀏覽器可回原組。
    新裝置或清除 cookie 後的身分不能接管原組，老師也無解除綁定操作。
+   老師重新整理頁面後，由 session 的 currentActivityId 恢復活動快照及控制。
 7. 老師結束活動，雙方在 2 秒內看到逐題成功組及答案。題組兩小題共用唯一成功組，
    無人有效提交的題目標示無成功組。結束後的新答案須遭拒絕。
 8. 回寫期間暫停其他人直接編輯來源試算表。老師執行回寫，於原 Google Sheets
@@ -94,6 +95,9 @@ e2e 使用 Playwright 的獨立瀏覽器 context 表示兩組匿名身分，測�
 回寫錯誤測試須覆蓋整題組原子性、序列化操作、舊來源回覆，以及 pending 再核對的三路結果。
 讀回全等預期為 verified；全等原值才可重試；其餘為 conflict，保留公布結果。
 若來源正被他人同時編輯，先檢查再寫仍有競爭空窗，須顯示此操作前提。
+writing 或 pending 狀態須阻擋新場；verified、conflict、failed 為終止狀態，允許新場。
+failed 須能確定未寫入，未知結果維持 pending。查核仍無法連線時保留活動，
+提示重新授權或稍後查核，直到確定結果才解除新場限制。
 
 ## PlantUML 設計檢查
 
@@ -113,3 +117,7 @@ java -jar $env:PLANTUML_JAR -tsvg -charset UTF-8 specs/001-classroom-sheets-buzz
 每次驗收記錄 commit、執行日期、工具版本、指令、退出碼、通過或失敗案例及必要修正。
 SC-001 至 SC-007 須逐項有可重現證據，真實機密與授權過程排除於紀錄之外。
 AI 文件須由人工依實作與測試核對，確認原理與操作均相符後再通過合併審查。
+
+## Phase 1 執行結果
+
+2026-11-24 使用 Node.js 24.22.3、npm 10.9.9。npm ci --ignore-scripts 通過，typecheck、lint、format:check、test:unit（5 項）及 build 全部退出碼為 0。正式課堂與真實 Google 驗收仍待後續階段。

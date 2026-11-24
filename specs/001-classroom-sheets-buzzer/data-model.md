@@ -45,3 +45,10 @@ Writeback 的每題狀態由 idle 到 writing，成功回讀為 verified；未�
 全部仍為 baseline 才允許重新預檢及重送，任何其他或混合結果為 conflict。
 題組任何小題預檢衝突則整題組停止回寫。禁止依內容相符推論原 Google 請求一定成功，
 verified 僅表示最新讀回內容已符合公布答案。每個題組的所有更新置於同一原子批次。
+
+writing、pending 為未完成回寫，須阻止取代目前活動；verified、conflict、failed 為終止狀態。
+failed 僅適用可確定未寫入的失敗，未知結果仍為 pending。pending 查核仍失敗時保留原狀態
+並允許重新授權或稍後查核，查核完成前持續阻止建立新活動。idle 表示尚未發起寫入。
+
+教師重新整理頁面時，GET /api/session 由目前記憶體 store 導出 currentActivityId，
+前端使用該 id 重新 subscribe。學生端不取得此欄位，仍以加入連結中的活動 id 訂閱。
