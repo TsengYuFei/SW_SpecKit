@@ -1,6 +1,7 @@
 import type { Group, SelfReceipt, Submission } from '../schemas/activity.js';
 import type { Phase, Role } from '../schemas/common.js';
 import type { Question } from '../schemas/source.js';
+import type { Writeback } from '../schemas/writeback.js';
 
 export interface PublicGroup {
   id: string;
@@ -31,6 +32,7 @@ export interface ActivitySnapshot {
   submissions?: Submission[];
   tentativeResults?: Result[];
   sourceReady?: boolean;
+  writebacks?: Writeback[];
 }
 interface Projectable {
   id: string;
@@ -41,6 +43,8 @@ interface Projectable {
   groups: Map<string, Group>;
   submissions: Map<string, Submission>;
   source: { confirmed: boolean; loadState: string } | null;
+  finalResults?: Result[] | null;
+  writebacks?: Map<string, Writeback>;
 }
 export function selectResults(activity: Projectable): Result[] {
   return activity.questions.map((question) => {
@@ -85,7 +89,8 @@ export function projectActivity(
         .map(receiptFor),
     },
   };
-  if (activity.phase === 'ended') snapshot.results = selectResults(activity);
+  if (activity.phase === 'ended' && activity.finalResults)
+    snapshot.results = structuredClone(activity.finalResults);
   if (session.role === 'teacher') {
     snapshot.submissions = [...activity.submissions.values()].map((s) => ({
       ...s,
@@ -93,6 +98,9 @@ export function projectActivity(
     }));
     snapshot.tentativeResults = selectResults(activity);
     snapshot.sourceReady = activity.source?.loadState === 'ready' && activity.source.confirmed;
+    snapshot.writebacks = [...(activity.writebacks?.values() ?? [])].map((op) =>
+      structuredClone(op),
+    );
   }
   return snapshot;
 }

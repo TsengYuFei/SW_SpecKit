@@ -35,7 +35,7 @@ HTTP 狀態碼採輸入錯誤 400、未授權 401、越權 403、活動不存在
 | POST /api/activities/:id/source/confirm | 教師 | mappingVersion | 確認未過期對應 |
 | POST /api/activities/:id/writeback | 教師 | requestId | Ended 才建立操作，回 operationId |
 | GET /api/activities/:id/writeback/:op | 教師 | 無 | 各目標確認、待確認或錯誤 |
-| POST /api/activities/:id/writeback/:op/verify | 教師 | 無 | 重新讀取，再判定 verified/conflict/retryable |
+| POST /api/activities/:id/writeback/:op/verify | 教師 | 空物件 | 查核待確認操作；全部仍為原值且結構未變時，安全重送一次並讀回 |
 | GET /api/health | 兩者 | 無 | bootId 與服務可用狀態 |
 
 回寫操作同一活動最多一個執行中，重複 requestId 回同一 operation。
@@ -49,6 +49,9 @@ writing、pending 阻擋新場；verified、conflict、failed 視為已終止，
 上游 404 可能同時表示不存在或不可見，顯示「找不到試算表，或目前帳號無權存取」，
 不得假稱已辨識不可見資源存在。403 提示權限或配額問題，429/5xx 及網路錯誤提供重試。
 讀取最多三次退避，寫入未知結果先 verify，再決定是否重送。
+「查核並安全重試」只處理 pending 題目：最新內容全等於成功答案則 verified，
+全等於 baseline 且題目與合併格結構未變才重送該題一次，混合或其他值為 conflict。
+查核失敗仍保留 pending；不在背景盲目重送未知寫入。
 來源預覽的版本值統一位於 data.source.mappingVersion，沒有重複的頂層版本欄位。
 OAuth callback 成功或失敗均導向不含機密的根路徑，錯誤由教師 status 端點讀取。
 MAX_SOURCE_CELLS 預設為 2000000，超過則回 SOURCE_TOO_LARGE，拒絕整次讀取。

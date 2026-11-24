@@ -122,19 +122,19 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 
 ### Tests for User Story 3
 
-- [ ] T039 [P] [US3] 在 `tests/contract/writeback-http.test.ts` 編寫 POST /api/activities/:id/writeback、GET /api/activities/:id/writeback/:op、POST /api/activities/:id/writeback/:op/verify 及 writeback:status 測試，包含老師權限、階段、去重與狀態回覆。
-- [ ] T040 [P] [US3] 在 `tests/integration/writeback.test.ts` 編寫精確寫入、題組原子性、格式保留、字串答案、來源或合併結構改動、權限撤銷、429/5xx、寫逾時、讀回失敗、verify 三路判定及序列化測試，驗證 writing/pending 阻擋新場而 verified/conflict/failed 允許新場。
-- [ ] T041 [P] [US3] 在 `tests/unit/results.test.ts` 編寫 results:published、ended 快照與結果選擇測試，包含無成功組、跨分頁同題號、題組共同成功組及中斷活動拒絕公布。
+- [X] T039 [P] [US3] 在 `tests/contract/writeback-http.test.ts` 編寫 POST /api/activities/:id/writeback、GET /api/activities/:id/writeback/:op、POST /api/activities/:id/writeback/:op/verify 及 writeback:status 測試，包含老師權限、階段、去重與狀態回覆。
+- [X] T040 [P] [US3] 在 `tests/integration/writeback.test.ts` 編寫精確寫入、題組原子性、格式保留、字串答案、來源或合併結構改動、權限撤銷、429/5xx、寫逾時、讀回失敗、verify 三路判定及序列化測試，驗證 writing/pending 阻擋新場而 verified/conflict/failed 允許新場。
+- [X] T041 [P] [US3] 在 `tests/unit/results.test.ts` 編寫 results:published、ended 快照與結果選擇測試，包含無成功組、跨分頁同題號、題組共同成功組及中斷活動拒絕公布。
 
 ### Implementation for User Story 3
 
-- [ ] T042 [US3] 在 `shared/src/schemas/writeback.ts` 定義 data-model.md 的 Writeback.operationId、Writeback.questionId、Writeback.itemStatuses、Writeback.expectedAnswers 及其狀態轉換，建立結果與回寫的角色安全 DTO。
-- [ ] T043 [US3] 在 `backend/src/activity/results.ts` 依 data-model.md 的 Activity.phase、Question.items 及 Submission.sequence 產生結束後的固定結果，將公布資料接入 `backend/src/sockets/activity-handlers.ts` 的 results:published 與 ended 快照。
-- [ ] T044 [US3] 在 `backend/src/google/writeback-service.ts` 依 data-model.md 的 Writeback.itemStatuses、Writeback.expectedAnswers、Item.baselineValue、Target.mergeRange、Source.baseline 實作回寫前重新核對、整題組衝突阻擋、每題原子 UpdateCells stringValue 批次、精確目標、讀回確認與 pending 查核後重試，Google 操作須序列化。
-- [ ] T045 [US3] 在 `backend/src/http/writeback-routes.ts` 串接 T039 全部端點，並在 `backend/src/http/activity-routes.ts` 防止未完成回寫時建立新場，依 data-model.md 的 Writeback.operationId 與 Activity.commandReceipts 保證重複請求回同一操作，發送教師專屬回寫狀態。
-- [ ] T046 [P] [US3] 依 T043 在 `frontend/src/components/ResultsView.tsx` 及 `frontend/src/student/ResultsPage.tsx` 顯示題號、成功組、各小題答案及無成功組，與 `frontend/src/App.tsx` 的 ended 路由整合，使用純文字呈現答案。
-- [ ] T047 [P] [US3] 依 T045 在 `frontend/src/teacher/WritebackPanel.tsx` 實作教師結果、回寫、逐題 verified/pending/conflict/failed 狀態、查核及安全重試，顯示回寫時暫停外部編輯的操作前提，整合 `frontend/src/teacher/ActivityPage.tsx`。
-- [ ] T048 [US3] 在 `tests/e2e/results-writeback.spec.ts` 驗證結束後雙方結果、未作答題、逐小題精確回寫、錯誤文案及待確認操作，通過 T039–T041 與本故事測試，覆蓋 FR-009–FR-011 及 SC-005。
+- [X] T042 [US3] 在 `shared/src/schemas/writeback.ts` 定義 data-model.md 的 Writeback.operationId、Writeback.questionId、Writeback.itemStatuses、Writeback.expectedAnswers 及其狀態轉換，建立結果與回寫的角色安全 DTO。
+- [X] T043 [US3] 在 `backend/src/activity/results.ts` 依 data-model.md 的 Activity.phase、Question.items 及 Submission.sequence 產生結束後的固定結果，將公布資料接入 `backend/src/sockets/activity-handlers.ts` 的 results:published 與 ended 快照。
+- [X] T044 [US3] 在 `backend/src/google/writeback-service.ts` 依 data-model.md 的 Writeback.itemStatuses、Writeback.expectedAnswers、Item.baselineValue、Target.mergeRange、Source.baseline 實作回寫前重新核對、整題組衝突阻擋、每題原子 UpdateCells stringValue 批次、精確目標、讀回確認與 pending 查核後重試，Google 操作須序列化。
+- [X] T045 [US3] 在 `backend/src/http/writeback-routes.ts` 串接 T039 全部端點，並在 `backend/src/http/activity-routes.ts` 防止未完成回寫時建立新場，依 data-model.md 的 Writeback.operationId 與 Activity.commandReceipts 保證重複請求回同一操作，發送教師專屬回寫狀態。
+- [X] T046 [P] [US3] 依 T043 在 `frontend/src/components/ResultsView.tsx` 及 `frontend/src/student/ResultsPage.tsx` 顯示題號、成功組、各小題答案及無成功組，與 `frontend/src/App.tsx` 的 ended 路由整合，使用純文字呈現答案。
+- [X] T047 [P] [US3] 依 T045 在 `frontend/src/teacher/WritebackPanel.tsx` 實作教師結果、回寫、逐題 verified/pending/conflict/failed 狀態、查核及安全重試，顯示回寫時暫停外部編輯的操作前提，整合 `frontend/src/teacher/ActivityPage.tsx`。
+- [X] T048 [US3] 在 `tests/e2e/results-writeback.spec.ts` 驗證結束後雙方結果、未作答題、逐小題精確回寫、錯誤文案及待確認操作，通過 T039–T041 與本故事測試，覆蓋 FR-009–FR-011 及 SC-005。
 
 **Checkpoint**: 三個故事組合後，可從線上授權讀題完成至原教材答案回寫。
 

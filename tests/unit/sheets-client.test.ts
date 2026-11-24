@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from 'vitest';
 import { createGoogleGateway } from '../../backend/src/google/sheets-client.js';
 import { readConfig } from '../../backend/src/config.js';
 
-const rpc = vi.hoisted(() => ({ get: vi.fn(), getByDataFilter: vi.fn() }));
+const rpc = vi.hoisted(() => ({ get: vi.fn(), getByDataFilter: vi.fn(), batchUpdate: vi.fn() }));
 vi.mock('googleapis', () => ({
   google: {
     auth: {
@@ -32,6 +32,31 @@ beforeEach(() => {
       ],
     },
   });
+});
+
+it('writes a complete question using one batch of exact stringValue cells and no format updates', async () => {
+  rpc.batchUpdate.mockResolvedValue({ data: {} });
+  const updates = [1, 2].map((rowIndex) => ({
+    target: { sheetId: 7, rowIndex, columnIndex: 4, mergeRange: null },
+    answer: '=SUM(A1)',
+  }));
+  await createGoogleGateway(readConfig(config)).write('example_sheet', {}, updates);
+  expect(rpc.batchUpdate).toHaveBeenCalledTimes(1);
+  const [params, options] = rpc.batchUpdate.mock.calls[0]!;
+  expect(params.requestBody.requests).toEqual(
+    updates.map(({ target, answer }) => ({
+      updateCells: {
+        start: {
+          sheetId: target.sheetId,
+          rowIndex: target.rowIndex,
+          columnIndex: target.columnIndex,
+        },
+        rows: [{ values: [{ userEnteredValue: { stringValue: answer } }] }],
+        fields: 'userEnteredValue',
+      },
+    })),
+  );
+  expect(options).toMatchObject({ timeout: 15000, retry: false });
 });
 
 it('reads every row chunk using sheet IDs and preserves offsets', async () => {
