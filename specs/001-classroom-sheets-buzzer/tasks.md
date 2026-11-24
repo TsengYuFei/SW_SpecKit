@@ -92,24 +92,24 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 
 ### Tests for User Story 2
 
-- [ ] T024 [P] [US2] 在 `tests/contract/activity-sockets.test.ts` 編寫 activity:subscribe、group:join、group:rename、activity:start、answer:submit、activity:end 及對應 ack/server events 測試，涵蓋權限、過期 activityId、錯誤階段及未知欄位。
-- [ ] T025 [P] [US2] 在 `tests/integration/activity-ordering.test.ts` 編寫兩組併發選組、同時提交、缺小題、重複 requestId、變更 payload、不同 requestId 重答、結束交錯、系統時間回撥、重連及重啟測試，依 submission.puml 與 lifecycle.puml 驗證唯一裁決。
-- [ ] T026 [P] [US2] 在 `tests/unit/activity-projections.test.ts` 編寫老師與學生角色快照及事件資料測試，驗證未結束前無其他組答案、進度或任何收件順位，並測試多分頁共享身分及同 revision 多事件。
+- [X] T024 [P] [US2] 在 `tests/contract/activity-sockets.test.ts` 編寫 activity:subscribe、group:join、group:rename、activity:start、answer:submit、activity:end 及對應 ack/server events 測試，涵蓋權限、過期 activityId、錯誤階段及未知欄位。
+- [X] T025 [P] [US2] 在 `tests/integration/activity-ordering.test.ts` 編寫兩組併發選組、同時提交、缺小題、重複 requestId、變更 payload、不同 requestId 重答、結束交錯、系統時間回撥、重連及重啟測試，依 submission.puml 與 lifecycle.puml 驗證唯一裁決。
+- [X] T026 [P] [US2] 在 `tests/unit/activity-projections.test.ts` 編寫老師與學生角色快照及事件資料測試，驗證未結束前無其他組答案、進度或任何收件順位，並測試多分頁共享身分及同 revision 多事件。
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] 在 `shared/src/schemas/activity.ts` 定義 data-model.md 的 Group.id、Group.ordinal、Group.name、Group.browserSessionId、Submission.id、Submission.requestId、Submission.questionId、Submission.groupId、Submission.answers、Submission.receivedAt、Submission.sequence 的欄位與關聯驗證，學生提交以 session 決定組別。
-- [ ] T028 [US2] 在 `backend/src/activity/group-reducer.ts` 依 data-model.md 的 Group.ordinal、Group.browserSessionId、Group.name 及 BrowserSession.activityId 實作空組原子占用、自組命名、同身分回組及占用至活動結束，禁止解除或轉移綁定。
-- [ ] T029 [US2] 在 `backend/src/activity/submission-reducer.ts` 依 data-model.md 的 Submission.answers、Submission.groupId、Submission.questionId、Submission.receivedAt、Submission.sequence 與 Activity.nextSequence、Activity.commandReceipts 實作完整答案驗證、首次有效提交、收據去重及唯一成功組，臨界區內保持同步。
-- [ ] T030 [US2] 在 `backend/src/activity/lifecycle-reducer.ts` 實作 data-model.md 的 Activity.phase、Activity.revision、Activity.bootId、Activity.id 與 Source.confirmed、Source.loadState 的階段轉換及重啟語意，將開始、提交、結束與選組串入同一收件入口。
-- [ ] T031 [US2] 在 `shared/src/projections/activity.ts` 建立 data-model.md 所述角色投影與單調 Activity.revision，輸出老師全組資訊、學生自組收據及選組占用狀態，排除來源位置、session 識別與 OAuth 資料，結束前不輸出 results。
-- [ ] T032 [US2] 在 `backend/src/sockets/activity-handlers.ts` 串接全部 T024 事件與 reducer，逐次驗證身分、活動和輸入，使用隔離角色房間發送快照、階段、教師進度及個人收據，重連時重新 subscribe。
-- [ ] T033 [US2] 在 `frontend/src/transport/socket.ts` 實作同源連線、requestId 重送、待確認狀態、revision 與 bootId 校正，逾時先查自組狀態，捨棄舊版本但處理同版本不同事件。
-- [ ] T034 [P] [US2] 依 T033 在 `frontend/src/student/GroupPage.tsx` 實作免登入選組、占用提示、組名及固定編號、原瀏覽器重新加入，失去原身分時顯示拒絕接管的原因。
-- [ ] T035 [P] [US2] 依 T033 在 `frontend/src/student/AnswerPage.tsx` 建立單題與題組表單、完整性檢查、階段鎖定及自組受理提示，呈現 data-model.md 的 Submission.answers 限制，題組一次提交所有小題。
-- [ ] T036 [P] [US2] 依 T033 在 `frontend/src/teacher/ActivityPage.tsx` 建立學生加入連結、開始與結束控制、組別進度及暫定成功組畫面，狀態與按鈕依目前階段及來源確認結果更新。
-- [ ] T037 [US2] 在 `frontend/src/App.tsx` 與 `frontend/src/components/ConnectionStatus.tsx` 串接來源頁、老師控制頁及學生選組作答頁，教師重新整理時由 session 的 currentActivityId 恢復訂閱，顯示中斷、舊活動不可用及老師重啟後重建活動提示。
-- [ ] T038 [US2] 在 `tests/e2e/classroom-activity.spec.ts` 驗證兩組完整流程、教師重新整理後恢復控制、併發占用、多分頁、清除 cookie、2 秒同步、封包隱私及程序重啟，通過 T024–T026 與本故事測試，覆蓋 FR-001、FR-002、FR-005–FR-008、FR-013、FR-014 及 SC-003、SC-004、SC-006、SC-007。
+- [X] T027 [US2] 在 `shared/src/schemas/activity.ts` 定義 data-model.md 的 Group.id、Group.ordinal、Group.name、Group.browserSessionId、Submission.id、Submission.requestId、Submission.questionId、Submission.groupId、Submission.answers、Submission.receivedAt、Submission.sequence 的欄位與關聯驗證，學生提交以 session 決定組別。
+- [X] T028 [US2] 在 `backend/src/activity/group-reducer.ts` 依 data-model.md 的 Group.ordinal、Group.browserSessionId、Group.name 及 BrowserSession.activityId 實作空組原子占用、自組命名、同身分回組及占用至活動結束，禁止解除或轉移綁定。
+- [X] T029 [US2] 在 `backend/src/activity/submission-reducer.ts` 依 data-model.md 的 Submission.answers、Submission.groupId、Submission.questionId、Submission.receivedAt、Submission.sequence 與 Activity.nextSequence、Activity.commandReceipts 實作完整答案驗證、首次有效提交、收據去重及唯一成功組，臨界區內保持同步。
+- [X] T030 [US2] 在 `backend/src/activity/lifecycle-reducer.ts` 實作 data-model.md 的 Activity.phase、Activity.revision、Activity.bootId、Activity.id 與 Source.confirmed、Source.loadState 的階段轉換及重啟語意，將開始、提交、結束與選組串入同一收件入口。
+- [X] T031 [US2] 在 `shared/src/projections/activity.ts` 建立 data-model.md 所述角色投影與單調 Activity.revision，輸出老師全組資訊、學生自組收據及選組占用狀態，排除來源位置、session 識別與 OAuth 資料，結束前不輸出 results。
+- [X] T032 [US2] 在 `backend/src/sockets/activity-handlers.ts` 串接全部 T024 事件與 reducer，逐次驗證身分、活動和輸入，使用隔離角色房間發送快照、階段、教師進度及個人收據，重連時重新 subscribe。
+- [X] T033 [US2] 在 `frontend/src/transport/socket.ts` 實作同源連線、requestId 重送、待確認狀態、revision 與 bootId 校正，逾時先查自組狀態，捨棄舊版本但處理同版本不同事件。
+- [X] T034 [P] [US2] 依 T033 在 `frontend/src/student/GroupPage.tsx` 實作免登入選組、占用提示、組名及固定編號、原瀏覽器重新加入，失去原身分時顯示拒絕接管的原因。
+- [X] T035 [P] [US2] 依 T033 在 `frontend/src/student/AnswerPage.tsx` 建立單題與題組表單、完整性檢查、階段鎖定及自組受理提示，呈現 data-model.md 的 Submission.answers 限制，題組一次提交所有小題。
+- [X] T036 [P] [US2] 依 T033 在 `frontend/src/teacher/ActivityPage.tsx` 建立學生加入連結、開始與結束控制、組別進度及暫定成功組畫面，狀態與按鈕依目前階段及來源確認結果更新。
+- [X] T037 [US2] 在 `frontend/src/App.tsx` 與 `frontend/src/components/ConnectionStatus.tsx` 串接來源頁、老師控制頁及學生選組作答頁，教師重新整理時由 session 的 currentActivityId 恢復訂閱，顯示中斷、舊活動不可用及老師重啟後重建活動提示。
+- [X] T038 [US2] 在 `tests/e2e/classroom-activity.spec.ts` 驗證兩組完整流程、教師重新整理後恢復控制、併發占用、多分頁、清除 cookie、2 秒同步、封包隱私及程序重啟，通過 T024–T026 與本故事測試，覆蓋 FR-001、FR-002、FR-005–FR-008、FR-013、FR-014 及 SC-003、SC-004、SC-006、SC-007。
 
 **Checkpoint**: 可獨立驗證一位老師與兩組學生的完整搶答活動；結果回寫由 US3 交付。
 

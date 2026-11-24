@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { sourcePreviewSchema, type SourcePreview } from '@classroom/shared/schemas/source';
 import { http } from '../transport/http';
+import type { Phase } from '@classroom/shared/schemas/common';
 
 function parsePreview(value: unknown): SourcePreview {
   const parsed = sourcePreviewSchema.safeParse(value);
@@ -10,8 +11,10 @@ function parsePreview(value: unknown): SourcePreview {
 interface Props {
   csrfToken: string;
   currentActivityId: string | null;
+  onActivity?: (activityId: string) => void;
+  phase?: Phase;
 }
-export function SourcePage({ csrfToken, currentActivityId }: Props) {
+export function SourcePage({ csrfToken, currentActivityId, onActivity, phase }: Props) {
   const [activity, setActivity] = useState<SourcePreview | null>(null);
   const [groupCount, setGroupCount] = useState(2);
   const [input, setInput] = useState('');
@@ -19,6 +22,9 @@ export function SourcePage({ csrfToken, currentActivityId }: Props) {
   const [error, setError] = useState('');
   const [authorized, setAuthorized] = useState(false);
   const [configured, setConfigured] = useState(true);
+  useEffect(() => {
+    if (activity) onActivity?.(activity.activityId);
+  }, [activity, onActivity]);
   useEffect(() => {
     let active = true;
     async function restore() {
@@ -81,7 +87,7 @@ export function SourcePage({ csrfToken, currentActivityId }: Props) {
       >
         {authorized ? '重新授權 Google' : '授權 Google Sheets'}
       </button>
-      {!activity && (
+      {(!activity || phase === 'ended') && (
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -101,7 +107,7 @@ export function SourcePage({ csrfToken, currentActivityId }: Props) {
               onChange={(event) => setGroupCount(Number(event.target.value))}
             />
           </label>
-          <button disabled={busy}>建立活動</button>
+          <button disabled={busy}>{activity ? '建立下一場活動' : '建立活動'}</button>
         </form>
       )}
       {activity && (
@@ -130,7 +136,9 @@ export function SourcePage({ csrfToken, currentActivityId }: Props) {
                 onChange={(event) => setInput(event.target.value)}
               />
             </label>
-            <button disabled={busy || !authorized}>讀取線上題目</button>
+            <button disabled={busy || !authorized || (phase ?? activity.phase) !== 'waiting'}>
+              讀取線上題目
+            </button>
           </form>
           {source?.loadState === 'ready' && !busy && (
             <>
@@ -154,7 +162,7 @@ export function SourcePage({ csrfToken, currentActivityId }: Props) {
                 </article>
               ))}
               <button
-                disabled={busy || source.confirmed}
+                disabled={busy || source.confirmed || (phase ?? activity.phase) !== 'waiting'}
                 onClick={() =>
                   void perform(async () => {
                     setActivity(

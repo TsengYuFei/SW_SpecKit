@@ -1,14 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { groupCountSchema, type Phase } from '@classroom/shared/schemas/common';
-import { AppError } from '../security/safe-errors.js';
+import { AppError, normalizeError } from '../security/safe-errors.js';
 import type { Question, Source } from '@classroom/shared/schemas/source';
-
-export interface Group {
-  id: string;
-  ordinal: number;
-  name: string;
-  browserSessionId: string | null;
-}
+import type { Group, Submission } from '@classroom/shared/schemas/activity';
+export type { Group } from '@classroom/shared/schemas/activity';
 
 interface Receipt {
   fingerprint: string;
@@ -24,7 +19,7 @@ export interface Activity {
   source: Source | null;
   questions: Question[];
   groups: Map<string, Group>;
-  submissions: Map<string, unknown>;
+  submissions: Map<string, Submission>;
   nextSequence: number;
   commandReceipts: Map<string, Receipt>;
   writebackPending: boolean;
@@ -97,8 +92,9 @@ export function createStore(maxGroups: number) {
       target.commandReceipts.set(key, { fingerprint, result });
       return result;
     } catch (error) {
-      if (error instanceof AppError) target.commandReceipts.set(key, { fingerprint, error });
-      throw error;
+      const normalized = normalizeError(error);
+      target.commandReceipts.set(key, { fingerprint, error: normalized });
+      throw normalized;
     }
   }
   return {
