@@ -13,7 +13,7 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 確認其因功能尚未實作而失敗，再完成實作並通過測試。真實 Google 驗收另行執行。
 
 **Organization**: 三個使用者故事皆為 P1，依教材連線、課堂活動、公布與回寫的順序交付。
-本清單描述預定工作，所有核取方塊保留未完成。
+本清單依實際實作與驗收更新核取狀態，尚未完成的真實驗收與人工核對維持未勾選。
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -142,8 +142,8 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 
 **Purpose**: 完成全套測試、真實互通及 AI 文件的人工一致性審查。
 
-- [ ] T049 依 `specs/001-classroom-sheets-buzzer/quickstart.md` 執行 npm ci、typecheck、lint、format:check、unit、integration、contract、e2e 及 build/start，修復失敗後在同檔記錄指令、工具版本與結果，確認正式啟動是一個 Node.js 行程。
-- [ ] T050 依故事階段完成結果，在 `tests/integration/secret-exposure.test.ts` 使用合成敏感值檢查 HTTP、Socket.IO、Google error、日誌及測試產物，並檢查 `.gitignore`、待提交內容與 Git 歷史，記錄安全檢查結論至 `specs/001-classroom-sheets-buzzer/quickstart.md`，排除真實機密值，覆蓋 FR-012。
+- [X] T049 依 `specs/001-classroom-sheets-buzzer/quickstart.md` 執行 npm ci、typecheck、lint、format:check、unit、integration、contract、e2e 及 build/start，修復失敗後在同檔記錄指令、工具版本與結果，確認正式啟動是一個 Node.js 行程。
+- [X] T050 依故事階段完成結果，在 `tests/integration/secret-exposure.test.ts` 使用合成敏感值檢查 HTTP、Socket.IO、Google error、日誌及測試產物，並檢查 `.gitignore`、待提交內容與 Git 歷史，記錄安全檢查結論至 `specs/001-classroom-sheets-buzzer/quickstart.md`，排除真實機密值，覆蓋 FR-012。
 - [ ] T051 依 `specs/001-classroom-sheets-buzzer/quickstart.md` 在真實本機與兩個學生裝置執行全部線上端到端情境，涵蓋兩份不同教材、2 秒同步、Google 原表回寫、零中介檔案與電腦重啟，逐一記錄 SC-001–SC-007 的結果及 Google 未確認寫入狀態。
 - [ ] T052 依實際程式、設定與測試，由維護者人工核對 `specs/001-classroom-sheets-buzzer/spec.md`、`plan.md`、`research.md`、`data-model.md`、`contracts/interfaces.md`、`quickstart.md` 及 `diagrams/*.puml`，同步修正差異並重新渲染圖，在 plan.md 記錄最終憲章符合性與人工文件審查結果。
 
@@ -237,7 +237,7 @@ Phase 1 → Phase 2 → US1 → US2 → US3 → Phase 6。
 
 ## Notes
 
-- 本次只產生 tasks.md，核取方塊代表尚待執行的實作與驗收。
+- 本清單初始由任務階段產生，目前核取方塊反映已完成及尚待執行的實作與驗收。
 - 每項任務實作時都須檢查正常及適用特殊情況。測試、日誌與審查紀錄均遵守機密要求。
 - 不建立資料庫，活動與 Google token 均限單一行程記憶體，程序重啟後重新開場。
 - 所有教材匯入及答案匯出均直接讀寫線上 Google Sheets。

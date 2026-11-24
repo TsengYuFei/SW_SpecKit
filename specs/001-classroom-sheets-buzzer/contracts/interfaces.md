@@ -1,6 +1,6 @@
 # HTTP 與 Socket.IO 契約
 
-本文件為預定實作契約。shared 型別及 Zod runtime schema 皆從此設計落實。
+本文件記錄 Phase 1–5 已實作的契約，真實驗收狀態見 quickstart.md；維護者人工核對仍待完成。
 
 ## 傳輸與權限
 
@@ -12,8 +12,9 @@
 HTTP mutation 採 session 綁定 CSRF token，Socket handshake 驗證 cookie 與 Origin。
 Cookie 分別命名 teacher_session、student_session，均設 HttpOnly、Path=/，不設 Domain。
 teacher_session 採 SameSite=Lax，讓 Google 頂層 GET callback 可帶回 session 並驗證 state；
-student_session 採 SameSite=Strict。HTTPS 時加 Secure。教師身分僅由 loopback listener 發行。
-LAN HTTP 僅適用可信課堂網路，需保密傳輸時以本機 HTTPS 憑證啟動，不傳 Google token 至學生端。
+student_session 採 SameSite=Strict。教師身分僅由 loopback listener 發行。
+目前只支援 HTTP，限可信課堂網路，不傳 Google token 至學生端。HTTPS 與 Secure cookie
+屬未實作的後續部署能力，不能以目前設定啟用。
 
 所有 JSON 回應及 ack 統一為 {ok:true,data,revision} 或
 {ok:false,error:{code,message,retryable},revision}。message 不含原始上游錯誤或機密。
@@ -64,7 +65,7 @@ requestId 為每個邏輯命令的 UUID，重送沿用，修正無效輸入則�
 
 | 事件 | 角色 | 其他 payload | 效果 |
 | --- | --- | --- | --- |
-| activity:subscribe | 已建立 session | 無 | 加入該角色房間並回完整投影 |
+| activity:subscribe | 已建立 session | 無 | 建立該活動的角色與 session 訂閱，回完整投影 |
 | group:join | 學生 | groupId | 原子占用，原 session 可回原組 |
 | group:rename | 已加入學生 | name | 更改自組名稱 |
 | activity:start | 教師 | 無 | waiting 且 mapping confirmed 才開始 |
@@ -84,13 +85,15 @@ Google 操作依活動序列化，避免重複按鈕產生並行寫入。
 
 - StudentSnapshot 含 activityId、bootId、revision、phase、questions（題號、類型、小題內容）、
   groups（id、編號、名稱、是否占用）、self（自組 id 與提交收據）。結束後才增加 results。
-- TeacherSnapshot 另含來源對應預覽、全組提交、共同收件時間與 sequence、暫定結果及回寫狀態。
+- TeacherSnapshot 另含來源是否已確認、全組提交、共同收件時間與 sequence、暫定結果及回寫狀態。
+  來源對應預覽由教師專屬 GET /api/activities/:id 提供。
 - Result 含 questionId、題號、winnerGroup（編號及名稱或 null）、answers（itemId 對應文字）。
 - activity:phase 含 phase；teacher:progress 含全組提交與結果；self:receipt 含原收據。
   這些事件及快照全部帶 activityId、revision。相同 revision 的不同事件仍須處理，
   只丟棄較舊 revision。最終狀態以 subscribe 的完整快照校正。
 - 題目 target、原值、spreadsheetId、cookie、CSRF、OAuth 資料不進學生快照或廣播。
-  占用狀態只用於選組，不能附帶作答進度。伺服端先產生角色 DTO，再送至獨立房間。
+  占用狀態只用於選組，不能附帶作答進度。伺服端先產生角色 DTO，再逐一送至符合活動、
+  角色與 session 的訂閱 socket；兩個 listener 共用訂閱表，不使用全體廣播。
 - 所有文字以純文字呈現；答案以字串寫入 Google，包含以等號開頭的答案也不執行公式。
 - 日誌只保留錯誤碼、事件名稱、耗時等允許欄位。禁止原樣記錄 header、cookie、payload、
   callback query、授權 URL 或 Google SDK error。測試使用合成機密驗證過濾，真實 OAuth

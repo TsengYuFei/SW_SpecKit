@@ -61,7 +61,7 @@ specs/001-classroom-sheets-buzzer/
 
 ### Source Code (repository root)
 
-以下為預定目錄，由實作階段建立。
+以下目錄已於 Phase 1–5 建立，細項依實際模組與測試擴充。
 
 ```text
 frontend/src/ (teacher, student, components, transport)
@@ -114,3 +114,14 @@ Phase 3 的 T023 已於 2026-11-24 透過原老師頁真實重測通過，完整
 Phase 4 已完成 T024–T038，52 項累計自動測試及靜態與建置檢查通過。角色投影先於傳送產生，兩個 listener 共用逐 socket 的活動與 session 訂閱表，達成原設計的角色隔離；未使用全體廣播。學生只取得自組受理收據；結束後才取得成功答案。已核對 submission/lifecycle 圖，沒有流程變更。
 
 Phase 5 已完成 T039–T048，62 項累計自動測試通過。Google-flow 圖與契約明確記錄「查核並安全重試」的三路判斷，已重新檢查與渲染。寫入未知結果不自動重送，老師明確查核且原值與結構均未改時才重送一次。Phase 5 以合成 adapter 驗證，真實互通由 Phase 6 驗收。
+
+Phase 6 位於 codex/phase-6-validation。T049、T050 已完成，63 項自動測試、重新安裝、
+靜態檢查、建置、單一應用行程、產物與 Git 憑證格式檢查通過。第一份真實 Google 全流程
+及回寫讀回已通過；第二份以 ID 讀入並由兩個匿名 API 用戶完成活動，回寫仍待使用者操作。
+實體 LAN 裝置、異名分頁及整機重啟尚未完成，不將自動測試或 API 用戶視為實體驗收。
+T051、T052 維持未勾選，Phase 6 不合併 main，也不進入 Phase 7。
+
+文件已完成 AI 對實作、測試與真實畫面的交叉核對，修正來源預覽採教師 HTTP、
+逐 socket 訂閱隔離、Writeback 巢狀結構、HTTP-only 能力與 E2E 先建置等差異。
+目前沒有未填寫的文件範本欄位；tasks.md 的 ID/P/Story 是已說明的任務語法，
+不是待填內容。維護者人工審查尚未發生，依憲章 V 與 T052 保留待審。

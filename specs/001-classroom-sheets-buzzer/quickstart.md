@@ -1,7 +1,7 @@
 # Quickstart validation guide
 
-本文件記錄各階段的啟動與驗收。Phase 1–2 已建立工具與本機服務，完整課堂功能依後續階段交付。
-PlantUML 設計圖已在規劃階段實際渲染；尚待維護者人工審查。
+本文件記錄啟動方式與各階段驗收。Phase 1–5 已實作並合併 main；Phase 6 的真實驗收與
+維護者文件核對尚未全部完成。各項實際證據與限制記於後文，不以自動測試替代實體驗收。
 
 ## 前置條件
 
@@ -16,11 +16,12 @@ PlantUML 設計圖已在規劃階段實際渲染；尚待維護者人工審查�
   配置值的操作須避開 shell history、終端輸出、Git、截圖及 AI 對話。
 - 設定 STUDENT_BIND_HOST 與 STUDENT_PUBLIC_ORIGIN，例如老師的 LAN 位址及 3001 連接埠。
   學生需通過 Windows 防火牆允許的私人網路連線。教師 3000 埠只綁定 loopback。
-- 預設 LAN HTTP 的適用環境為可信課堂網路。需要加密時設定本機 HTTPS 與對應來源。
+- 目前服務只支援 HTTP，學生 listener 預設僅綁定 127.0.0.1；課堂 LAN 須明確配置
+  STUDENT_BIND_HOST 與 STUDENT_PUBLIC_ORIGIN，並限於可信課堂網路。HTTPS 尚未實作。
 
 ## 啟動與自動驗證
 
-在儲存庫根目錄執行以下預定指令。依序通過型別、格式、測試及建置後啟動。
+在儲存庫根目錄執行以下指令。依序通過型別、格式、測試及建置後啟動。
 
 ```powershell
 npm ci
@@ -39,6 +40,8 @@ unit 使用 Vitest 驗證教材辨識、狀態裁決、投影與機密過濾。
 integration 使用 Socket.IO client 與可控制的 Google adapter 驗證順序、重試及錯誤。
 contract 檢查 shared schemas、HTTP 和 Socket.IO 的輸入輸出及越權拒絕。
 e2e 使用 Playwright 的獨立瀏覽器 context 表示兩組匿名身分，測試完整課堂流程。
+`test:e2e` 會先重新建置，再啟動 3010/3011 的測試服務及臨時 listener，不占用老師的
+3000/3001。測試以 Edge channel 執行，需已安裝 Microsoft Edge，並停用 trace、截圖及錄影。
 上述自動測試使用合成資料與 Google adapter，真實 Google 互通另依下一節驗收。
 
 預期各測試退出碼皆為 0。建置後 npm start 以單一 Node.js 行程啟動兩個 listener，
@@ -146,3 +149,87 @@ T023 完成。兩份真實教材分頁名稱均為「學習單」，不同分頁
 2026-11-24 完成 T039–T048。`npm run typecheck`、`npm run lint`、`npm run format:check`、`npm run build` 通過。`npm run test:unit` 31 項、`npm run test:integration` 19 項、`npm run test:contract` 7 項、`npm run test:e2e` 5 項全部通過。四份 PlantUML 語法檢查及 SVG 渲染通過。
 
 老師及學生在 ended 取得同一份凍結結果，含無成功組。回寫使用每題一個原子 batch，精確 UpdateCells、fields=userEnteredValue、stringValue（等號開頭也保持文字），保留非目標格與格式。合成 adapter/SDK mock 已驗證原值、題幹及合併格衝突、寫入拒絕、未知寫入、讀回失敗、查核三路判斷、同 requestId 去重、操作序列化與 pending 阻擋新場；E2E 已驗證重新整理恢復 pending 與查核後 verified。真實 Google 回寫及實體裝置仍待 T051，以上不宣稱是真實 API 寫入結果。
+
+## Phase 6 驗證紀錄（尚未完成整個階段）
+
+2026-11-24 在 codex/phase-6-validation 執行。Node.js 24.22.3、npm 10.9.9、
+TypeScript 5.9.3、Vitest 4.0.13、Playwright 1.56.1。下列指令皆已執行並通過：
+
+| 指令 | 實際結果 |
+| --- | --- |
+| npm ci --ignore-scripts --no-audit --no-fund | 依鎖定檔安裝 387 個套件，退出碼 0 |
+| npm run typecheck | 通過 |
+| npm run lint | 通過 |
+| npm run format:check | 通過；新增機密測試的格式問題已修正後重跑 |
+| npm run test:unit | 31 項通過 |
+| npm run test:integration | 20 項通過，含 secret-exposure.test.ts |
+| npm run test:contract | 7 項通過 |
+| npm run test:e2e | 先正式建置，再執行 5 項測試，全部通過 |
+| PlantUML -checkonly | 四份設計圖通過 |
+| 啟動驗證 | 使用者執行 npm start；3000/3001 同為 PID 20320，確認應用共用單一行程 |
+
+合計 63 項自動測試。測試停止後保留使用者的正式服務。新增基本響應式排版，讓題幹、
+作答欄位及按鈕各自換行，避免長題幹把輸入框擠出視窗。
+
+### 機密檢查
+
+T050 使用無效的合成敏感字串，驗證 HTTP、Socket.IO 錯誤、學生快照、Google error
+與允許清單日誌不會輸出該字串。掃描 frontend/dist、backend/dist、shared/dist、test-results
+四個實際存在的產物目錄，找到該字串的檔案數為 0。
+
+使用 git rev-list --all 配合 git grep -l -I -E，檢查當時 13 個 Git 版本及追蹤中的工作內容，
+Google API key、OAuth secret、access token 常見前綴與 PEM 私鑰格式的符合數為 0。
+掃描只輸出計數，未輸出任何可能的機密值。這是特定格式檢查，不宣稱能辨識所有種類機密。
+.gitignore 的 8 個排除探針均通過，涵蓋環境檔、憑證、client_secret、service account、
+token、secrets 目錄與金鑰檔。真實 Google 權杖與原授權環境未被讀出或寫入測試紀錄。
+
+### 真實連線與回寫證據
+
+使用者重啟新版並自行重新授權後，第一份以完整 URL 讀入並確認。Chrome 第一組與 Edge
+第二組使用兩個獨立瀏覽器身分，均在同一台老師電腦上操作。第一組只填題組一個小題時
+不能送出；完整提交後受理。兩組皆提交第 1 題與第 3 題，第 1 題由第一組先送出，第 3 題
+由第二組先送出。老師見到兩組各提交 2 題，學生在結束前只見自組收據。
+
+結束後雙方結果相符，第 2、4 題無成功組。老師實際回寫第一份 Google Sheets，
+系統對第 1 題兩小題及第 3 題均顯示「讀回已確認」。原 Sheets 畫面人工可視核對：
+H5=CPU、H6=作業系統、G11=0；H8、H9、G13 仍空白，原表格線與合併外觀保留。
+這是目標與未作答格的可視核對，未宣稱完成全表逐格格式差異計數。
+
+第二份以純 Spreadsheet ID 再次直接讀取，辨識 6 個單題，新場組別與提交皆未沿用。
+桌面工具連續兩次無法啟用已重選的視窗（failed to activate captured window），停止 UI 操作。
+其後使用本機公開 HTTP/Socket.IO 介面驗證第二份活動，不存取 Google 機密：
+
+```powershell
+node tests/manual/connected-activity.mjs e41904bd-bd4f-4cf8-a63a-5a514887b12e 1gTL_70FJ63l7Y8ngdkQwZ5l0Zl6s5mjBzVT5QyTHTA4
+```
+
+實際 PASS：兩個匿名 API 用戶各占一組，開始與結束均於 2 秒內收到階段事件；
+第 1 題成功組為第一組（CPU），第 2 題成功組為第二組（二進位），其餘 4 題無成功組。
+學生在 active 無他組答案或 results，ended 兩邊 results 相同。此案例是 API 用戶，
+不是兩個實體學生裝置。該程式只適用本機已讀入、尚未確認開始且兩組皆空的六單題活動，
+會實際選組、確認、開始、提交及結束，不會發出 Google 回寫。
+
+第二份回寫已交由使用者在原已授權老師頁按下；尚待讀回成功證據，未標示完成。
+唯讀查核指令如下，僅 verified 退出成功，其他狀態均不當作通過：
+
+```powershell
+node tests/manual/check-connected-writeback.mjs e41904bd-bd4f-4cf8-a63a-5a514887b12e
+```
+
+### 成功條件狀態與剩餘人工驗收
+
+| 成功條件 | 證據與限制 |
+| --- | --- |
+| SC-001 | 第一份已完成真實 Google 全流程，兩組為同機 Chrome/Edge；中介檔案為零 |
+| SC-002 | 兩份真實題數與單題/題組配置均核對；分頁均名為學習單，異名及跨分頁目前只有合成測試覆蓋 |
+| SC-003 | E2E 與第二份 API 兩組階段同步通過 2 秒要求；兩台實體 LAN 裝置仍待驗 |
+| SC-004 | 併發、去重、結束交錯與封包隱私自動測試通過，第一份真實先後提交裁決相符 |
+| SC-005 | 第一份真實三格回寫讀回及可視抽核通過；第二份回寫尚待確認，失敗路徑由 adapter/SDK mock 覆蓋 |
+| SC-006 | 併發唯一占用、命名、重連與新身分拒絕自動測試通過；真實瀏覽器兩組占用狀態相符 |
+| SC-007 | 全新 store/bootId 的舊活動拒絕測試通過；有效提交後整台電腦重新開機尚待實際驗收 |
+
+T051 尚未全數完成。仍需兩個學生實體裝置的 LAN 流程、異名分頁真實對應、第二份回寫，
+以及有效提交後重新啟動老師電腦。重新開機前應先完成目前待驗回寫，避免丟失記憶體結果。
+T052 的維護者人工文件核對也尚待完成；AI 已逐項對照程式、測試及上列實際結果，
+修正 HTTP/HTTPS 能力、角色投影取得方式、Writeback 結構及測試建置順序等文件差異，
+未把此 AI 核對當作維護者審查。Phase 6 不合併 main，Phase 7 尚未開始。
