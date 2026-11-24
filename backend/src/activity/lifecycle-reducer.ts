@@ -1,5 +1,5 @@
 import { commandSchemas, type CommandName } from '@classroom/shared/schemas/activity';
-import { projectActivity } from '@classroom/shared/projections/activity';
+import { projectActivity, selectResults } from '@classroom/shared/projections/activity';
 import type { ActivityStore } from './store.js';
 import type { BrowserSession } from '../security/sessions.js';
 import { AppError } from '../security/safe-errors.js';
@@ -43,6 +43,7 @@ export function executeCommand(
       case 'activity:end':
         if (activity.phase !== 'active') throw new AppError('INVALID_PHASE');
         activity.phase = 'ended';
+        activity.finalResults = selectResults(activity);
         activity.revision++;
         return null;
     }

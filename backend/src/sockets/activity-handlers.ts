@@ -26,13 +26,19 @@ export function publishActivity(store: ActivityStore, previousPhase?: string) {
         revision: activity.revision,
         phase: activity.phase,
       });
-    if (subscriber.session.role === 'teacher')
+    if (subscriber.session.role === 'teacher') {
       socket.emit('teacher:progress', {
         activityId: activity.id,
         revision: activity.revision,
         submissions: snapshot.submissions,
         tentativeResults: snapshot.tentativeResults,
       });
+      socket.emit('writeback:status', {
+        activityId: activity.id,
+        revision: activity.revision,
+        operations: snapshot.writebacks,
+      });
+    }
     if (activity.phase === 'ended')
       socket.emit('results:published', {
         activityId: activity.id,

@@ -3,6 +3,8 @@ import { groupCountSchema, type Phase } from '@classroom/shared/schemas/common';
 import { AppError, normalizeError } from '../security/safe-errors.js';
 import type { Question, Source } from '@classroom/shared/schemas/source';
 import type { Group, Submission } from '@classroom/shared/schemas/activity';
+import type { Result } from '@classroom/shared/projections/activity';
+import type { Writeback } from '@classroom/shared/schemas/writeback';
 export type { Group } from '@classroom/shared/schemas/activity';
 
 interface Receipt {
@@ -23,6 +25,8 @@ export interface Activity {
   nextSequence: number;
   commandReceipts: Map<string, Receipt>;
   writebackPending: boolean;
+  writebacks: Map<string, Writeback>;
+  finalResults: Result[] | null;
 }
 
 function canonical(value: unknown): unknown {
@@ -62,6 +66,8 @@ export function createStore(maxGroups: number) {
       nextSequence: 1,
       commandReceipts: new Map(),
       writebackPending: false,
+      writebacks: new Map(),
+      finalResults: null,
     };
     return activity;
   }

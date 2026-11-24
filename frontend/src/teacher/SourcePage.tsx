@@ -13,8 +13,15 @@ interface Props {
   currentActivityId: string | null;
   onActivity?: (activityId: string) => void;
   phase?: Phase;
+  writebackPending?: boolean;
 }
-export function SourcePage({ csrfToken, currentActivityId, onActivity, phase }: Props) {
+export function SourcePage({
+  csrfToken,
+  currentActivityId,
+  onActivity,
+  phase,
+  writebackPending,
+}: Props) {
   const [activity, setActivity] = useState<SourcePreview | null>(null);
   const [groupCount, setGroupCount] = useState(2);
   const [input, setInput] = useState('');
@@ -107,7 +114,9 @@ export function SourcePage({ csrfToken, currentActivityId, onActivity, phase }: 
               onChange={(event) => setGroupCount(Number(event.target.value))}
             />
           </label>
-          <button disabled={busy}>{activity ? '建立下一場活動' : '建立活動'}</button>
+          <button disabled={busy || writebackPending}>
+            {activity ? '建立下一場活動' : '建立活動'}
+          </button>
         </form>
       )}
       {activity && (

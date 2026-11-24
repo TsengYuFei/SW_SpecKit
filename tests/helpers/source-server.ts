@@ -14,6 +14,9 @@ export function fakeGateway(): GoogleGateway {
     authorizationUrl: (state) => `/fake-google?state=${state}`,
     exchange: async () => ({ access_token: 'invalid-demo-token' }),
     read: reader.read,
+    write: async () => {
+      throw new Error('來源測試不得回寫');
+    },
   };
 }
 

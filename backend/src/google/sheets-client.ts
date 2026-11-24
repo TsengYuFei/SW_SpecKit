@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 import { setTimeout as sleep } from 'node:timers/promises';
-import type { GridSheet } from '@classroom/shared/schemas/source';
+import type { GridSheet, Question } from '@classroom/shared/schemas/source';
 import type { Config } from '../config.js';
 import { AppError } from '../security/safe-errors.js';
 
@@ -9,6 +9,11 @@ export interface GoogleGateway {
   authorizationUrl(state: string): string;
   exchange(code: string): Promise<TokenSet>;
   read(spreadsheetId: string, credentials: TokenSet): Promise<GridSheet[]>;
+  write(spreadsheetId: string, credentials: TokenSet, updates: CellUpdate[]): Promise<void>;
+}
+export interface CellUpdate {
+  target: Question['items'][number]['target'];
+  answer: string;
 }
 export function googleError(error: unknown): AppError {
   if (error instanceof AppError) return error;
@@ -64,6 +69,34 @@ export function createGoogleGateway(config: Config): GoogleGateway {
     async exchange(code) {
       try {
         return (await client().getToken(code)).tokens;
+      } catch (error) {
+        throw googleError(error);
+      }
+    },
+    async write(spreadsheetId, credentials, updates) {
+      const auth = client();
+      auth.setCredentials(credentials);
+      auth.on('tokens', (tokens) => Object.assign(credentials, tokens));
+      try {
+        await google.sheets({ version: 'v4', auth }).spreadsheets.batchUpdate(
+          {
+            spreadsheetId,
+            requestBody: {
+              requests: updates.map(({ target, answer }) => ({
+                updateCells: {
+                  start: {
+                    sheetId: target.sheetId,
+                    rowIndex: target.rowIndex,
+                    columnIndex: target.columnIndex,
+                  },
+                  rows: [{ values: [{ userEnteredValue: { stringValue: answer } }] }],
+                  fields: 'userEnteredValue',
+                },
+              })),
+            },
+          },
+          { timeout: 15000, retry: false },
+        );
       } catch (error) {
         throw googleError(error);
       }

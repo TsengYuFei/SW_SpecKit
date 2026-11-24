@@ -10,6 +10,9 @@ import { AppError } from '../../backend/src/security/safe-errors.js';
 
 export function fakeGateway(): GoogleGateway {
   return {
+    write: async () => {
+      throw new Error('來源測試不得回寫');
+    },
     authorizationUrl: (state) => `https://example.invalid/?state=${state}`,
     exchange: async () => ({ access_token: 'invalid-demo-token' }),
     read: async () => [sampleSheet()],

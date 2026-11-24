@@ -1,11 +1,15 @@
 import type { ActivityClient } from '../transport/socket';
+import { ResultsView } from '../components/ResultsView';
+import { WritebackPanel } from './WritebackPanel';
 
 export function ActivityPage({
   client,
   studentOrigin,
+  csrfToken,
 }: {
   client: ActivityClient;
   studentOrigin: string;
+  csrfToken: string;
 }) {
   const s = client.snapshot!;
   return (
@@ -65,6 +69,12 @@ export function ActivityPage({
           </div>
         ))}
       </details>
+      {s.phase === 'ended' && (
+        <>
+          <ResultsView snapshot={s} />
+          <WritebackPanel snapshot={s} csrfToken={csrfToken} connected={client.connected} />
+        </>
+      )}
     </section>
   );
 }

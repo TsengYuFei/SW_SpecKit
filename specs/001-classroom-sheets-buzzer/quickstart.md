@@ -140,3 +140,9 @@ T023 完成。兩份真實教材分頁名稱均為「學習單」，不同分頁
 2026-11-24 完成 T024–T038。`npm run typecheck`、`npm run lint`、`npm run format:check`、`npm run build` 與四份 PlantUML `-checkonly` 通過。`npm run test:unit` 29 項、`npm run test:integration` 13 項、`npm run test:contract` 6 項、`npm run test:e2e` 4 項全部通過。測試服務使用 3010/3011 及臨時連接埠，保留使用者已授權的服務。
 
 已驗證同步選組裁決、完整題組、首次受理與重送去重、時間回撥及結束交錯、角色封包隱私、同 Cookie 多分頁、清除 Cookie 不可接管、斷線恢復與全新 store/bootId 拒絕舊活動。Edge 的兩個獨立學生瀏覽器身分與老師端在 2 秒內同步階段。這些是自動化瀏覽器情境，實體學生裝置及整機重新開機仍依 T051 驗收。
+
+## Phase 5 驗證紀錄
+
+2026-11-24 完成 T039–T048。`npm run typecheck`、`npm run lint`、`npm run format:check`、`npm run build` 通過。`npm run test:unit` 31 項、`npm run test:integration` 19 項、`npm run test:contract` 7 項、`npm run test:e2e` 5 項全部通過。四份 PlantUML 語法檢查及 SVG 渲染通過。
+
+老師及學生在 ended 取得同一份凍結結果，含無成功組。回寫使用每題一個原子 batch，精確 UpdateCells、fields=userEnteredValue、stringValue（等號開頭也保持文字），保留非目標格與格式。合成 adapter/SDK mock 已驗證原值、題幹及合併格衝突、寫入拒絕、未知寫入、讀回失敗、查核三路判斷、同 requestId 去重、操作序列化與 pending 阻擋新場；E2E 已驗證重新整理恢復 pending 與查核後 verified。真實 Google 回寫及實體裝置仍待 T051，以上不宣稱是真實 API 寫入結果。

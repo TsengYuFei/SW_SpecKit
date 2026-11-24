@@ -1,4 +1,14 @@
 import type { Envelope } from '@classroom/shared/events/envelope';
+import type { ErrorCode } from '@classroom/shared/schemas/common';
+
+export class HttpError extends Error {
+  constructor(
+    message: string,
+    readonly code: ErrorCode,
+  ) {
+    super(message);
+  }
+}
 
 export async function http<T>(path: string, csrfToken?: string, body?: unknown): Promise<T> {
   let response: Response;
@@ -15,6 +25,6 @@ export async function http<T>(path: string, csrfToken?: string, body?: unknown):
     throw new Error('網路連線中斷，請檢查連線後重試。');
   }
   const result = (await response.json()) as Envelope<T>;
-  if (!result.ok) throw new Error(result.error.message);
+  if (!result.ok) throw new HttpError(result.error.message, result.error.code);
   return result.data;
 }

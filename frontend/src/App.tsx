@@ -10,6 +10,7 @@ export function App() {
   const [activityId, setActivityId] = useState<string | null>(null);
   const [studentOrigin, setStudentOrigin] = useState('');
   const [phase, setPhase] = useState<Phase>('waiting');
+  const [writebackPending, setWritebackPending] = useState(false);
   const [teacher, setTeacher] = useState<{ csrfToken: string; currentActivityId: string | null }>();
   useEffect(() => {
     const controller = new AbortController();
@@ -50,6 +51,7 @@ export function App() {
           currentActivityId={teacher.currentActivityId}
           onActivity={setActivityId}
           phase={phase}
+          writebackPending={writebackPending}
         />
       )}
       {activityId && bootId && (
@@ -60,6 +62,8 @@ export function App() {
           role={role ?? ''}
           studentOrigin={studentOrigin}
           onPhase={setPhase}
+          csrfToken={teacher?.csrfToken}
+          onWritebackPending={setWritebackPending}
         />
       )}
     </main>

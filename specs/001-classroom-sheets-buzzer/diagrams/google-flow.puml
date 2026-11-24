@@ -34,7 +34,15 @@ else unchanged
   S --> T : pending verification
   T -> S : verify or retry
   S -> G : read target values before any retry
-  S --> T : verified / conflict / pending
+  alt all expected strings and mapping unchanged
+   S --> T : verified (content matches)
+  else all baseline values and mapping unchanged
+   S -> G : one atomic retry for the whole question
+   S -> G : read back strings and structure
+   S --> T : verified / conflict / pending
+  else mixed values or changed mapping
+   S --> T : conflict / no retry
+  end
  end
 end
 note over T,G
