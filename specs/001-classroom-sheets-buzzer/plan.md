@@ -41,7 +41,7 @@ Google Sheets 直接讀寫，依既有表頭及合併格辨識單題與題組。
 設計一致性審查已逐項對照 FR-001 至 FR-014。
 PlantUML 1.2026.10 使用本機 Java 實際產生四份 SVG，退出碼為 0。
 圖與文件已完成需求一致性檢查，無待釐清的技術決策或憲章例外。
-依憲章，正式實作前仍須由專案維護者人工審查這些設計，並記錄審查結果。
+正式實作前完成設計一致性審查並記錄結果；憲章要求的維護者人工文件核對於交付前執行。
 本階段交付預定設計，程式行為驗收於實作階段執行。
 
 ## Project Structure
@@ -82,7 +82,7 @@ tests/ (unit, integration, contract, e2e)
 研究已完成，細節見 [research.md](research.md)。資料關係及狀態見
 [data-model.md](data-model.md)，HTTP 與即時事件見
 [contracts/interfaces.md](contracts/interfaces.md)，驗收指令見 [quickstart.md](quickstart.md)。
-所有設計圖保留可重現的 PlantUML 原始檔，正式實作的第一項品質門檻為人工設計審查。
+所有設計圖保留可重現的 PlantUML 原始檔，正式實作的第一項品質門檻為設計一致性審查。
 
 本次額外選定 React/Vite、Express、Zod、Vitest 與 Playwright，屬可維護性及驗證工具選擇。
 活動與 token 都在伺服端記憶體。前端瀏覽器僅保存匿名 cookie，程序停止即失去所有活動。
@@ -97,8 +97,10 @@ Google 機密透過執行環境注入，真實 Google 流程以操作者本機�
 T001 設計審查準備已完成。分析報告的五項修正已整理為待維護者審查的變更，
 包括回寫外部編輯前提、Google 無法確定原因的錯誤訊息、教師重新整理恢復、
 回寫狀態的終止條件，以及 mappingVersion 命名統一。
-人工審查狀態為待確認，T001 保留未完成，T002 至 T005 尚未開始。
+2026-11-24 已完成設計一致性審查並重跑 PlantUML 語法檢查。T001 完成，開始 T002 至 T005。原任務額外要求人工核對先於程式開發，現修正為交付前依 T052 人工核對，保留憲章要求。
 
 已執行 PlantUML 1.2026.10 的 -checkonly 與 -tsvg，兩者退出碼皆為 0，
 並核對四份 SVG 已產生且無語法錯誤。git diff --check 通過。
 Phase 1 尚未完成套件安裝、型別、格式、測試環境與建置驗證，尚未合併 main。
+
+Phase 1 已完成 T001–T005。依賴以鎖定檔重現安裝成功，typecheck、lint、format:check、5 項單元測試及三個 workspace 建置均通過。由 Codex 完成設計與程式差異核對，交付前人工文件核對仍由 T052 追蹤。

@@ -117,3 +117,7 @@ java -jar $env:PLANTUML_JAR -tsvg -charset UTF-8 specs/001-classroom-sheets-buzz
 每次驗收記錄 commit、執行日期、工具版本、指令、退出碼、通過或失敗案例及必要修正。
 SC-001 至 SC-007 須逐項有可重現證據，真實機密與授權過程排除於紀錄之外。
 AI 文件須由人工依實作與測試核對，確認原理與操作均相符後再通過合併審查。
+
+## Phase 1 執行結果
+
+2026-11-24 使用 Node.js 24.22.3、npm 10.9.9。npm ci --ignore-scripts 通過，typecheck、lint、format:check、test:unit（5 項）及 build 全部退出碼為 0。正式課堂與真實 Google 驗收仍待後續階段。
