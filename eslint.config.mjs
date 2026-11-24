@@ -17,5 +17,8 @@ export default ts.config(
   },
   js.configs.recommended,
   ...ts.configs.recommended,
-  { languageOptions: { globals: { ...globals.node, ...globals.browser } } },
+  {
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+    rules: { '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }] },
+  },
 );

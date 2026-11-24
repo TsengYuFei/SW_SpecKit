@@ -1,7 +1,6 @@
 # Quickstart validation guide
 
-本文件為實作完成後使用的啟動與驗收指南。以下 npm scripts 是本計畫要求的交付介面，
-目前儲存庫尚未有應用程式及 package.json，應於實作階段建立後執行。
+本文件記錄各階段的啟動與驗收。Phase 1–2 已建立工具與本機服務，完整課堂功能依後續階段交付。
 PlantUML 設計圖已在規劃階段實際渲染；尚待維護者人工審查。
 
 ## 前置條件
@@ -121,3 +120,7 @@ AI 文件須由人工依實作與測試核對，確認原理與操作均相符�
 ## Phase 1 執行結果
 
 2026-11-24 使用 Node.js 24.22.3、npm 10.9.9。npm ci --ignore-scripts 通過，typecheck、lint、format:check、test:unit（5 項）及 build 全部退出碼為 0。正式課堂與真實 Google 驗收仍待後續階段。
+
+## Phase 2 執行結果
+
+2026-11-24 完成 T006–T011。typecheck、lint、format:check、build 通過；test:unit 12 項、test:contract 2 項、test:integration 4 項、test:e2e 1 項全部通過。HTTP 與 Socket.IO 測試需允許 localhost 連線；Playwright 使用本機 Edge 無頭瀏覽器。已驗證正式建置的老師及學生入口。
