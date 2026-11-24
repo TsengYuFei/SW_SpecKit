@@ -104,3 +104,5 @@ T001 設計審查準備已完成。分析報告的五項修正已整理為待維
 Phase 1 尚未完成套件安裝、型別、格式、測試環境與建置驗證，尚未合併 main。
 
 Phase 1 已完成 T001–T005。依賴以鎖定檔重現安裝成功，typecheck、lint、format:check、5 項單元測試及三個 workspace 建置均通過。由 Codex 完成設計與程式差異核對，交付前人工文件核對仍由 T052 追蹤。
+
+Phase 2 已完成 T006–T011。實作兩個 HTTP / Socket.IO listener、角色 session、CSRF、Host / Origin、頻率限制、安全錯誤及記憶體 store。12 項單元、2 項契約、4 項整合及 1 項 Edge 端到端測試通過，型別、lint、格式與正式建置通過。

@@ -47,12 +47,12 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 
 **Purpose**: 建立角色驗證、共用狀態及傳輸基礎，完成後才進入故事階段。
 
-- [ ] T006 [P] 依 Phase 1 在 `shared/src/schemas/common.ts`、`shared/src/events/envelope.ts` 定義 runtime 驗證、錯誤碼、ack 與事件封裝；實作 data-model.md 的 Activity.id、Activity.bootId、Activity.phase、Activity.revision、Activity.groupCount 欄位約束，並套用契約的 requestId、未知欄位及傳輸大小規則。
-- [ ] T007 [P] 依 Phase 1 在 `backend/src/security/sessions.ts`、`backend/src/security/guards.ts` 實作 data-model.md 的 BrowserSession.sessionId、BrowserSession.role、BrowserSession.activityId 約束及記憶體 session，落實教師 loopback、學生匿名 cookie、Host/Origin、CSRF、角色檢查與每 session 頻率限制。
-- [ ] T008 [P] 依 Phase 1 在 `backend/src/security/safe-errors.ts`、`backend/src/security/logger.ts` 實作契約的安全錯誤轉換與日誌允許欄位，確保授權 URL、callback query、標頭、本文、cookie 及上游錯誤中的機密值均被排除。
-- [ ] T009 依 T006–T008 在 `backend/src/activity/store.ts` 建立記憶體狀態與新 bootId，實作 data-model.md 的 Activity.source、Activity.questions、Activity.groups、Activity.submissions、Activity.nextSequence、Activity.commandReceipts 及 Activity.id、Activity.bootId、Activity.revision 的生命週期，提供同步命令執行與去重入口，程序重啟使舊活動失效。
-- [ ] T010 依 T009 在 `backend/src/server.ts`、`backend/src/http/session-routes.ts`、`frontend/vite.config.ts`、`frontend/src/App.tsx` 建立同一行程的兩個 listener、GET /api/session、GET /api/health、同源前端資產及學生路由；教師端與學生端共用 store 並隔離操作權限。
-- [ ] T011 在 `tests/contract/session.test.ts`、`tests/integration/server-security.test.ts`、`tests/unit/safe-errors.test.ts` 驗證 session 與 health 正常流程、教師 currentActivityId 與學生欄位隔離、偽造角色、cookie 屬性、OAuth callback 所需 cookie 行為、CSRF、Origin、超限輸入及合成機密過濾，通過後結束 Phase 2。
+- [X] T006 [P] 依 Phase 1 在 `shared/src/schemas/common.ts`、`shared/src/events/envelope.ts` 定義 runtime 驗證、錯誤碼、ack 與事件封裝；實作 data-model.md 的 Activity.id、Activity.bootId、Activity.phase、Activity.revision、Activity.groupCount 欄位約束，並套用契約的 requestId、未知欄位及傳輸大小規則。
+- [X] T007 [P] 依 Phase 1 在 `backend/src/security/sessions.ts`、`backend/src/security/guards.ts` 實作 data-model.md 的 BrowserSession.sessionId、BrowserSession.role、BrowserSession.activityId 約束及記憶體 session，落實教師 loopback、學生匿名 cookie、Host/Origin、CSRF、角色檢查與每 session 頻率限制。
+- [X] T008 [P] 依 Phase 1 在 `backend/src/security/safe-errors.ts`、`backend/src/security/logger.ts` 實作契約的安全錯誤轉換與日誌允許欄位，確保授權 URL、callback query、標頭、本文、cookie 及上游錯誤中的機密值均被排除。
+- [X] T009 依 T006–T008 在 `backend/src/activity/store.ts` 建立記憶體狀態與新 bootId，實作 data-model.md 的 Activity.source、Activity.questions、Activity.groups、Activity.submissions、Activity.nextSequence、Activity.commandReceipts 及 Activity.id、Activity.bootId、Activity.revision 的生命週期，提供同步命令執行與去重入口，程序重啟使舊活動失效。
+- [X] T010 依 T009 在 `backend/src/server.ts`、`backend/src/http/session-routes.ts`、`frontend/vite.config.ts`、`frontend/src/App.tsx` 建立同一行程的兩個 listener、GET /api/session、GET /api/health、同源前端資產及學生路由；教師端與學生端共用 store 並隔離操作權限。
+- [X] T011 在 `tests/contract/session.test.ts`、`tests/integration/server-security.test.ts`、`tests/unit/safe-errors.test.ts` 驗證 session 與 health 正常流程、教師 currentActivityId 與學生欄位隔離、偽造角色、cookie 屬性、OAuth callback 所需 cookie 行為、CSRF、Origin、超限輸入及合成機密過濾，通過後結束 Phase 2。
 
 **Checkpoint**: 兩個 listener 可用，共用記憶體與安全邊界通過測試。
 
