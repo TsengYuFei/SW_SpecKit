@@ -87,3 +87,18 @@ tests/ (unit, integration, contract, e2e)
 本次額外選定 React/Vite、Express、Zod、Vitest 與 Playwright，屬可維護性及驗證工具選擇。
 活動與 token 都在伺服端記憶體。前端瀏覽器僅保存匿名 cookie，程序停止即失去所有活動。
 Google 機密透過執行環境注入，真實 Google 流程以操作者本機授權完成。
+
+## Phase Execution Record
+
+2026-11-24 已依使用者要求，從 main 建立 codex/phase-1-setup。
+各 Phase 使用新的 codex/phase-N-* 分支，須先完成該階段所有檢查與測試，
+再提交完成狀態並合併至 main，之後才從 main 建立下一個 Phase 分支。
+
+T001 設計審查準備已完成。分析報告的五項修正已整理為待維護者審查的變更，
+包括回寫外部編輯前提、Google 無法確定原因的錯誤訊息、教師重新整理恢復、
+回寫狀態的終止條件，以及 mappingVersion 命名統一。
+人工審查狀態為待確認，T001 保留未完成，T002 至 T005 尚未開始。
+
+已執行 PlantUML 1.2026.10 的 -checkonly 與 -tsvg，兩者退出碼皆為 0，
+並核對四份 SVG 已產生且無語法錯誤。git diff --check 通過。
+Phase 1 尚未完成套件安裝、型別、格式、測試環境與建置驗證，尚未合併 main。

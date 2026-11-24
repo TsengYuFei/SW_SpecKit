@@ -7,6 +7,12 @@ Active --> Active : valid submission / assign sequence\nreconnect original brows
 Active --> Ended : teacher end / freeze winners
 Ended --> Ended : read results / writeback / verify
 Ended --> Waiting : new activity ID [writeback settled]
+note right of Ended
+writing / pending block a new activity.
+verified / conflict / failed are terminal.
+idle means no write was started.
+Unknown write outcome stays pending.
+end note
 Waiting --> Lost : process stopped
 Active --> Lost : process stopped
 Ended --> Lost : process stopped

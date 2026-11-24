@@ -52,7 +52,7 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 - [ ] T008 [P] 依 Phase 1 在 `backend/src/security/safe-errors.ts`、`backend/src/security/logger.ts` 實作契約的安全錯誤轉換與日誌允許欄位，確保授權 URL、callback query、標頭、本文、cookie 及上游錯誤中的機密值均被排除。
 - [ ] T009 依 T006–T008 在 `backend/src/activity/store.ts` 建立記憶體狀態與新 bootId，實作 data-model.md 的 Activity.source、Activity.questions、Activity.groups、Activity.submissions、Activity.nextSequence、Activity.commandReceipts 及 Activity.id、Activity.bootId、Activity.revision 的生命週期，提供同步命令執行與去重入口，程序重啟使舊活動失效。
 - [ ] T010 依 T009 在 `backend/src/server.ts`、`backend/src/http/session-routes.ts`、`frontend/vite.config.ts`、`frontend/src/App.tsx` 建立同一行程的兩個 listener、GET /api/session、GET /api/health、同源前端資產及學生路由；教師端與學生端共用 store 並隔離操作權限。
-- [ ] T011 在 `tests/contract/session.test.ts`、`tests/integration/server-security.test.ts`、`tests/unit/safe-errors.test.ts` 驗證 session 與 health 正常流程、偽造角色、cookie 屬性、OAuth callback 所需 cookie 行為、CSRF、Origin、超限輸入及合成機密過濾，通過後結束 Phase 2。
+- [ ] T011 在 `tests/contract/session.test.ts`、`tests/integration/server-security.test.ts`、`tests/unit/safe-errors.test.ts` 驗證 session 與 health 正常流程、教師 currentActivityId 與學生欄位隔離、偽造角色、cookie 屬性、OAuth callback 所需 cookie 行為、CSRF、Origin、超限輸入及合成機密過濾，通過後結束 Phase 2。
 
 **Checkpoint**: 兩個 listener 可用，共用記憶體與安全邊界通過測試。
 
@@ -108,8 +108,8 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 - [ ] T034 [P] [US2] 依 T033 在 `frontend/src/student/GroupPage.tsx` 實作免登入選組、占用提示、組名及固定編號、原瀏覽器重新加入，失去原身分時顯示拒絕接管的原因。
 - [ ] T035 [P] [US2] 依 T033 在 `frontend/src/student/AnswerPage.tsx` 建立單題與題組表單、完整性檢查、階段鎖定及自組受理提示，呈現 data-model.md 的 Submission.answers 限制，題組一次提交所有小題。
 - [ ] T036 [P] [US2] 依 T033 在 `frontend/src/teacher/ActivityPage.tsx` 建立學生加入連結、開始與結束控制、組別進度及暫定成功組畫面，狀態與按鈕依目前階段及來源確認結果更新。
-- [ ] T037 [US2] 在 `frontend/src/App.tsx` 與 `frontend/src/components/ConnectionStatus.tsx` 串接來源頁、老師控制頁及學生選組作答頁，顯示中斷、舊活動不可用及老師重啟後重建活動提示。
-- [ ] T038 [US2] 在 `tests/e2e/classroom-activity.spec.ts` 驗證兩組完整流程、併發占用、多分頁、清除 cookie、2 秒同步、封包隱私及程序重啟，通過 T024–T026 與本故事測試，覆蓋 FR-001、FR-002、FR-005–FR-008、FR-013、FR-014 及 SC-003、SC-004、SC-006、SC-007。
+- [ ] T037 [US2] 在 `frontend/src/App.tsx` 與 `frontend/src/components/ConnectionStatus.tsx` 串接來源頁、老師控制頁及學生選組作答頁，教師重新整理時由 session 的 currentActivityId 恢復訂閱，顯示中斷、舊活動不可用及老師重啟後重建活動提示。
+- [ ] T038 [US2] 在 `tests/e2e/classroom-activity.spec.ts` 驗證兩組完整流程、教師重新整理後恢復控制、併發占用、多分頁、清除 cookie、2 秒同步、封包隱私及程序重啟，通過 T024–T026 與本故事測試，覆蓋 FR-001、FR-002、FR-005–FR-008、FR-013、FR-014 及 SC-003、SC-004、SC-006、SC-007。
 
 **Checkpoint**: 可獨立驗證一位老師與兩組學生的完整搶答活動；結果回寫由 US3 交付。
 
@@ -123,7 +123,7 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 ### Tests for User Story 3
 
 - [ ] T039 [P] [US3] 在 `tests/contract/writeback-http.test.ts` 編寫 POST /api/activities/:id/writeback、GET /api/activities/:id/writeback/:op、POST /api/activities/:id/writeback/:op/verify 及 writeback:status 測試，包含老師權限、階段、去重與狀態回覆。
-- [ ] T040 [P] [US3] 在 `tests/integration/writeback.test.ts` 編寫精確寫入、題組原子性、格式保留、字串答案、來源或合併結構改動、權限撤銷、429/5xx、寫逾時、讀回失敗、verify 三路判定及序列化測試。
+- [ ] T040 [P] [US3] 在 `tests/integration/writeback.test.ts` 編寫精確寫入、題組原子性、格式保留、字串答案、來源或合併結構改動、權限撤銷、429/5xx、寫逾時、讀回失敗、verify 三路判定及序列化測試，驗證 writing/pending 阻擋新場而 verified/conflict/failed 允許新場。
 - [ ] T041 [P] [US3] 在 `tests/unit/results.test.ts` 編寫 results:published、ended 快照與結果選擇測試，包含無成功組、跨分頁同題號、題組共同成功組及中斷活動拒絕公布。
 
 ### Implementation for User Story 3
