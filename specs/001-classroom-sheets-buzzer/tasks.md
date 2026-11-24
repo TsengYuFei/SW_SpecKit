@@ -79,7 +79,7 @@ description: "課堂搶答與 Google Sheets Guided Notes 實作任務"
 - [X] T020 [US1] 在 `backend/src/http/google-routes.ts`、`backend/src/http/activity-routes.ts`、`backend/src/http/source-routes.ts` 串接 T012 的全部端點，建立活動與固定組數，僅允許合法階段操作，將服務接入 T010 的教師 listener。
 - [X] T021 [US1] 在 `frontend/src/teacher/SourcePage.tsx`、`frontend/src/transport/http.ts` 建立授權、組數設定、URL/ID、載入狀態、題目及目標格預覽、確認與修正來源後重讀流程，呈現契約錯誤及輸入限制。
 - [X] T022 [US1] 在 `tests/e2e/source-preview.spec.ts` 驗證教師頁從建立活動到對應確認，含載入中操作、授權失敗、歧義及重試；使用合成 adapter，通過 T012–T014 及本故事測試。
-- [ ] T023 [US1] 依 `specs/001-classroom-sheets-buzzer/quickstart.md` 的來源讀取情境完成真實 URL 與 ID 的獨立驗收，核對兩份線上教材完整對應，在同檔記錄不含機密的指令、日期與結果，覆蓋 FR-003、FR-004 與 SC-002。
+- [X] T023 [US1] 依 `specs/001-classroom-sheets-buzzer/quickstart.md` 的來源讀取情境完成真實 URL 與 ID 的獨立驗收，核對兩份線上教材完整對應，在同檔記錄不含機密的指令、日期與結果，覆蓋 FR-003、FR-004 與 SC-002。
 
 **Checkpoint**: 老師可獨立完成授權、動態讀題與確認，具備第一個可展示增量。
 

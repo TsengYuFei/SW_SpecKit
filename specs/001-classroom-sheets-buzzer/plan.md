@@ -107,4 +107,6 @@ Phase 1 已完成 T001–T005。依賴以鎖定檔重現安裝成功，typecheck
 
 Phase 2 已完成 T006–T011。實作兩個 HTTP / Socket.IO listener、角色 session、CSRF、Host / Origin、頻率限制、安全錯誤及記憶體 store。12 項單元、2 項契約、4 項整合及 1 項 Edge 端到端測試通過，型別、lint、格式與正式建置通過。
 
-Phase 3 已完成 T012–T022，自動驗證共 40 項通過，Google 遠端使用 mock。Google-flow 圖已同步授權狀態讀取及乾淨回呼流程，四份 PlantUML 檢查及渲染通過。T023 因本機 OAuth 設定與兩份線上驗收教材尚缺，保留待驗，Phase 3 不合併 main，尚未進入 Phase 4。
+Phase 3 已完成 T012–T022，自動驗證共 40 項通過，Google 遠端使用 mock。Google-flow 圖已同步授權狀態讀取及乾淨回呼流程，四份 PlantUML 檢查及渲染通過。當時 T023 尚待真實授權教材驗收，結果已於下段更新。
+
+Phase 3 的 T023 已於 2026-11-24 透過原老師頁真實重測通過，完整 URL 與純 ID 各一份，題目、題組及原格對應相符且均完成確認。詳細目標及變體覆蓋限制記於 quickstart.md。Phase 3 已具備合併條件。
