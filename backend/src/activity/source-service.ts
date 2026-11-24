@@ -5,6 +5,7 @@ import type { OAuthService } from '../google/oauth.js';
 import { parseGuidedNotes } from '../google/guided-notes-parser.js';
 import { AppError } from '../security/safe-errors.js';
 import type { ActivityStore } from './store.js';
+import { publishActivity } from '../sockets/activity-handlers.js';
 
 export function parseSpreadsheetId(input: string) {
   const value = input.trim();
@@ -67,6 +68,7 @@ export function createSourceService(
     activity.source = source;
     activity.questions = [];
     activity.revision++;
+    publishActivity(store);
     try {
       const sheets = gridSheetSchema.array().parse(await gateway.read(spreadsheetId, credentials));
       const cells = sheets.reduce(
@@ -82,11 +84,13 @@ export function createSourceService(
       source.loadState = 'ready';
       activity.questions = questions;
       activity.revision++;
+      publishActivity(store);
       return sourcePreview(activity);
     } catch (error) {
       if (store.activity === activity && activity.source === source) {
         source.loadState = 'error';
         activity.revision++;
+        publishActivity(store);
       }
       throw error;
     }
@@ -101,6 +105,7 @@ export function createSourceService(
       throw new AppError('SOURCE_CONFLICT');
     activity.source.confirmed = true;
     activity.revision++;
+    publishActivity(store);
     return sourcePreview(activity);
   }
   return { load, confirm };

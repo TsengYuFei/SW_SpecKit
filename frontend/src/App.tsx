@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
 import { SourcePage } from './teacher/SourcePage';
+import { Classroom } from './components/Classroom';
+import type { Phase } from '@classroom/shared/schemas/common';
 
 export function App() {
   const [role, setRole] = useState<string>();
   const [error, setError] = useState('');
+  const [bootId, setBootId] = useState('');
+  const [activityId, setActivityId] = useState<string | null>(null);
+  const [studentOrigin, setStudentOrigin] = useState('');
+  const [phase, setPhase] = useState<Phase>('waiting');
   const [teacher, setTeacher] = useState<{ csrfToken: string; currentActivityId: string | null }>();
   useEffect(() => {
     const controller = new AbortController();
@@ -12,6 +18,13 @@ export function App() {
       .then((result) => {
         if (!result.ok) throw new Error(result.error.message);
         setRole(result.data.role);
+        setBootId(result.data.bootId);
+        setStudentOrigin(result.data.studentOrigin ?? '');
+        setActivityId(
+          result.data.role === 'teacher'
+            ? result.data.currentActivityId
+            : (window.location.pathname.match(/^\/student\/([^/]+)$/)?.[1] ?? null),
+        );
         if (result.data.role === 'teacher') setTeacher(result.data);
       })
       .catch((error: unknown) => {
@@ -32,7 +45,22 @@ export function App() {
       )}
       {role === 'teacher' && <p>服務重啟後，請重新授權並建立活動。</p>}
       {teacher && (
-        <SourcePage csrfToken={teacher.csrfToken} currentActivityId={teacher.currentActivityId} />
+        <SourcePage
+          csrfToken={teacher.csrfToken}
+          currentActivityId={teacher.currentActivityId}
+          onActivity={setActivityId}
+          phase={phase}
+        />
+      )}
+      {activityId && bootId && (
+        <Classroom
+          key={activityId}
+          activityId={activityId}
+          bootId={bootId}
+          role={role ?? ''}
+          studentOrigin={studentOrigin}
+          onPhase={setPhase}
+        />
       )}
     </main>
   );

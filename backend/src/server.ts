@@ -10,6 +10,7 @@ import type { Sessions } from './security/sessions.js';
 import { checkOrigin, consumeMutation, requireCsrf, requireSession } from './security/guards.js';
 import { normalizeError, safeError } from './security/safe-errors.js';
 import { sessionRoutes } from './http/session-routes.js';
+import { attachActivityHandlers } from './sockets/activity-handlers.js';
 
 export interface RouteContext {
   role: Role;
@@ -43,7 +44,7 @@ export function createListener(
     }
   });
   app.use(express.json({ limit: TRANSPORT_LIMIT }));
-  sessionRoutes(app, role, store, sessions);
+  sessionRoutes(app, role, store, sessions, config.STUDENT_PUBLIC_ORIGIN);
   app.use((req, _res, next) => {
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       try {
@@ -96,5 +97,6 @@ export function createListener(
       next(new Error('UNAUTHORIZED'));
     }
   });
+  attachActivityHandlers(io, store, sessions, role);
   return { app, server, io };
 }

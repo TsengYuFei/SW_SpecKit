@@ -110,3 +110,5 @@ Phase 2 已完成 T006–T011。實作兩個 HTTP / Socket.IO listener、角色 
 Phase 3 已完成 T012–T022，自動驗證共 40 項通過，Google 遠端使用 mock。Google-flow 圖已同步授權狀態讀取及乾淨回呼流程，四份 PlantUML 檢查及渲染通過。當時 T023 尚待真實授權教材驗收，結果已於下段更新。
 
 Phase 3 的 T023 已於 2026-11-24 透過原老師頁真實重測通過，完整 URL 與純 ID 各一份，題目、題組及原格對應相符且均完成確認。詳細目標及變體覆蓋限制記於 quickstart.md。Phase 3 已具備合併條件。
+
+Phase 4 已完成 T024–T038，52 項累計自動測試及靜態與建置檢查通過。角色投影先於傳送產生，兩個 listener 共用逐 socket 的活動與 session 訂閱表，達成原設計的角色隔離；未使用全體廣播。學生只取得自組受理收據；結束後才取得成功答案。已核對 submission/lifecycle 圖，沒有流程變更。
