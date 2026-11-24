@@ -1,0 +1,52 @@
+@startuml
+title Submission ordering and privacy
+actor "Group A" as A
+actor "Group B" as B
+actor Teacher as T
+participant "Socket.IO handlers" as S
+participant "Synchronous reducer" as R
+A -> S : join(empty group)
+B -> S : join(same group)
+S -> R : A join / validate session and phase
+R -> R : bind A session to group atomically
+R --> A : joined / group identity
+S -> R : B join
+R --> B : GROUP_OCCUPIED
+B -> S : join(another empty group)
+S -> R : validate B session and bind other group
+R --> B : joined
+note over A,R
+Binding survives disconnect until activity ends.
+Only original browser session can rejoin.
+No teacher or student reassignment.
+end note
+A -> S : submit(requestId, questionId, all answers)
+B -> S : submit(requestId, questionId, all answers)
+S -> R : A command first at server boundary
+alt wrong role, phase, item set or blank answer
+ R --> A : safe rejection / no rank assigned
+else valid complete payload
+ R -> R : record time + increment sequence\nstore submission and first winner
+ R --> A : own receipt only
+ R --> T : teacher progress + tentative winners
+end
+S -> R : B command next
+R -> R : same validations and ordered acceptance
+R --> B : own receipt only
+A -> S : retry same request
+S -> R : check cached receipt
+R --> A : original receipt / no new sequence
+T -> S : end activity
+S -> R : ordered end command
+R -> R : phase Ended / freeze results
+R --> A : published winners and all winning answers
+R --> B : published winners and all winning answers
+A -> S : late new submission
+S -> R : validate current phase
+R --> A : activity ended / no rank
+note over S,R
+No await between validation and mutation.
+Socket timeout does not imply rejection.
+Reconnect requests role-filtered snapshot.
+end note
+@enduml

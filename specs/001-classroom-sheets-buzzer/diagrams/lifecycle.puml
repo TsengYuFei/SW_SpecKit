@@ -1,0 +1,19 @@
+@startuml
+title Activity lifecycle
+[*] --> Waiting : create + group count
+Waiting --> Waiting : authorize / load / confirm / join
+Waiting --> Active : teacher start [mapping confirmed]
+Active --> Active : valid submission / assign sequence\nreconnect original browser / join empty group
+Active --> Ended : teacher end / freeze winners
+Ended --> Ended : read results / writeback / verify
+Ended --> Waiting : new activity ID [writeback settled]
+Waiting --> Lost : process stopped
+Active --> Lost : process stopped
+Ended --> Lost : process stopped
+Lost --> Waiting : create new activity with new ID
+note right of Lost
+Old activity ID is unavailable.
+Old browser bindings cannot resume.
+Existing writes in Google remain.
+end note
+@enduml

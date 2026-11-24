@@ -1,0 +1,89 @@
+# Implementation Plan: 課堂搶答與 Google Sheets
+
+**Branch**: `main` | **Date**: 2026-11-24 | **Spec**: [spec.md](spec.md)
+
+**Input**: specs/001-classroom-sheets-buzzer/spec.md
+
+功能識別為 001-classroom-sheets-buzzer。setup-plan 回傳該識別作為 BRANCH，
+實際 git branch --show-current 為 main。本次沿用目前 checkout。
+
+## Summary
+
+前後端採 TypeScript，Socket.IO 同步角色狀態。單一 Node.js 行程在老師本機執行，
+所有活動與 Google token 存於記憶體。學生由區域網路瀏覽器加入，老師控制面只提供本機。
+Google Sheets 直接讀寫，依既有表頭及合併格辨識單題與題組。
+題組完整提交才取得共同收件順位。重啟重新授權及建立新活動。
+
+## Technical Context
+
+**Language/Version**: TypeScript 5.x strict，Node.js 24 LTS
+**Primary Dependencies**: React、Vite、Express、Socket.IO 4.x、googleapis、Zod
+**Storage**: 單一行程 Map，無資料庫或活動檔案；瀏覽器僅保存匿名 session cookie
+**Testing**: Vitest、Socket.IO client、Playwright、真實 Google Sheets 人工驗收
+**Target Platform**: 老師 Windows 本機，學生現代瀏覽器經 LAN 連線
+**Project Type**: 本機 Web 應用
+**Performance Goals**: 正常連線下至少兩組端與教師端狀態於 2 秒內更新
+**Constraints**: 不可使用中介檔案，機密不得落入程式、文件、日誌、Git 或 AI 對話
+**Scale/Scope**: 一個行程同時一場活動；驗收基線兩組，組數由老師設定正整數；
+教材題數、分頁及位置不硬編碼。資源不足須明確拒絕載入，不得靜默省略題目。
+
+## Constitution Check
+
+| 原則 | 研究前 | 設計後與證據 |
+| --- | --- | --- |
+| I 設計優先 | 適用，實作前設計 | diagrams 四份 PlantUML 已實際渲染成功，涵蓋架構、階段、選組、提交與 Google 流程 |
+| II 品質與維護 | 適用 | 共享型別與驗證，集中 reducer 裁決，獨立 Google adapter |
+| III 驗證與錯誤 | 適用 | contracts 定義權限、錯誤、限制、衝突與逾時 |
+| IV 正常與特殊測試 | 適用 | quickstart 對應全部功能及成功條件 |
+| V 文件核對 | 適用 | 全部文件標示為預定設計，實作後須人工核對 |
+| VI 機密 | 適用 | token 僅後端記憶體，安全環境注入、日誌允許清單與測試追蹤限制 |
+
+設計一致性審查已逐項對照 FR-001 至 FR-014。
+PlantUML 1.2026.10 使用本機 Java 實際產生四份 SVG，退出碼為 0。
+圖與文件已完成需求一致性檢查，無待釐清的技術決策或憲章例外。
+依憲章，正式實作前仍須由專案維護者人工審查這些設計，並記錄審查結果。
+本階段交付預定設計，程式行為驗收於實作階段執行。
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/001-classroom-sheets-buzzer/
+├── spec.md
+├── plan.md
+├── research.md
+├── data-model.md
+├── quickstart.md
+├── diagrams/ (architecture, lifecycle, submission, google-flow).puml
+└── contracts/ interfaces.md
+```
+
+### Source Code (repository root)
+
+以下為預定目錄，由實作階段建立。
+
+```text
+frontend/src/ (teacher, student, components, transport)
+backend/src/ (http, sockets, activity, google, security)
+shared/src/ (schemas, events, projections)
+tests/ (unit, integration, contract, e2e)
+```
+
+**Structure Decision**: npm workspaces 共用驗證與契約，前端以角色畫面區分，
+伺服端集中處理狀態與角色投影。google 模組負責授權、教材解析和回寫。
+
+## Complexity Tracking
+
+無已接受的憲章例外。Google 同時編輯限制記於 research 與 quickstart。
+
+## Design Validation
+
+研究已完成，細節見 [research.md](research.md)。資料關係及狀態見
+[data-model.md](data-model.md)，HTTP 與即時事件見
+[contracts/interfaces.md](contracts/interfaces.md)，驗收指令見 [quickstart.md](quickstart.md)。
+所有設計圖保留可重現的 PlantUML 原始檔，正式實作的第一項品質門檻為人工設計審查。
+
+本次額外選定 React/Vite、Express、Zod、Vitest 與 Playwright，屬可維護性及驗證工具選擇。
+活動與 token 都在伺服端記憶體。前端瀏覽器僅保存匿名 cookie，程序停止即失去所有活動。
+Google 機密透過執行環境注入，真實 Google 流程以操作者本機授權完成。
