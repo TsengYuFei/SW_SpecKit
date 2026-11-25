@@ -149,7 +149,7 @@ T002設計審查及Phase 1–2文件核對已由維護者完成；後續每Phase
 - [x] T065 [US3] 在 frontend/src/teacher/ActivityPage.tsx、frontend/src/teacher/WritebackPanel.tsx 明示結束即自動回填／暫停外部編輯，移除正常初次回填按鈕，只在例外提供授權／查核／安全重試
 - [x] T066 [US3] 在 tests/e2e/automatic-writeback.spec.ts 驗end後關老師頁、worker仍完成、重開只看狀態；更新 tests/integration/writeback.test.ts、tests/contract/writeback-http.test.ts、tests/e2e/results-writeback.spec.ts 被取代的手動初次回填預期
 - [x] T067 [US3] 執行共用Phase Gate及回填正常／特殊／crash案例，將限制與結果同步 specs/002-optimize-classroom-workflow/quickstart.md、specs/002-optimize-classroom-workflow/review-notes.md；Google double不冒充真實原表驗收
-- [ ] T068 [US3] 完成審查後commit並merge main，記至 specs/002-optimize-classroom-workflow/review-notes.md，再進入US4
+- [x] T068 [US3] 完成審查後commit並merge main，記至 specs/002-optimize-classroom-workflow/review-notes.md，再進入US4
 
 ## Phase 6: User Story 4 — 持久歷史、設定與自動恢復 (P1)
 

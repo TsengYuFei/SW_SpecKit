@@ -398,3 +398,5 @@ Phase 5人工文件核對範圍：本節、quickstart的Phase 5操作及限制�
 確認後才T068合併並開始Phase 6。
 
 Phase 5文件人工核對結論：維護者於2026-11-25回覆「核對完成」，T068人工審查門檻通過。
+
+T068已完成：實作7cbf9e0，合併main 1cd40d7；T055–T068完成，補記後fast-forward回main，未push。
