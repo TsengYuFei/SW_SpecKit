@@ -76,7 +76,7 @@ e2e 使用 Playwright 的獨立瀏覽器 context 表示兩組匿名身分，測�
    只有寫後讀回符合預期才顯示已確認。再次按同一回寫操作須取得原結果。
 9. 建立下一場，以 Spreadsheet ID 讀取第二份教材，核對所有分頁及不同位置的題目。
    重跑必要提交與回寫，證明 URL 與 ID 均支援，且題數、分頁與位置非固定。
-10. 另開活動，在至少一組有效提交後重新啟動老師電腦。舊連結不可繼續操作，老師建立
+10. 另開活動，在至少一組有效提交後停止並重新啟動 Node.js 服務。舊連結不可繼續操作，老師建立
     新活動後，原組名、綁定、答案與順位皆為空，學生須重新選組並作答。
 
 整個驗收全程直接存取線上 Sheets，中介檔案數須為零。
@@ -148,7 +148,7 @@ T023 完成。兩份真實教材分頁名稱均為「學習單」，不同分頁
 
 2026-11-24 完成 T024–T038。`npm run typecheck`、`npm run lint`、`npm run format:check`、`npm run build` 與四份 PlantUML `-checkonly` 通過。`npm run test:unit` 29 項、`npm run test:integration` 13 項、`npm run test:contract` 6 項、`npm run test:e2e` 4 項全部通過。測試服務使用 3010/3011 及臨時連接埠，保留使用者已授權的服務。
 
-已驗證同步選組裁決、完整題組、首次受理與重送去重、時間回撥及結束交錯、角色封包隱私、同 Cookie 多分頁、清除 Cookie 不可接管、斷線恢復與全新 store/bootId 拒絕舊活動。Edge 的兩個獨立學生瀏覽器身分與老師端在 2 秒內同步階段。這些是自動化瀏覽器情境，實體學生裝置及整機重新開機仍依 T051 驗收。
+已驗證同步選組裁決、完整題組、首次受理與重送去重、時間回撥及結束交錯、角色封包隱私、同 Cookie 多分頁、清除 Cookie 不可接管、斷線恢復與全新 store/bootId 拒絕舊活動。Edge 的兩個獨立學生瀏覽器身分與老師端在 2 秒內同步階段。這些是自動化瀏覽器情境，實體學生裝置及Node.js 服務重新啟動仍依 T051 驗收。
 
 ## Phase 5 驗證紀錄
 
@@ -235,10 +235,10 @@ node tests/manual/check-connected-writeback.mjs e41904bd-bd4f-4cf8-a63a-5a514887
 | SC-004 | 併發、去重、結束交錯與封包隱私自動測試通過，第一份真實先後提交裁決相符 |
 | SC-005 | 兩份真實回寫均 verified；第一份三格另經可視抽核，第二份兩格依寫後讀回確認，失敗路徑由 adapter/SDK mock 覆蓋 |
 | SC-006 | 併發唯一占用、命名、重連與新身分拒絕自動測試通過；真實瀏覽器兩組占用狀態相符 |
-| SC-007 | 全新 store/bootId 的舊活動拒絕測試通過；有效提交後整台電腦重新開機尚待實際驗收 |
+| SC-007 | 已在兩筆有效提交後實際重啟 Node.js；新 bootId、舊活動拒絕、空白新場及重新選組作答均通過 |
 
-T051 尚未全數完成。兩份回寫均已完成，跨裝置已取消；當時仍待異名分頁真實對應，
-以及有效提交後重新啟動老師電腦。
+本段紀錄時 T051 尚未全數完成。兩份回寫均已完成，跨裝置已取消；當時仍待異名分頁真實對應，
+以及有效提交後停止並重新啟動 Node.js 服務。
 T052 的維護者人工文件核對也尚待完成；AI 已逐項對照程式、測試及上列實際結果，
 修正 HTTP/HTTPS 能力、角色投影取得方式、Writeback 結構及測試建置順序等文件差異，
 未把此 AI 核對當作維護者審查。Phase 6 不合併 main，Phase 7 尚未開始。
@@ -252,7 +252,7 @@ SC-003、plan、architecture.puml 與 T051/T059。先前同機 Chrome/Edge 的�
 第二份試算表的分頁已經使用者明確授權，從「學習單」改為「驗收學習單二」並保留新名稱。
 只更改分頁名稱，未修改題目或答案；2026-11-25 更名後重新讀取通過，6 個單題仍完整對應 G5、G7、G9、G11、G13、G15，並已確認對應。
 
-異名分頁重新讀取與本機不同瀏覽器的最新活動確認已完成；目前仍待活動進行中整機重新開機，以及維護者人工文件審查。
+異名分頁重新讀取、本機不同瀏覽器與 Node.js 服務重啟驗收均已完成；目前僅待維護者人工文件審查。
 重啟驗收工具 tests/manual/restart-check.mjs 的 capture 模式會拒絕已結束活動；
 已用既有 ended 活動確認拒絕（非零退出碼），不會誤認為有效的中斷驗收。
 真正執行時，須先在 active 且至少一筆提交受理後 capture，再由使用者重新啟動電腦，
@@ -280,7 +280,7 @@ node tests/manual/connected-browsers.mjs a096a12f-1c9d-417c-8ecc-50fbd9b8ed3c ht
 實際 PASS：兩個瀏覽器持同一網址，各匿名占用一組；兩組各提交第 1 題一筆，
 sequence 為 1、2，第一組成功；開始階段與老師進度均在 2 秒內更新。
 active 學生實際 Socket 封包沒有 teacher:progress、sequence、receivedAt、results、submissions。
-Chrome 重新整理後恢復原組受理狀態。測試完成後保留 active，供整機重啟測試。
+Chrome 重新整理後恢復原組受理狀態。測試完成後保留 active，供服務重啟測試。
 
 已執行以下 capture 並通過，證據保存於 Git 排除的 validation-results/restart-evidence.json：
 
@@ -288,13 +288,35 @@ Chrome 重新整理後恢復原組受理狀態。測試完成後保留 active，
 node tests/manual/restart-check.mjs capture a096a12f-1c9d-417c-8ecc-50fbd9b8ed3c
 ```
 
-實際結果為 CAPTURED、phase=active、submissionCount=2。尚未重新開機，不能把
-capture 當成整機重啟通過。使用者重新啟動電腦並啟動空白服務後，先不要建立活動，執行：
+實際結果為 CAPTURED、phase=active、submissionCount=2。capture 當時尚未重啟，不能把
+capture 當成服務重啟通過。使用者實際停止並重啟 Node.js、啟動空白服務後，先不要建立活動，執行：
 
 ```powershell
 node tests/manual/restart-check.mjs verify
 ```
 
 verify 會先確認 bootId 已改變、舊活動回 ACTIVITY_UNAVAILABLE，再建立一個同組數的新場，
-核對占用、組名與提交均未沿用。使用者須另確認實際是整台電腦重新開機，
-不是只停止 Node；最後再讀題並讓新身分完成新提交，才完成 SC-007。
+核對占用、組名與提交均未沿用。本階段已依使用者明確同意改測 Node.js 服務重新啟動，
+最後再讀題並讓新身分完成新提交，才完成 SC-007。
+
+### 服務重啟驗收完成
+
+2026-11-25 使用者明確同意將本階段驗收改為「實際停止並重新啟動 Node.js 服務」，
+並回覆已完成重啟。restart-check verify 實際退出碼 0：bootId 已改變，舊活動
+a096a12f-1c9d-417c-8ecc-50fbd9b8ed3c 回 ACTIVITY_UNAVAILABLE；新活動
+b0c5094b-e388-4943-8f8c-4f09da0bca40 的組別占用、組名與提交沿用數均為 0。
+
+使用者重新授權後，由老師頁重新讀取更名後的線上教材，六題對應確認通過。
+以下命令完成新場的不同瀏覽器選組、作答、重新整理及結束：
+
+```powershell
+node tests/manual/connected-browsers.mjs b0c5094b-e388-4943-8f8c-4f09da0bca40 http://172.22.24.36:3001 --complete
+```
+
+實際退出碼 0、PASS。Chrome/Edge 各重新占用一組，各受理一筆新提交，sequence 從
+1、2 重新開始，第一組成功；開始、教師進度及結束畫面均在 2 秒內更新，兩邊公布結果一致。
+這是服務重啟後的真實新場測試，不是重新建立同一個 store 物件的模擬測試。
+Google 原表先前已回寫的內容仍保留，沒有當作新活動已提交的答案。
+
+依目前使用者確認的範圍，T051 與 SC-001–SC-007 技術驗收已完成。T052 維護者回覆為
+尚未核對，維持待審；Phase 6 不合併 main，Phase 7 尚未執行。

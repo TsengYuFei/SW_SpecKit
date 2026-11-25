@@ -1,4 +1,4 @@
-// Opt-in evidence capture/check across a real computer reboot. Never stores cookies or tokens.
+// Opt-in evidence capture/check across a real Node service restart. Never stores cookies or tokens.
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -90,7 +90,7 @@ try {
         carriedBindings: 0,
         carriedNames: 0,
         carriedSubmissions: 0,
-        limitation: 'OPERATOR_MUST_CONFIRM_FULL_COMPUTER_REBOOT_AND_TEST_NEW_SUBMISSION',
+        next: 'LOAD_SOURCE_AND_TEST_NEW_SUBMISSION',
       }),
     );
   }

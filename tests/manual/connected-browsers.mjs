@@ -6,6 +6,7 @@ import { chromium, expect } from '@playwright/test';
 import { io } from 'socket.io-client';
 
 const [activityId, studentOrigin] = process.argv.slice(2);
+const completeActivity = process.argv[4] === '--complete';
 assert.match(activityId ?? '', /^[0-9a-f-]{36}$/);
 const studentUrl = new URL(studentOrigin);
 assert.equal(studentUrl.protocol, 'http:');
@@ -126,6 +127,21 @@ try {
   await expect(
     a.getByRole('form', { name: '第 1 題', exact: true }).getByRole('button'),
   ).toHaveText('本組答案已受理');
+  if (completeActivity) {
+    stage = 'publish-results';
+    await command('activity:end');
+    await Promise.all(
+      [a, b].map((page) =>
+        expect(page.getByRole('heading', { name: '搶答已結束', exact: true })).toBeVisible({
+          timeout: 2000,
+        }),
+      ),
+    );
+    for (const page of [a, b]) {
+      const results = page.getByRole('region', { name: '公布結果', exact: true });
+      await expect(results.getByText('搶答成功：第 1 組', { exact: true })).toBeVisible();
+    }
+  }
   console.log(
     JSON.stringify({
       status: 'PASS',
@@ -138,8 +154,9 @@ try {
       teacherProgressWithin2Seconds: true,
       activePacketPrivacy: true,
       reloadRestoresGroup: true,
-      phase: 'active',
-      next: 'CAPTURE_RESTART_EVIDENCE',
+      phase: completeActivity ? 'ended' : 'active',
+      endSyncWithin2Seconds: completeActivity || undefined,
+      next: completeActivity ? 'ACCEPTANCE_COMPLETE' : 'CAPTURE_RESTART_EVIDENCE',
     }),
   );
 } catch (error) {
