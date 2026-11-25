@@ -149,3 +149,10 @@ restart-check verify 退出碼 0，新 bootId、舊活動拒絕與空白新場�
 退出碼 0，兩組重新選組與提交、sequence 從 1 開始、2 秒同步及結束公布結果全部通過。
 T051 完成；目前僅 T052 人工審查待完成。Phase 6 保持未合併，待人工核對通過後
 才依原定流程合併 main 並從新分支執行 Phase 7 收斂複核。
+
+2026-11-25 維護者（使用者）已明確回覆「文件已核對，內容一致」，完成 T052。
+核對範圍為 review-notes 所列 spec、plan、research、data-model、contracts、quickstart
+與四份 PlantUML，依實際操作與測試證據確認。T001–T052 均已完成，Phase 6 可合併。
+最終憲章符合性：I 圖先行且可渲染；II 模組化 strict TypeScript 並通過檢查與程式審查；
+III runtime 輸入、權限與安全錯誤驗證；IV 66 項自動測試及真實流程；V 維護者已人工核對；
+VI 憑證由環境注入、權杖僅記憶體，機密測試與掃描通過。未提出憲章例外。
