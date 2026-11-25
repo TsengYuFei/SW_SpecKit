@@ -27,6 +27,14 @@ const errors: Record<ErrorCode, [number, string, boolean]> = {
   WRITE_PENDING: [409, '回寫結果尚待確認，請先查核原試算表。', true],
   RATE_LIMITED: [429, '操作過於頻繁，請稍後重試。', true],
   INTERNAL_ERROR: [500, '系統暫時無法完成操作，請稍後重試。', true],
+  NAME_LOCKED: [409, '組名已確認，無法更改。', false],
+  CURSOR_INVALID: [400, '清單位置已失效，請重新搜尋或載入。', false],
+  PREVIEW_EXPIRED: [409, '教材預覽已失效，請重新選取並核對。', false],
+  SOURCE_READ_ONLY: [403, '此教材只有讀取權限，請選擇可編輯的試算表。', false],
+  SOURCE_UNSUPPORTED: [400, '第一個工作表不支援作為本次教材，請確認工作表類型。', false],
+  STORAGE_UNAVAILABLE: [503, '儲存暫時無法完成，操作未確認，請檢查儲存空間與權限後重試。', true],
+  STORAGE_CORRUPT: [503, '儲存資料無法安全載入，請保留原資料並檢查備份與版本。', false],
+  SYSTEM_BUSY: [409, '目前仍有活動或待確認回填，請先完成處理再建立新活動。', true],
 };
 
 export class AppError extends Error {
@@ -41,6 +49,23 @@ export class AppError extends Error {
 export function normalizeError(error: unknown): AppError {
   if (error instanceof AppError) return error;
   if (error instanceof ZodError) return new AppError('INVALID_INPUT');
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 'ERR_SQLITE_ERROR' &&
+    'errcode' in error &&
+    typeof error.errcode === 'number'
+  ) {
+    const primary = error.errcode & 255;
+    return new AppError(
+      primary === 19
+        ? 'INVALID_INPUT'
+        : primary === 11 || primary === 26
+          ? 'STORAGE_CORRUPT'
+          : 'STORAGE_UNAVAILABLE',
+    );
+  }
   if (
     typeof error === 'object' &&
     error !== null &&

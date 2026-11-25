@@ -1,10 +1,10 @@
 # Implementation Plan: 課堂搶答流程與歷史管理優化
 
-**Branch**: `main`（尚未提交；功能識別 `002-optimize-classroom-workflow`） | **Date**: 2026-11-25 | **Spec**: [spec.md](spec.md)
+**Branch**: 依tasks.md每Phase獨立codex分支，main為合併目標（功能識別 `002-optimize-classroom-workflow`） | **Date**: 2026-11-25 | **Spec**: [spec.md](spec.md)
 
 **Input**: 第二版功能規格、三項釐清、使用者指定 SQLite。
 
-**Status**: 預定設計，尚未實作；本次人工審查尚待維護者完成。
+**Status**: 設計審查已通過，已進行Phase 1–2基礎工作；正式業務功能尚未切換，最新測試及人審狀態見review-notes.md。
 
 ## Summary
 

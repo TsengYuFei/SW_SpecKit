@@ -4,8 +4,9 @@ import { readConfig } from '../../backend/src/config.js';
 import { classroom } from './activity.js';
 import { fakeGateway } from './source-server.js';
 import { close, listen } from './server.js';
+import type { PersistenceFixture } from './persistence.js';
 
-export async function classroomServer() {
+export async function classroomServer(persistence?: PersistenceFixture) {
   const c = classroom();
   const config = readConfig({});
   const source = createSourceModule(config, c.store, fakeGateway());
@@ -17,6 +18,7 @@ export async function classroomServer() {
   });
   return {
     ...c,
+    persistence,
     teacherUrl: await listen(teacher.server),
     studentUrl,
     async stop() {
@@ -24,6 +26,7 @@ export async function classroomServer() {
       student.io.disconnectSockets(true);
       await close(teacher.server);
       await close(student.server);
+      persistence?.close();
     },
   };
 }
