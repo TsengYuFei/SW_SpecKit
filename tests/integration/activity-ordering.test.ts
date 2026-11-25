@@ -11,11 +11,12 @@ it('atomically binds one browser to one group and preserves binding after reconn
       activityId: c.activity.id,
       requestId: randomUUID(),
       groupId,
+      name: '測試組',
     });
   join(c.a, c.groups[0]!.id);
   expect(() => join(c.b, c.groups[0]!.id)).toThrow('已被其他');
   expect(() => join(c.a, c.groups[1]!.id)).toThrow('已加入另一');
-  expect(join(c.a, c.groups[0]!.id)).toEqual({ groupId: c.groups[0]!.id });
+  expect(join(c.a, c.groups[0]!.id)).toMatchObject({ groupId: c.groups[0]!.id, name: '測試組' });
   join(c.b, c.groups[1]!.id);
   expect(c.activity.groups.size).toBe(2);
 });
@@ -24,8 +25,8 @@ it('orders complete answers by server sequence, caches rejection and retries aft
   const c = classroom();
   const run = (session: typeof c.a, event: string, extra = {}, requestId = randomUUID()) =>
     executeCommand(c.store, session, event, { activityId: c.activity.id, requestId, ...extra });
-  run(c.a, 'group:join', { groupId: c.groups[0]!.id });
-  run(c.b, 'group:join', { groupId: c.groups[1]!.id });
+  run(c.a, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' });
+  run(c.b, 'group:join', { groupId: c.groups[1]!.id, name: '測試組' });
   expect(() => run(c.a, 'answer:submit', { questionId: c.question.id, answers: {} })).toThrow();
   run(c.teacher, 'activity:start');
   const badId = randomUUID();
@@ -63,7 +64,11 @@ it('blocks start while source is unconfirmed or loading; rejects old activity af
   c.activity.phase = 'ended';
   c.store.createActivity(2);
   expect(() =>
-    executeCommand(c.store, c.a, 'group:join', { ...payload, groupId: c.groups[0]!.id }),
+    executeCommand(c.store, c.a, 'group:join', {
+      ...payload,
+      groupId: c.groups[0]!.id,
+      name: '測試組',
+    }),
   ).toThrow('不可用');
   const restarted = createStore(10);
   expect(restarted.bootId).not.toBe(c.store.bootId);
@@ -78,7 +83,7 @@ it('rejects unknown items, blank and oversized answers without consuming a seque
       requestId: randomUUID(),
       ...extra,
     });
-  run('group:join', { groupId: c.groups[0]!.id });
+  run('group:join', { groupId: c.groups[0]!.id, name: '測試組' });
   run('activity:start');
   const answers = Object.fromEntries(c.question.items.map((i) => [i.id, 'value']));
   for (const invalid of [
@@ -101,7 +106,7 @@ it('end and submit share the same synchronous admission order', () => {
         requestId: randomUUID(),
         ...extra,
       });
-    run(c.a, 'group:join', { groupId: c.groups[0]!.id });
+    run(c.a, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' });
     run(c.teacher, 'activity:start');
     const submit = () =>
       run(c.a, 'answer:submit', {

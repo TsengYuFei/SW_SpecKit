@@ -49,15 +49,26 @@ it('enforces every command role and schema and broadcasts across both listeners 
     ok: false,
     error: { code: 'FORBIDDEN' },
   });
-  expect(await command(teacher, 'group:join', { groupId: c.groups[0]!.id })).toMatchObject({
+  expect(
+    await command(teacher, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' }),
+  ).toMatchObject({
     ok: false,
     error: { code: 'FORBIDDEN' },
   });
   expect(
-    await command(student, 'group:join', { groupId: c.groups[0]!.id, role: 'teacher' }),
+    await command(student, 'group:join', {
+      groupId: c.groups[0]!.id,
+      name: '測試組',
+      role: 'teacher',
+    }),
   ).toMatchObject({ ok: false, error: { code: 'INVALID_INPUT' } });
-  expect((await command(student, 'group:join', { groupId: c.groups[0]!.id })).ok).toBe(true);
-  expect((await command(student, 'group:rename', { name: '咕咕嘎嘎' })).ok).toBe(true);
+  expect(
+    (await command(student, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' })).ok,
+  ).toBe(true);
+  expect(await command(student, 'group:rename', { name: '咕咕嘎嘎' })).toMatchObject({
+    ok: false,
+    error: { code: 'NAME_LOCKED' },
+  });
   const phase = new Promise<unknown>((resolve) => student.once('activity:phase', resolve));
   expect((await command(teacher, 'activity:start')).ok).toBe(true);
   expect(await phase).toMatchObject({ phase: 'active' });
@@ -108,15 +119,17 @@ it('arbitrates simultaneous sockets, preserves identity across reconnect, and li
       ...extra,
     })) as Envelope<unknown>;
   const races = await Promise.all([
-    command(a, 'group:join', { groupId: c.groups[0]!.id }),
-    command(b, 'group:join', { groupId: c.groups[0]!.id }),
+    command(a, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' }),
+    command(b, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' }),
   ]);
   expect(races.filter((result) => result.ok)).toHaveLength(1);
   expect(races.filter((result) => !result.ok)).toMatchObject([
     { error: { code: 'GROUP_OCCUPIED' } },
   ]);
   const loser = races[0]!.ok ? b : a;
-  expect((await command(loser, 'group:join', { groupId: c.groups[1]!.id })).ok).toBe(true);
+  expect(
+    (await command(loser, 'group:join', { groupId: c.groups[1]!.id, name: '測試組' })).ok,
+  ).toBe(true);
   c.activity.phase = 'active';
   const payload = {
     questionId: c.question.id,

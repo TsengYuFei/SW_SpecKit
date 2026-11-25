@@ -12,19 +12,24 @@ export function executeCommand(
   event: string,
   input: unknown,
 ): unknown {
+  if (store.commandHandler) return store.commandHandler(session, event, input);
   if (!Object.hasOwn(commandSchemas, event)) throw new AppError('INVALID_INPUT');
   const name = event as CommandName;
   const payload = commandSchemas[name].parse(input);
   const activity = store.requireActivity(payload.activityId);
   if (name === 'activity:subscribe') return projectActivity(activity, session);
+  if (name === 'group:rename') return renameGroup();
   const teacherOnly = name === 'activity:start' || name === 'activity:end';
   if (session.role !== (teacherOnly ? 'teacher' : 'student')) throw new AppError('FORBIDDEN');
   return store.command(activity, session.sessionId, name, payload.requestId, payload, () => {
     switch (name) {
       case 'group:join':
-        return joinGroup(activity, session, commandSchemas[name].parse(input).groupId);
-      case 'group:rename':
-        return renameGroup(activity, session, commandSchemas[name].parse(input).name);
+        return joinGroup(
+          activity,
+          session,
+          commandSchemas[name].parse(input).groupId,
+          commandSchemas[name].parse(input).name,
+        );
       case 'answer:submit': {
         const p = commandSchemas[name].parse(input);
         return submitAnswer(activity, session, p.requestId, p.questionId, p.answers);

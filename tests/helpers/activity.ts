@@ -2,6 +2,7 @@ import { createStore } from '../../backend/src/activity/store.js';
 import { createSessions } from '../../backend/src/security/sessions.js';
 import { parseGuidedNotes } from '../../backend/src/google/guided-notes-parser.js';
 import { sampleSheet } from '../fixtures/guided-notes.js';
+import type { PersistenceFixture } from './persistence.js';
 
 export function classroom() {
   const store = createStore(10);
@@ -30,9 +31,9 @@ export function classroom() {
 }
 
 // Pure reducer tests use classroom(); HTTP/UI source tests enter through this verified catalog flow.
-export async function catalogClassroom() {
+export async function catalogClassroom(persistence?: PersistenceFixture) {
   const { catalogServer } = await import('./catalog-server.js');
-  const server = await catalogServer();
+  const server = await catalogServer('teacher', persistence);
   const client = await server.client();
   const preview = (
     await (await client.post('/api/source-previews', { spreadsheetId: 'source-one' })).json()

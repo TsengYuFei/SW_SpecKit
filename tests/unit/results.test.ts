@@ -12,7 +12,7 @@ it('publishes one winner per complete question, and represents unanswered questi
   results[0]!.answers[c.question.items[0]!.id] = 'mutated by caller';
   c.groups[0]!.name = 'later name';
   expect(publishedResults(c.activity)[0]!.answers[c.question.items[0]!.id]).toBe('=SUM(A1)');
-  expect(publishedResults(c.activity)[0]!.winnerGroup?.name).toBe('');
+  expect(publishedResults(c.activity)[0]!.winnerGroup?.name).toBe('測試組');
   c.activity.phase = 'active';
   expect(() => publishedResults(c.activity)).toThrow();
 });

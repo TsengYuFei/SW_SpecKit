@@ -5,6 +5,7 @@ import type { Question, Source } from '@classroom/shared/schemas/source';
 import type { Group, Submission } from '@classroom/shared/schemas/activity';
 import type { Result } from '@classroom/shared/projections/activity';
 import type { Writeback } from '@classroom/shared/schemas/writeback';
+import type { BrowserSession } from '../security/sessions.js';
 export type { Group } from '@classroom/shared/schemas/activity';
 
 interface Receipt {
@@ -43,6 +44,9 @@ function canonical(value: unknown): unknown {
 }
 
 export function createStore(maxGroups: number) {
+  let commandHandler:
+    | ((session: BrowserSession, event: string, input: unknown) => unknown)
+    | undefined;
   const bootId = randomUUID();
   let activity: Activity | null = null;
   function createActivity(count: number): Activity {
@@ -105,6 +109,12 @@ export function createStore(maxGroups: number) {
     }
   }
   return {
+    get commandHandler() {
+      return commandHandler;
+    },
+    bindCommands(handler: NonNullable<typeof commandHandler>) {
+      commandHandler = handler;
+    },
     bootId,
     get activity() {
       return activity;

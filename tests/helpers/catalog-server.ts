@@ -12,6 +12,7 @@ import { listen, close } from './server.js';
 export async function catalogServer(
   role: 'teacher' | 'student' = 'teacher',
   provided?: PersistenceFixture,
+  ports: { teacher?: number; student?: number } = {},
 ) {
   const persistence = provided ?? createPersistenceFixture();
   const config = readConfig({
@@ -55,7 +56,7 @@ export async function catalogServer(
     registerRoutes: module.registerRoutes,
     authorizeTeacher: module.authorizeTeacher,
   });
-  const studentUrl = await listen(student.server);
+  const studentUrl = await listen(student.server, '127.0.0.1', ports.student ?? 0);
   config.STUDENT_PUBLIC_ORIGIN = studentUrl;
   const teacher = createListener(role, store, sessions, config, {
     authorizeTeacher: module.authorizeTeacher,
@@ -71,7 +72,7 @@ export async function catalogServer(
         );
     },
   });
-  const url = await listen(teacher.server);
+  const url = await listen(teacher.server, '127.0.0.1', ports.teacher ?? 0);
   async function client(owner = 'owner-a') {
     const session = await fetch(url + '/api/session');
     const cookie = session.headers.get('set-cookie')!.split(';')[0]!;
@@ -102,11 +103,12 @@ export async function catalogServer(
     gateway,
     persistence,
     client,
-    async stop() {
+    async stop(preserveDatabase = false) {
       teacher.io.disconnectSockets(true);
       student.io.disconnectSockets(true);
       await Promise.all([close(teacher.server), close(student.server)]);
-      persistence.close();
+      if (preserveDatabase) persistence.connection.close();
+      else persistence.close();
     },
   };
 }

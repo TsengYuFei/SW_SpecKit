@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { answersSchema } from '@classroom/shared/schemas/activity';
-import { GROUP_NAME_LIMIT } from '@classroom/shared/limits';
+import { answersSchema, groupNameSchema } from '@classroom/shared/schemas/activity';
 import type { DatabaseConnection } from './connection.js';
 import type { ActivityRepository } from './activity-repository.js';
 import { AppError } from '../security/safe-errors.js';
@@ -35,7 +34,7 @@ export function createParticipationRepository(
       connection.requireTransaction();
       const activity = activities.require(activityId);
       if (activity.phase === 'ended') throw new AppError('INVALID_PHASE');
-      const name = z.string().trim().min(1).max(GROUP_NAME_LIMIT).parse(inputName);
+      const name = groupNameSchema.parse(inputName);
       const groups = activities.groups(activityId);
       const existing = groups.find((group) => group.participantId === participantId);
       if (existing) {

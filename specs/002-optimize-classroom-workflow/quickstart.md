@@ -1,6 +1,6 @@
 # Quickstart and Validation: 第二版
 
-2026-11-25狀態：Phase 1–2已合併，Phase 3來源流程已實作、待人工文件核對；後續學生持久命令、自動回填、歷史與整體UI仍為預定驗收，不把第一版測試通過當作本版完整驗收。
+2026-11-25狀態：Phase 1–3已合併，Phase 4學生流程已實作並通過121項測試，待本階段文件人工核對；自動回填、歷史／設定、完整行程恢復驗收及整體UI仍為預定驗收，不把局部回歸當作本版完整驗收。
 資料與介面細節見 [data-model](data-model.md)、[contracts](contracts/interfaces.md)。
 
 ## Prerequisites
@@ -116,3 +116,20 @@ requestId建場收據、來源、題目、空組與全域slot同交易保存；�
 不代表新版學生持久化或自動回填已完成。source-http／source-preview、受影響的writeback-http／results-writeback、
 secret-exposure均已改由合成授權→清單／preview→requestId建場。真正Google及故事1–4整體驗收在後續Phase。
 具體測試指令、數量及圖對照見review-notes.md的Phase 3 Implementation and Validation。
+
+## Phase 4 已實作範圍與合成驗證
+
+老師從清單建場後，學生填寫組名，再點選空組一次完成加入。前後端共用trim後1–40 UTF-16字驗證；
+送出後輸入欄位消失、名稱不可更改，重新整理及同Cookie多分頁回到原組；清Cookie不能接管已占用組。
+完整名稱統一為「第1組-咕咕嘎嘎」形式，老師進度、全組答案、暫定／最終結果及現有回寫狀態均使用同一formatter。
+waiting學生資料的questions為空，沒有題號／prompt／item／source；只見組別占用、自組名稱與等待訊息。
+owner老師start交易提交後才公布題目。正式join／start／submit走SQLite及持久收據，保存成功後才ack與推播；
+完整題組驗證及next_sequence不以客戶時間裁定，DB故障不先占組或受理答案。
+
+跨boot重連先重取session再subscribe完整快照；新boot由session確認，舊boot／舊socket／舊授權代次回覆丟棄。
+本次Edge以同一臨時DB、原學生網址／Cookie重建測試服務實例，確認原名稱、active及後續提交恢復；
+這是同一測試行程內重建listener／sessions／store／connection的驗證，不是Phase 6要求的實際獨立Node行程重啟及三場歷史完整驗收。
+
+目前end已保存phase／ended_at／receipt，結果仍由來源與提交投影；固定results與唯一job的原子保存及自動worker於Phase 5完成。
+舊手動回寫僅保留至Phase 5移轉；記憶體回寫進度橋接不代表持久job或自動回填已完成。
+歷史與設定頁、完整子行程恢復及真實Google／兩帳號整體驗收仍依原Phase執行。未讀寫真實Sheets或正式DB。

@@ -56,3 +56,11 @@ it('checks own snapshot after a missing acknowledgement then retries the origina
   expect(calls[2]!.input).toBe(payload);
   expect(snapshotSeen && pendingSeen).toBe(true);
 });
+
+it('accepts a new boot only after a fresh session confirms it, then rejects a late old boot', () => {
+  const c = classroom(),
+    old = projectActivity(c.activity, c.a),
+    fresh = { ...old, bootId: 'confirmed-new-boot', revision: 0 };
+  expect(newerSnapshot({ ...old, revision: 8 }, fresh, 'confirmed-new-boot')).toBe(fresh);
+  expect(newerSnapshot(fresh, old, 'confirmed-new-boot')).toBe(fresh);
+});

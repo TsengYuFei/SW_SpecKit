@@ -13,8 +13,12 @@ export function AnswerPage({ client }: { client: ActivityClient }) {
             ? '搶答進行中'
             : '搶答已結束'}
       </h2>
-      <p>每個答案為 1–2000 字。題組須填完所有小題，一次送出；每組每題保留第一次有效答案。</p>
-      {snapshot.questions.map((q) => {
+      {snapshot.phase === 'waiting' ? (
+        <p>等待老師開放後才會顯示題目。</p>
+      ) : (
+        <p>每個答案為 1–2000 字。題組須填完所有小題，一次送出；每組每題保留第一次有效答案。</p>
+      )}
+      {(snapshot.phase === 'waiting' ? [] : snapshot.questions).map((q) => {
         const accepted = snapshot.self.receipts.some((r) => r.questionId === q.id);
         const disabled =
           !client.connected || client.busy || snapshot.phase !== 'active' || accepted;

@@ -1,6 +1,6 @@
 # Interface Contracts: 第二版預定介面
 
-本文件為第二版目標契約。Phase 3已實作帳號／清單／首張preview／原子create與owner檢查；完整history/settings、學生持久命令及自動writeback介面仍待後續Phase。沿用 Express HTTP、Socket.IO、shared Zod strict schemas。
+本文件為第二版目標契約。Phase 3已實作帳號／清單／首張preview／原子create與owner檢查；Phase 4已實作必填鎖名、角色／階段投影、持久join／start／submit與重訂閱。end目前保存phase與receipt；本文件所列end/results/job原子性、自動writeback及完整history/settings仍待後續Phase。沿用 Express HTTP、Socket.IO、shared Zod strict schemas。
 已完成範圍與合成測試證據見../review-notes.md；不得把本文件全部契約描述為現有服務已支援。
 
 ## Transport and Authorization
