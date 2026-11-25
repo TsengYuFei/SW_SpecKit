@@ -270,3 +270,5 @@ owner-isolation把目前活動revision設為7，確認他人bootstrap、HTTP拒�
 此處程式核對由AI完成，尚不代替維護者的本階段文件人工核對。T040保留未完成，分支尚未合併。
 
 Phase 3文件核對結論：維護者於2026-11-25明確回覆「Phase 3 文件已核對，內容一致」。T040人工文件核對通過，接續完成本階段合併；converge追加任務仍依原Phase順序執行。
+
+T040已完成：Phase 3實作commit ca4da6f，合併main commit a9f5e4b；T024–T040全部完成。此後僅在原Phase分支補記既成結果再fast-forward回main，未push。

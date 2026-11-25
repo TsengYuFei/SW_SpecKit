@@ -103,7 +103,7 @@ T002設計審查及Phase 1–2文件核對已由維護者完成；後續每Phase
 - [x] T037 [US1] 在 backend/src/sockets/activity-handlers.ts、backend/src/http/session-routes.ts、frontend/src/App.tsx 落實teacher owner檢查、currentActivityId過濾、每次推播重驗及generation切換清舊畫面；學生不可藉teacher session bootstrap取得其他活動
 - [x] T038 [US1] 在 tests/e2e/catalog-activity.spec.ts、tests/integration/owner-isolation.test.ts 驗證可選表建場及owner隔離；在同Phase移轉 tests/contract/source-http.test.ts、tests/e2e/source-preview.spec.ts、tests/helpers/activity.ts、tests/helpers/source-server.ts 及受新create契約影響的 tests/contract/writeback-http.test.ts、tests/integration/secret-exposure.test.ts 至合成OIDC帳號→清單→首張preview→requestId建場流程；保留原驗證／權限／網路／機密案例，拒絕舊繞過入口；T039前逐一檢查舊create／source呼叫並更新，不能刪除安全案例或延至後Phase；mock授權不冒充真實Google
 - [x] T039 [US1] 執行共用Phase Gate與本故事正常／特殊測試，將來源契約、六圖對照與結果同步 specs/002-optimize-classroom-workflow/quickstart.md、specs/002-optimize-classroom-workflow/review-notes.md；只以合成Google完成本Phase獨立驗收
-- [ ] T040 [US1] 完成審查後commit並merge main，記錄於 specs/002-optimize-classroom-workflow/review-notes.md，再進入US2
+- [x] T040 [US1] 完成審查後commit並merge main，記錄於 specs/002-optimize-classroom-workflow/review-notes.md，再進入US2
 
 ## Phase 4: User Story 2 — 必填鎖名加入與開放後顯題 (P1)
 
