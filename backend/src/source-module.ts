@@ -19,6 +19,9 @@ import { createWritebackWorker } from './google/writeback-worker.js';
 import { createDurableWritebackService } from './google/durable-writeback-service.js';
 import { readPersistentActivity } from './activity/persistent-store.js';
 import { publishActivity } from './sockets/activity-handlers.js';
+import { createHistoryService } from './activity/history-service.js';
+import { historyRoutes } from './http/history-routes.js';
+import { settingsRoutes } from './http/settings-routes.js';
 
 export function createSourceModule(
   config: Config,
@@ -41,6 +44,7 @@ export function createSourceModule(
     ? createCatalogService(store, oauth, gateway, config, persistence)
     : undefined;
   catalog?.restoreCurrent();
+  const history = persistence ? createHistoryService(persistence, store, oauth) : undefined;
   const worker = persistence
     ? createWritebackWorker(persistence, gateway, (owner) => oauth.forOwner(owner), {
         changed: (id) => {
@@ -96,6 +100,7 @@ export function createSourceModule(
     worker,
     durableWriteback,
     catalog,
+    history,
     authorizeTeacher: catalog
       ? (session: import('./security/sessions.js').BrowserSession, id?: string) =>
           catalog.authorize(session.sessionId, id)
@@ -103,6 +108,11 @@ export function createSourceModule(
     registerRoutes(app: Express, ctx: RouteContext) {
       googleRoutes(app, ctx, oauth, Boolean(catalog));
       if (catalog) {
+        if (history) historyRoutes(app, ctx, history);
+        if (persistence)
+          settingsRoutes(app, ctx, persistence, (session, id) =>
+            catalog.authorize(session.sessionId, id),
+          );
         catalogActivityRoutes(app, ctx, catalog);
         catalogSourceRoutes(app, ctx, catalog);
         if (ctx.role === 'teacher')

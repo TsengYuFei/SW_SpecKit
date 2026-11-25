@@ -7,7 +7,7 @@ import type { GoogleGateway } from '../../backend/src/google/sheets-client.js';
 import { createPersistenceFixture, type PersistenceFixture } from './persistence.js';
 import { googleAccounts } from '../fixtures/google-accounts.js';
 import { sampleSheet } from '../fixtures/guided-notes.js';
-import { listen, close } from './server.js';
+import { listen } from './server.js';
 
 export async function catalogServer(
   role: 'teacher' | 'student' = 'teacher',
@@ -113,9 +113,11 @@ export async function catalogServer(
     client,
     async stop(preserveDatabase = false) {
       await module.worker?.stop();
-      teacher.io.disconnectSockets(true);
-      student.io.disconnectSockets(true);
-      await Promise.all([close(teacher.server), close(student.server)]);
+      await Promise.all(
+        [teacher, student].map(
+          (listener) => new Promise<void>((resolve) => listener.io.close(() => resolve())),
+        ),
+      );
       if (preserveDatabase) persistence.connection.close();
       else persistence.close();
     },
