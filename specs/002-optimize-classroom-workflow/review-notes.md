@@ -5,7 +5,7 @@
 ## Review Status
 
 AI 已核對現有程式接點、規格、研究、資料模型、契約與六圖的一致性，並執行下列工具驗證。
-**新版人工設計審查T002及Phase 1實作後文件核對已通過**；Phase 2文件核對待完成，詳見本文最後的實測紀錄。
+**新版人工設計審查T002及Phase 1–2實作後文件核對均已通過**；各Phase實測及合併紀錄見本文後文。
 依憲章 I 與 V，任務必須保留實作前設計審查及合併前依實際行為核對文件的門檻。
 此處記錄待辦，不阻止本次產生可供審閱的規劃文件，也不要求重新確認使用者已指定的SQLite。
 
@@ -202,4 +202,6 @@ worker排程／重試的欄位及CAS存取基礎已建立，但自動回填、OA
 Phase 2文件核對範圍為本節、backend/src/persistence/全部模組、backend/src/activity/command-service.ts、
 security/sessions.ts／participants.ts／safe-errors.ts、config.ts、shared錯誤schema與新增三份測試／隔離helper。
 請以程式及上述結果核對本節；通過後才T023 commit／merge main，並開始Phase 3。
-Phase 2文件核對結論：維護者於2026-11-25明確回覆「Phase 2 文件已核對，內容一致」，可執行T023提交及合併；實際commit於完成後補記。
+Phase 2文件核對結論：維護者於2026-11-25明確回覆「Phase 2 文件已核對，內容一致」。
+T023已完成：實作commit `000ff01`，合併main commit `4f35e7e`，T008–T023全數完成。
+其後只在同一Phase 2分支補記既成結果，再fast-forward回main，未改已驗證程式、未push遠端。

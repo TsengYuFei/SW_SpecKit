@@ -77,7 +77,7 @@ Phase 1的實作前人審尚待維護者完成，先完成可審閱包才請其�
 - [x] T020 在 shared/src/schemas/common.ts、backend/src/security/safe-errors.ts、backend/src/security/logger.ts 加入契約新增安全錯誤與儲存故障轉譯；以allowlist輸出，不含SQL／路徑／答案／機密
 - [x] T021 在 tests/helpers/classroom-server.ts、tests/helpers/source-server.ts、tests/helpers/writeback.ts 接入隔離repository／transaction及原Google double，讓既有測試與新DB測試共存，不讀正式DB或真實Google授權
 - [x] T022 執行共用Phase Gate，新增實檔／digest／rollback／去重測試全通過，並在 specs/002-optimize-classroom-workflow/review-notes.md 記結果；基礎API先以測試fixture獨立驗證，production流程在故事階段完整切換
-- [ ] T023 完成審查後commit並merge main，將合併commit及證據記至 specs/002-optimize-classroom-workflow/review-notes.md，再進入US1
+- [X] T023 完成審查後commit並merge main，將合併commit及證據記至 specs/002-optimize-classroom-workflow/review-notes.md，再進入US1
 
 ## Phase 3: User Story 1 — 從Google清單選首張建場 (P1, MVP)
 
