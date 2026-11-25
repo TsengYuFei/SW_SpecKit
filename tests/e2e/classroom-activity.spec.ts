@@ -68,6 +68,7 @@ test('two browser identities submit complete groups privately, recover tabs, and
     await expect(b.getByRole('heading', { name: '搶答已結束', exact: true })).toBeVisible({
       timeout: 2000,
     });
+    await expect(teacher.getByText('回填狀態：讀回已確認', { exact: true })).toBeVisible();
     await b.reload();
     await expect(b.getByRole('heading', { name: '搶答已結束', exact: true })).toBeVisible();
   } finally {

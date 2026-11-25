@@ -1,6 +1,6 @@
 # Quickstart and Validation: 第二版
 
-2026-11-25狀態：Phase 1–3已合併，Phase 4學生流程已實作並通過121項測試，待本階段文件人工核對；自動回填、歷史／設定、完整行程恢復驗收及整體UI仍為預定驗收，不把局部回歸當作本版完整驗收。
+2026-11-25狀態：Phase 1–4已合併；Phase 5自動回填及安全復原已實作，141項測試通過，待本階段文件人工核對。歷史／設定、核心真實Google及完整活動恢復驗收、統一UI與備份恢復仍為後續工作。
 資料與介面細節見 [data-model](data-model.md)、[contracts](contracts/interfaces.md)。
 
 ## Prerequisites
@@ -133,3 +133,20 @@ owner老師start交易提交後才公布題目。正式join／start／submit走S
 目前end已保存phase／ended_at／receipt，結果仍由來源與提交投影；固定results與唯一job的原子保存及自動worker於Phase 5完成。
 舊手動回寫僅保留至Phase 5移轉；記憶體回寫進度橋接不代表持久job或自動回填已完成。
 歷史與設定頁、完整子行程恢復及真實Google／兩帳號整體驗收仍依原Phase執行。未讀寫真實Sheets或正式DB。
+
+## Phase 5 已實作範圍與合成驗證
+
+老師按「結束搶答並自動回填」即停止收答，結束／固定結果／唯一job及收據同交易保存；不要求第二次確認或回填按鈕。
+結束前畫面明示須暫停從其他視窗編輯原表。關閉老師頁不停止Node服務，worker會繼續；重開可看目前逐題狀態。
+無成功組亦保存零項verified工作，不呼叫Google寫入。僅有成功組的原目標會以整題組stringValue batch更新，讀回全expected才verified。
+
+遇pending／failed可「查核原表」或「安全重試回填」；查核不送寫，安全重試先讀baseline再決定，衝突題不覆寫。
+原Google帳號缺少授權時保留pending、不耗讀寫預算；由來源頁重新授權原帳號才喚醒，另一帳號不代寫。
+自動寫入每cycle最多3次，後續延遲2／4秒；連續暫時讀取最多4次，延遲1／2／4秒後暫停待確認。
+未知結果不因達上限而直接failed；重啟不重設預算，writing先轉pending查核；只有owner明確retry才開新cycle。
+DB進度保存失敗停止派發並回安全儲存錯誤；保留原DB處理儲存問題，服務重新啟動後按原狀態查核，不盲目重寫。
+
+本次四個真正獨立Node子行程強制中斷點：end提交後worker前、writing提交後送寫前、送寫後讀回前、讀回後保存前。
+測試以本機合成JSON模擬外部Google狀態，正式產品仍直接呼叫Google Sheets API，未使用試算表中介檔案。
+Edge亦驗兩學生作答後自動確認回填、老師關頁後續作、pending阻擋新建及只查核不重寫。
+上述均為合成來源；兩份真實Google、兩個真實帳號、三場歷史及active真正服務重啟續答仍須Phase 6驗收，不以本次worker故障測試代替。

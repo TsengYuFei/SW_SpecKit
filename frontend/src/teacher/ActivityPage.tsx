@@ -36,8 +36,11 @@ export function ActivityPage({
         disabled={!client.connected || client.busy || s.phase !== 'active'}
         onClick={() => void client.command('activity:end')}
       >
-        結束搶答
+        結束搶答並自動回填
       </button>
+      {s.phase === 'active' && (
+        <p>結束後會自動回填成功答案，請先暫停從其他視窗編輯原試算表；無須再按回填按鈕。</p>
+      )}
       <h3>各組作答狀況</h3>
       {s.groups.map((g) => (
         <p key={g.id}>

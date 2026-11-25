@@ -11,15 +11,12 @@ export function createPersistentCommands(
   store: ActivityStore,
   persistence: RuntimePersistence,
   authorize: (session: BrowserSession, id: string) => { accountId: string },
+  wake: () => void = () => {},
 ) {
   function refresh(id: string) {
     const prior = store.activity;
     const activity = readPersistentActivity(persistence, store, id);
-    // Preserve the existing manual writeback UI bridge until the US3 worker replaces it.
     if (prior?.id === id) {
-      activity.writebacks = prior.writebacks;
-      activity.writebackPending ||= prior.writebackPending;
-      if (prior.writebacks.size) activity.revision = Math.max(activity.revision, prior.revision);
       Object.assign(prior, activity);
       store.installActivity(prior);
       return prior;
@@ -86,12 +83,14 @@ export function createPersistentCommands(
               "UPDATE activities SET phase='ended',ended_at=?,revision=revision+1 WHERE id=?",
             )
             .run(Date.now(), activity.id);
-          return null;
+          const job = persistence.writebacks.createForEnded(activity.id);
+          return { phase: 'ended', jobId: String(job.id), jobQueued: job.status !== 'verified' };
         }
         throw new AppError('INVALID_INPUT');
       },
     );
     refresh(payload.activityId);
+    if (name === 'activity:end') wake();
     if (name === 'group:join') session.activityId = payload.activityId;
     return outcome;
   };

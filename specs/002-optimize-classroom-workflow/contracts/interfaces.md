@@ -1,6 +1,6 @@
 # Interface Contracts: 第二版預定介面
 
-本文件為第二版目標契約。Phase 3已實作帳號／清單／首張preview／原子create與owner檢查；Phase 4已實作必填鎖名、角色／階段投影、持久join／start／submit與重訂閱。end目前保存phase與receipt；本文件所列end/results/job原子性、自動writeback及完整history/settings仍待後續Phase。沿用 Express HTTP、Socket.IO、shared Zod strict schemas。
+本文件為第二版目標契約。Phase 3–4已實作來源、owner隔離及持久學生流程；Phase 5已實作end/results/job同交易、原sheetId自動worker及verify/retry。完整history/settings仍待Phase 6。沿用 Express HTTP、Socket.IO、shared Zod strict schemas。
 已完成範圍與合成測試證據見../review-notes.md；不得把本文件全部契約描述為現有服務已支援。
 
 ## Transport and Authorization
@@ -105,3 +105,14 @@ read/list有限次 exponential backoff；write(timeout15s,retry=false)每題組�
 verify僅讀回，不重設cycle／寫入預算；retry對可復原failed／pending原子開新cycle，與命令收據一併提交，重送不重複開輪。verified／conflict不允許retry開新cycle。
 所有updateCells以stringValue寫userEnteredValue，不改格式。寫後readback是verified必要條件。
 授權按owner取得，切換帳號不改job owner；未知結果先讀回，無授權pending等原帳號，不用其他帳號代寫。
+
+## Phase 5 Wire Mapping
+
+正常end回 `{phase:'ended',jobId,jobQueued}`；僅表示本機交易已保存，不表示Google已成功。
+GET `/api/activities/:id/writeback` 為owner限定的既有工作狀態查詢，不建立工作；未結束且無job回INVALID_PHASE。
+POST同一路徑的舊手動初次派發入口在正式main不註冊。verify/retry均為POST `/api/activities/:id/writeback/verify` 或 `/retry`，strict輸入 `{requestId:UUID}`。
+為沿用既有shared回填envelope，回傳資料中的operationId就是持久jobId、status就是整體currentStatus；
+包含activityId、questions、reasonCode，逐題另有retryCycle、writeAttemptCount、verificationFailureCount與nextAttemptAt。
+這些資訊及expectedAnswers只提供owner teacher；學生結果投影沒有回填job或內部資料。
+verify只查核現有工作且不送寫；retry先確認baseline，僅對可安全恢復的pending／failed題目開新cycle，
+verified／conflict題目不變，同requestId不再開cycle。整體有conflict時仍可復原其他安全failed題目。
