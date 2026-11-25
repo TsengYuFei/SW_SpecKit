@@ -3,10 +3,13 @@ dist/
 build/
 coverage/
 test-results/
+validation-results/
 playwright-report/
 *.log
 .env*
 credentials*.json
+client_secret*.json
+service-account*.json
 token*.json
 secrets/
 *.key

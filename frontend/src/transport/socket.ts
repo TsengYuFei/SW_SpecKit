@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import type { Envelope } from '@classroom/shared/events/envelope';
 import type { ActivitySnapshot } from '@classroom/shared/projections/activity';
+import { newRequestId } from './request-id';
 
 interface AckSocket {
   connected: boolean;
@@ -21,7 +22,7 @@ export async function sendWithRecovery(
     if (!socket.connected) throw new Error('操作尚未確認，請重新連線後檢查自組受理狀態。');
     const state = (await socket.timeout(3000).emitWithAck('activity:subscribe', {
       activityId: payload.activityId,
-      requestId: crypto.randomUUID(),
+      requestId: newRequestId(),
     })) as Envelope<ActivitySnapshot>;
     if (!state.ok) throw new Error(state.error.message);
     onSnapshot(state.data);
@@ -66,7 +67,7 @@ export function useActivity(activityId: string, bootId: string) {
       try {
         const response = (await socket.timeout(3000).emitWithAck('activity:subscribe', {
           activityId,
-          requestId: crypto.randomUUID(),
+          requestId: newRequestId(),
         })) as Envelope<ActivitySnapshot>;
         if (!response.ok) throw new Error(response.error.message);
         apply(response.data);
@@ -119,7 +120,7 @@ export function useActivity(activityId: string, bootId: string) {
       }
       const payload = pending.current?.payload ?? {
         activityId,
-        requestId: crypto.randomUUID(),
+        requestId: newRequestId(),
         ...extra,
       };
       pending.current = { event, fingerprint, payload };

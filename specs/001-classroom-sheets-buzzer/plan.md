@@ -10,7 +10,7 @@
 ## Summary
 
 前後端採 TypeScript，Socket.IO 同步角色狀態。單一 Node.js 行程在老師本機執行，
-所有活動與 Google token 存於記憶體。學生由區域網路瀏覽器加入，老師控制面只提供本機。
+所有活動與 Google token 存於記憶體。學生由同機不同瀏覽器透過活動網址加入，老師控制面只提供本機。
 Google Sheets 直接讀寫，依既有表頭及合併格辨識單題與題組。
 題組完整提交才取得共同收件順位。重啟重新授權及建立新活動。
 
@@ -20,7 +20,7 @@ Google Sheets 直接讀寫，依既有表頭及合併格辨識單題與題組。
 **Primary Dependencies**: React、Vite、Express、Socket.IO 4.x、googleapis、Zod
 **Storage**: 單一行程 Map，無資料庫或活動檔案；瀏覽器僅保存匿名 session cookie
 **Testing**: Vitest、Socket.IO client、Playwright、真實 Google Sheets 人工驗收
-**Target Platform**: 老師 Windows 本機，學生現代瀏覽器經 LAN 連線
+**Target Platform**: 老師 Windows 本機，學生使用同機不同的現代瀏覽器，透過活動網址加入
 **Project Type**: 本機 Web 應用
 **Performance Goals**: 正常連線下至少兩組端與教師端狀態於 2 秒內更新
 **Constraints**: 不可使用中介檔案，機密不得落入程式、文件、日誌、Git 或 AI 對話
@@ -61,7 +61,7 @@ specs/001-classroom-sheets-buzzer/
 
 ### Source Code (repository root)
 
-以下為預定目錄，由實作階段建立。
+以下目錄已於 Phase 1–5 建立，細項依實際模組與測試擴充。
 
 ```text
 frontend/src/ (teacher, student, components, transport)
@@ -114,3 +114,45 @@ Phase 3 的 T023 已於 2026-11-24 透過原老師頁真實重測通過，完整
 Phase 4 已完成 T024–T038，52 項累計自動測試及靜態與建置檢查通過。角色投影先於傳送產生，兩個 listener 共用逐 socket 的活動與 session 訂閱表，達成原設計的角色隔離；未使用全體廣播。學生只取得自組受理收據；結束後才取得成功答案。已核對 submission/lifecycle 圖，沒有流程變更。
 
 Phase 5 已完成 T039–T048，62 項累計自動測試通過。Google-flow 圖與契約明確記錄「查核並安全重試」的三路判斷，已重新檢查與渲染。寫入未知結果不自動重送，老師明確查核且原值與結構均未改時才重送一次。Phase 5 以合成 adapter 驗證，真實互通由 Phase 6 驗收。
+
+Phase 6 位於 codex/phase-6-validation。T049、T050 已完成，63 項自動測試、重新安裝、
+靜態檢查、建置、單一應用行程、產物與 Git 憑證格式檢查通過。第一份真實 Google 全流程
+及回寫讀回已通過；第二份以 ID 讀入並由兩個匿名 API 用戶完成活動。
+2026-11-25 使用者按下第二份回寫後，唯讀查核確認兩題均 verified、退出碼 0，
+原映射 G5=CPU、G7=二進位，第二份真實寫後讀回也已通過。
+實體 LAN 裝置、異名分頁及整機重啟尚未完成，不將自動測試或 API 用戶視為實體驗收。
+T051、T052 維持未勾選，Phase 6 不合併 main，也不進入 Phase 7。
+
+文件已完成 AI 對實作、測試與真實畫面的交叉核對，修正來源預覽採教師 HTTP、
+逐 socket 訂閱隔離、Writeback 巢狀結構、HTTP-only 能力與 E2E 先建置等差異。
+目前沒有未填寫的文件範本欄位；tasks.md 的 ID/P/Story 是已說明的任務語法，
+不是待填內容。維護者人工審查尚未發生，依憲章 V 與 T052 保留待審。
+
+2026-11-25 使用者取消本階段跨裝置驗收，改以同機不同瀏覽器持活動網址匿名加入。
+已同步 spec、architecture.puml、quickstart、T051/T059 與 review-notes；先前記錄的
+實體 LAN 待驗項目不再作為完成門檻。異名分頁已授權更名，待重讀驗證；
+整機重啟及維護者人工審查仍依原規格執行，不能因「繼續」而推定已完成。
+
+2026-11-25 異名分頁已重讀確認，六個單題的目標皆相符。本機不同瀏覽器驗收定位並修正
+一般 HTTP IP 來源缺少 randomUUID 導致訂閱失敗的問題；已先更新 submission 圖與契約，
+再實作安全隨機 UUID v4 相容方式。66 項自動測試及實際 Chrome/Edge 網址加入、提交、
+2 秒更新、封包隱私與重新整理恢復均通過。已保存 active/2 筆提交的重啟前證據。
+目前僅整機重啟驗收與維護者人工文件核對仍待完成，Phase 6 保持未合併。
+
+2026-11-25 使用者明確同意將最後的重啟驗收改為實際停止並重啟 Node.js 服務，
+不要求整台電腦重新開機；SC-007、T051 與操作紀錄同步調整。使用者完成重啟後，
+restart-check verify 退出碼 0，新 bootId、舊活動拒絕與空白新場檢查通過。
+新 activityId 為 b0c5094b-e388-4943-8f8c-4f09da0bca40，占用、組名及提交沿用數均為 0。
+尚待重新授權讀題後的新提交驗證；T052 維護者回覆為尚未核對，因此維持待審。
+
+2026-11-25 使用者重新授權後，新場已重新讀取並確認六題。實際 Chrome/Edge 新場測試
+退出碼 0，兩組重新選組與提交、sequence 從 1 開始、2 秒同步及結束公布結果全部通過。
+T051 完成；目前僅 T052 人工審查待完成。Phase 6 保持未合併，待人工核對通過後
+才依原定流程合併 main 並從新分支執行 Phase 7 收斂複核。
+
+2026-11-25 維護者（使用者）已明確回覆「文件已核對，內容一致」，完成 T052。
+核對範圍為 review-notes 所列 spec、plan、research、data-model、contracts、quickstart
+與四份 PlantUML，依實際操作與測試證據確認。T001–T052 均已完成，Phase 6 可合併。
+最終憲章符合性：I 圖先行且可渲染；II 模組化 strict TypeScript 並通過檢查與程式審查；
+III runtime 輸入、權限與安全錯誤驗證；IV 66 項自動測試及真實流程；V 維護者已人工核對；
+VI 憑證由環境注入、權杖僅記憶體，機密測試與掃描通過。未提出憲章例外。

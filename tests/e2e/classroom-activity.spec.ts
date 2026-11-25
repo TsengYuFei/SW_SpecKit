@@ -12,6 +12,9 @@ test('two browser identities submit complete groups privately, recover tabs, and
   const c = await classroomServer();
   const teacherContext = await browser.newContext();
   const aContext = await browser.newContext();
+  await aContext.addInitScript(() =>
+    Object.defineProperty(crypto, 'randomUUID', { value: undefined }),
+  );
   const bContext = await browser.newContext();
   try {
     const teacher = await teacherContext.newPage();

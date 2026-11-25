@@ -1,6 +1,6 @@
 # Data model
 
-本文件為預定設計。所有伺服端實體只存於記憶體，程序重啟全部失效。
+本文件對照 Phase 1–5 已實作模型；維護者人工核對尚待完成。所有伺服端實體只存於記憶體，程序重啟全部失效。
 
 | 實體 | 欄位與關係 | 驗證與唯一性 |
 | --- | --- | --- |
@@ -12,7 +12,7 @@
 | Group | id、ordinal、name、browserSessionId | 每活動 ordinal 唯一；session 與 group 一對一 |
 | BrowserSession | 隨機 session id、role、activityId | 由伺服端發給持續至瀏覽器工作階段結束的 cookie，不接受 client 自選 role；多分頁共用身分 |
 | Submission | id、requestId、questionId、groupId、answers、receivedAt、sequence | groupId + questionId 唯一；answers 恰好包含全部 item id |
-| Writeback | operationId、questionId、item statuses、expectedAnswers | idle/writing/pending/verified/conflict/failed |
+| Writeback | operationId、activityId、status、questions（各含 questionId、status、itemStatuses、expectedAnswers、選填安全 error） | idle/writing/pending/verified/conflict/failed |
 | OAuthSession | state、teacherSessionId、expiresAt、accessToken、refreshToken、tokenExpiresAt | state 單次、五分鐘有效，綁定老師 session；僅教師後端記憶體，不進 DTO、日誌或快照 |
 
 groupCount 為正的安全整數；超出可配置資源預算時明確拒絕建立。組名為選填純文字，trim 後 1–40 字；
@@ -39,6 +39,9 @@ Google token 與 browserSessionId 永不出現在公開投影。
 
 重啟由新 bootId 與新 activityId 區分；舊 id 回 ACTIVITY_UNAVAILABLE。
 新的空白伺服端無法判斷先前歷史，教師啟動畫面固定提示重啟後須重建活動。
+
+Activity 另以 finalResults 保存結束瞬間的固定結果，以 writebacks Map 保存回寫操作，
+writebackPending 表示 writing/pending 的新場阻擋狀態。這些資料同樣僅留在行程記憶體。
 
 Writeback 的每題狀態由 idle 到 writing，成功回讀為 verified；未知回覆為 pending，
 明確失敗為 failed，來源變更為 conflict。pending 重新讀取後，全部答案相符為 verified，
