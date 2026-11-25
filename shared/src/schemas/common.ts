@@ -31,6 +31,14 @@ export const errorCodeSchema = z.enum([
   'WRITE_PENDING',
   'RATE_LIMITED',
   'INTERNAL_ERROR',
+  'NAME_LOCKED',
+  'CURSOR_INVALID',
+  'PREVIEW_EXPIRED',
+  'SOURCE_READ_ONLY',
+  'SOURCE_UNSUPPORTED',
+  'STORAGE_UNAVAILABLE',
+  'STORAGE_CORRUPT',
+  'SYSTEM_BUSY',
 ]);
 export type ErrorCode = z.infer<typeof errorCodeSchema>;
 export interface PublicError {

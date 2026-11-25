@@ -3,8 +3,9 @@ import { executeCommand } from '../../backend/src/activity/lifecycle-reducer.js'
 import { createWritebackService } from '../../backend/src/google/writeback-service.js';
 import type { GoogleGateway } from '../../backend/src/google/sheets-client.js';
 import { classroom } from './activity.js';
+import type { PersistenceFixture } from './persistence.js';
 
-export function writebackFixture() {
+export function writebackFixture(persistence?: PersistenceFixture) {
   const c = classroom();
   const run = (session: typeof c.a, event: string, extra = {}) =>
     executeCommand(c.store, session, event, {
@@ -41,6 +42,8 @@ export function writebackFixture() {
   const service = createWritebackService(c.store, { credentials: () => ({}) }, gateway);
   return {
     ...c,
+    persistence,
+    close: () => persistence?.close(),
     gateway,
     service,
     writes,

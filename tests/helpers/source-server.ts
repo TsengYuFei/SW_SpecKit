@@ -7,6 +7,7 @@ import type { GoogleGateway } from '../../backend/src/google/sheets-client.js';
 import { sampleSheet } from '../fixtures/guided-notes.js';
 import { close, listen } from './server.js';
 import { googleReadDouble } from './google-adapter.js';
+import type { PersistenceFixture } from './persistence.js';
 
 export function fakeGateway(): GoogleGateway {
   const reader = googleReadDouble(async () => [sampleSheet(), sampleSheet(12, 5, 2)]);
@@ -20,7 +21,10 @@ export function fakeGateway(): GoogleGateway {
   };
 }
 
-export async function sourceServer(role: 'teacher' | 'student' = 'teacher') {
+export async function sourceServer(
+  role: 'teacher' | 'student' = 'teacher',
+  persistence?: PersistenceFixture,
+) {
   const config = readConfig({
     GOOGLE_CLIENT_ID: 'invalid-demo-id',
     GOOGLE_CLIENT_SECRET: 'invalid-demo-value',
@@ -44,10 +48,12 @@ export async function sourceServer(role: 'teacher' | 'student' = 'teacher') {
     ...source,
     gateway,
     store,
+    persistence,
     url: await listen(listener.server),
     async stop() {
       listener.io.disconnectSockets(true);
       await close(listener.server);
+      persistence?.close();
     },
   };
 }

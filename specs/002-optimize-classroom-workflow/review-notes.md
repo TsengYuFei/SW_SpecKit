@@ -1,11 +1,11 @@
 # 第二版設計審查與驗證紀錄
 
-日期：2026-11-25。憲章1.0.0。已開始Phase 1基礎準備；SQLite業務功能仍為預定設計。
+日期：2026-11-25。憲章1.0.0。Phase 1已合併，Phase 2基礎測試通過；正式業務功能尚未切換。
 
 ## Review Status
 
 AI 已核對現有程式接點、規格、研究、資料模型、契約與六圖的一致性，並執行下列工具驗證。
-**新版人工設計審查T002已通過**（維護者回覆「已核對，設計符合需求」）；Phase 1實作後文件核對待完成，詳見本文最後的實測紀錄。
+**新版人工設計審查T002及Phase 1實作後文件核對已通過**；Phase 2文件核對待完成，詳見本文最後的實測紀錄。
 依憲章 I 與 V，任務必須保留實作前設計審查及合併前依實際行為核對文件的門檻。
 此處記錄待辦，不阻止本次產生可供審閱的規劃文件，也不要求重新確認使用者已指定的SQLite。
 
@@ -154,3 +154,52 @@ Phase 1維護者文件核對範圍為本節、上述6個新增測試支援／fix
 Phase 1文件核對結論：維護者於2026-11-25明確回覆「Phase 1 文件已核對，內容一致」，本階段實作後文件核對通過。
 T007已完成：實作commit `daa6900`，合併main commit `774bebc`，T001–T007全數完成。
 此後僅於同一Phase 1分支補記上述既成結果，再fast-forward回main；未改已通過測試的程式。未push遠端。
+
+## Phase 2 Execution
+
+2026-11-25從最新main `ce5e516` 建立 `codex/002-phase-2-foundation`，T008完成。
+Phase 1測試／新版設計與實作後文件審查均已通過；本Phase先撰寫SQLite實檔／交易／匿名身分測試，
+再完成基礎實作。尚不將新持久化服務接入正式listener，正式切換留US1。
+
+### Phase 2 Implementation and Validation
+
+T008–T022完成，T023待本階段文件人工核對後合併。以下為已實作的基礎API，非已上線的新版UI／Google流程。
+
+| 範圍                   | 實作與測試證據                                                                                                                                                                            |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T009–T011 測試先行     | 三份新增測試先因connection／persistence helper不存在而失敗；實作後共16項新案例通過                                                                                                        |
+| T012 SQLite            | connection.ts／migrate.ts及001-core.ts：本機檔案、WAL／FULL／FK／busy_timeout、checksum與版本、quick_check／FK與slot檢查；未知／壞檔拒絕，不fallback空DB                                  |
+| T013–T017 repositories | account、activity、participation、receipt、writeback repository及factory；17張表含migration registry，依110個模型欄位定義PK／FK／唯一性／JSON／狀態約束，業務方法補充UTF-16長度及跨表驗證 |
+| T018 可靠命令          | unit-of-work與command-service：同步BEGIN IMMEDIATE、commit後hook、指紋與穩定requestId去重；業務拒絕先rollback再保存安全拒絕收據，暫時儲存失敗不保存成功收據                               |
+| T019 匿名恢復          | createSessions可注入participation repository；student Cookie原值只在瀏覽器／記憶體，DB存SHA-256摘要與UUID；重開session找回原身分並重建CSRF；teacher session不持久化。未注入時保留既有行為 |
+| T020 安全錯誤          | 新增契約指定錯誤碼及SQLite錯誤轉譯，不輸出SQL／檔案路徑／原始例外；receipt只保存白名單業務結果，敏感欄位拒絕並rollback                                                                    |
+| T021 測試注入          | tests/helpers/persistence.ts提供臨時DB／repos／commands及cleanup；classroom-server、source-server、writeback helpers可選接入此隔離上下文，原Google double與舊流程仍保留                   |
+
+新增5項SQLite連線測試、2項持久身分測試、9項durable command整合測試，共16項。
+實檔涵蓋唯讀／鎖忙／壞檔／未知schema／checksum／新版本／磁碟滿、首答與全域slot、命令去重／rollback、
+匿名原值不落盤、設定按帳號分離、組名鎖定、完整成功題組與job／retry欄位上限／過期cycle拒絕。
+另以真正獨立Node子行程在commit前及commit後確認遺失前SIGKILL，分別確認回滾與原成功收據可讀回；未終止既有正式服務。
+敏感欄位測試使用無效合成值，確認拒絕的outcome不進DB／WAL／SHM，並保持原revision。
+
+| 本次實際指令             | 結果                                          |
+| ------------------------ | --------------------------------------------- |
+| npm run typecheck        | exit0                                         |
+| npm run lint             | exit0                                         |
+| npm run format:check     | exit0                                         |
+| npm run test:unit        | exit0，45項                                   |
+| npm run test:integration | exit0，29項                                   |
+| npm run test:contract    | exit0，7項                                    |
+| npm run test:e2e         | exit0，5項                                    |
+| npm run build            | 已由test:e2e先行實際執行，三個workspace全通過 |
+| git diff --check         | exit0                                         |
+
+合計86項。需本機HTTP／Socket連線的測試在允許隔離loopback連線環境執行；測試DB／子行程皆為本次建立資源。
+另以Node記憶體SQLite執行已建置的coreSchema，逐表PRAGMA table_info對照data-model.md：110欄位／17表全部相符，exit0。
+任務／欄位文件檢查器已支援執行中的[X]進度標記，13/13通過；本版Markdown明確格式檢查亦通過。
+E2E後classroom-buzzer-test-\*臨時目錄無殘留。根目錄正式DATABASE_PATH未啟用，仍保留第一版記憶體store與原Google服務。
+worker排程／重試的欄位及CAS存取基礎已建立，但自動回填、OAuth清單、正式活動續答及歷史頁尚待後續故事；不把此基礎測試當作其驗收。
+
+Phase 2文件核對範圍為本節、backend/src/persistence/全部模組、backend/src/activity/command-service.ts、
+security/sessions.ts／participants.ts／safe-errors.ts、config.ts、shared錯誤schema與新增三份測試／隔離helper。
+請以程式及上述結果核對本節；通過後才T023 commit／merge main，並開始Phase 3。
+Phase 2文件核對結論：維護者於2026-11-25明確回覆「Phase 2 文件已核對，內容一致」，可執行T023提交及合併；實際commit於完成後補記。
