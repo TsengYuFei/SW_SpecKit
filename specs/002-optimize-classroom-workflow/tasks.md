@@ -126,7 +126,7 @@ T002設計審查及Phase 1–2文件核對已由維護者完成；後續每Phase
 - [x] T051 [US2] 在 tests/e2e/anonymous-join-privacy.spec.ts 驗兩獨立瀏覽器context、同Cookie多分頁、清Cookie不可接管、40字完整名、等待封包隱私及開始／結束同步≤2秒
 - [x] T052 [US2] 同步更新 tests/unit/activity-projections.test.ts、tests/integration/activity-ordering.test.ts、tests/contract/activity-sockets.test.ts、tests/e2e/classroom-activity.spec.ts 中被本版取代的預期；其餘原安全／完整題組／首答測試保留
 - [x] T053 [US2] 執行共用Phase Gate及本故事正常／特殊測試，更新 specs/002-optimize-classroom-workflow/quickstart.md、specs/002-optimize-classroom-workflow/review-notes.md；完成資料管道隱私核對後才通過
-- [ ] T054 [US2] 完成審查後commit並merge main，記至 specs/002-optimize-classroom-workflow/review-notes.md，再進入US3
+- [x] T054 [US2] 完成審查後commit並merge main，記至 specs/002-optimize-classroom-workflow/review-notes.md，再進入US3
 
 ## Phase 5: User Story 3 — 結束自動回填與安全復原 (P1)
 
