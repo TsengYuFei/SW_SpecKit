@@ -30,6 +30,9 @@ test('publishes the same results to both roles and verifies exact grouped writeb
   });
   const teacherUrl = await listen(teacher.server);
   const context = await browser.newContext();
+  await context.addInitScript(() =>
+    Object.defineProperty(crypto, 'randomUUID', { value: undefined }),
+  );
   const studentContext = await browser.newContext();
   try {
     const page = await context.newPage();

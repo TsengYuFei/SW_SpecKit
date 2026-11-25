@@ -21,6 +21,12 @@ Only original browser session can rejoin.
 No teacher or student reassignment.
 end note
 A -> S : submit(requestId, questionId, all answers)
+note left of A
+Generate a UUID v4 with Web Crypto.
+When randomUUID is unavailable on HTTP,
+use getRandomValues for the same request ID format.
+Reuse the ID for retries.
+end note
 B -> S : submit(requestId, questionId, all answers)
 S -> R : A command first at server boundary
 alt wrong role, phase, item set or blank answer

@@ -10,7 +10,7 @@
 ## Summary
 
 前後端採 TypeScript，Socket.IO 同步角色狀態。單一 Node.js 行程在老師本機執行，
-所有活動與 Google token 存於記憶體。學生由區域網路瀏覽器加入，老師控制面只提供本機。
+所有活動與 Google token 存於記憶體。學生由同機不同瀏覽器透過活動網址加入，老師控制面只提供本機。
 Google Sheets 直接讀寫，依既有表頭及合併格辨識單題與題組。
 題組完整提交才取得共同收件順位。重啟重新授權及建立新活動。
 
@@ -20,7 +20,7 @@ Google Sheets 直接讀寫，依既有表頭及合併格辨識單題與題組。
 **Primary Dependencies**: React、Vite、Express、Socket.IO 4.x、googleapis、Zod
 **Storage**: 單一行程 Map，無資料庫或活動檔案；瀏覽器僅保存匿名 session cookie
 **Testing**: Vitest、Socket.IO client、Playwright、真實 Google Sheets 人工驗收
-**Target Platform**: 老師 Windows 本機，學生現代瀏覽器經 LAN 連線
+**Target Platform**: 老師 Windows 本機，學生使用同機不同的現代瀏覽器，透過活動網址加入
 **Project Type**: 本機 Web 應用
 **Performance Goals**: 正常連線下至少兩組端與教師端狀態於 2 秒內更新
 **Constraints**: 不可使用中介檔案，機密不得落入程式、文件、日誌、Git 或 AI 對話
@@ -127,3 +127,14 @@ T051、T052 維持未勾選，Phase 6 不合併 main，也不進入 Phase 7。
 逐 socket 訂閱隔離、Writeback 巢狀結構、HTTP-only 能力與 E2E 先建置等差異。
 目前沒有未填寫的文件範本欄位；tasks.md 的 ID/P/Story 是已說明的任務語法，
 不是待填內容。維護者人工審查尚未發生，依憲章 V 與 T052 保留待審。
+
+2026-11-25 使用者取消本階段跨裝置驗收，改以同機不同瀏覽器持活動網址匿名加入。
+已同步 spec、architecture.puml、quickstart、T051/T059 與 review-notes；先前記錄的
+實體 LAN 待驗項目不再作為完成門檻。異名分頁已授權更名，待重讀驗證；
+整機重啟及維護者人工審查仍依原規格執行，不能因「繼續」而推定已完成。
+
+2026-11-25 異名分頁已重讀確認，六個單題的目標皆相符。本機不同瀏覽器驗收定位並修正
+一般 HTTP IP 來源缺少 randomUUID 導致訂閱失敗的問題；已先更新 submission 圖與契約，
+再實作安全隨機 UUID v4 相容方式。66 項自動測試及實際 Chrome/Edge 網址加入、提交、
+2 秒更新、封包隱私與重新整理恢復均通過。已保存 active/2 筆提交的重啟前證據。
+目前僅整機重啟驗收與維護者人工文件核對仍待完成，Phase 6 保持未合併。

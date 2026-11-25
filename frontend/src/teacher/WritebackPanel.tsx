@@ -6,6 +6,7 @@ import {
 } from '@classroom/shared/schemas/writeback';
 import type { ActivitySnapshot } from '@classroom/shared/projections/activity';
 import { http, HttpError } from '../transport/http';
+import { newRequestId } from '../transport/request-id';
 
 const labels: Record<WriteStatus, string> = {
   idle: '尚未回寫',
@@ -46,7 +47,7 @@ export function WritebackPanel({
       const response =
         verify && operation
           ? await http(`${base}/${operation.operationId}/verify`, csrfToken, {})
-          : await http(base, csrfToken, { requestId: (requestId.current ??= crypto.randomUUID()) });
+          : await http(base, csrfToken, { requestId: (requestId.current ??= newRequestId()) });
       setLocal(writebackSchema.parse(response));
       requestId.current = null;
     } catch (error) {

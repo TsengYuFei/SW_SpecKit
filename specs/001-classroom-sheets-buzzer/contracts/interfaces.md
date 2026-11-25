@@ -61,6 +61,8 @@ MAX_SOURCE_CELLS 預設為 2000000，超過則回 SOURCE_TOO_LARGE，拒絕整�
 
 Client commands 皆含 activityId、requestId，ack 回統一格式。
 requestId 為每個邏輯命令的 UUID，重送沿用，修正無效輸入則產生新的 UUID。
+前端優先使用 Web Crypto randomUUID；在一般 HTTP 來源缺少此方法時，以
+getRandomValues 產生同格式 UUID v4，不能因網址使用本機 IP 而無法訂閱或提交。
 學生提交不接受指定 groupId，以 session 所屬組別為準。
 
 | 事件 | 角色 | 其他 payload | 效果 |

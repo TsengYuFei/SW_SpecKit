@@ -5,7 +5,13 @@
 
 ## 前置條件
 
-- 老師 Windows 電腦安裝 Node.js 24 LTS、npm，學生使用現代瀏覽器並能連線到老師 LAN 位址。
+2026-11-25 使用者調整本次驗收範圍：不測跨裝置，改以同一台電腦的 Chrome、Edge 等
+不同瀏覽器，透過老師頁產生的完整學生網址匿名加入。以下跨裝置 LAN 說明屬選用部署，
+不再是 T051/T059 的完成條件。預設老師網址為 http://127.0.0.1:3000，學生服務為
+http://127.0.0.1:3001；若沿用其他 STUDENT_PUBLIC_ORIGIN，應使用老師頁顯示的完整連結。
+同一瀏覽器的普通分頁共用 Cookie，不能用兩個普通分頁假裝兩個組別身分。
+
+- 老師 Windows 電腦安裝 Node.js 24 LTS、npm，學生使用同機不同的現代瀏覽器。
 - 老師可連線 Google，兩份驗收教材置於線上 Google Sheets，對應規格 SC-002。
   第一份包含範例版型的四題，題號 1、2 各有兩小題，題號 3、4 為單題。
   第二份改變題數、分頁名與位置，可含多個分頁。另準備歧義、零題與衝突教材。
@@ -54,7 +60,7 @@ e2e 使用 Playwright 的獨立瀏覽器 context 表示兩組匿名身分，測�
 2. 老師建立兩組的活動。第一次以 Google Sheets URL 讀取第一份教材，核對四個題號、
    六個作答項目與六個目標格。確認無硬編碼座標。依 [資料模型](data-model.md)
    及 [契約](contracts/interfaces.md) 檢查老師可見預覽與學生投影的差異。
-3. 老師複製畫面中的學生加入連結。兩個學生裝置分別點選空組，免登入加入。
+3. 老師複製畫面中的學生加入連結。同機兩個不同瀏覽器分別點選空組，免登入加入。
    第一組命名「咕咕嘎嘎」。另一個身分同時搶同一空組時只能一個加入成功。
 4. 開始前嘗試提交須被拒絕。老師確認教材後開始活動，兩個學生端在 2 秒內更新。
 5. 第一組只填題組一的小題（1）並嘗試提交，須整筆拒絕。補齊兩小題後提交。
@@ -79,7 +85,7 @@ e2e 使用 Playwright 的獨立瀏覽器 context 表示兩組匿名身分，測�
 
 | 需求 | 正常情境 | 特殊情境與預期結果 | 驗證層級 |
 | --- | --- | --- | --- |
-| FR-001 | 本機老師與兩組 LAN 學生使用同場 | 學生無法連線時顯示中斷 | e2e、真實 LAN |
+| FR-001 | 本機老師與兩組不同瀏覽器學生使用同場 | 學生無法連線時顯示中斷 | e2e、真實多瀏覽器 |
 | FR-002 | 各角色完成允許的操作 | 偽造 role/groupId、學生打教師 HTTP 或事件均拒絕 | contract、integration |
 | FR-003 | URL、ID 授權後直接讀取 | 非 Google URL、ID 錯誤、取消授權、state 過期或重用拒絕 | unit、integration、真實 OAuth |
 | FR-004 | 跨分頁單題與題組映射完整 | 重複小題、目標重疊、歧義、無題及掃描失敗均阻止開始 | unit、integration、SC-002 |
@@ -224,15 +230,71 @@ node tests/manual/check-connected-writeback.mjs e41904bd-bd4f-4cf8-a63a-5a514887
 | 成功條件 | 證據與限制 |
 | --- | --- |
 | SC-001 | 第一份已完成真實 Google 全流程，兩組為同機 Chrome/Edge；中介檔案為零 |
-| SC-002 | 兩份真實題數與單題/題組配置均核對；分頁均名為學習單，異名及跨分頁目前只有合成測試覆蓋 |
-| SC-003 | E2E 與第二份 API 兩組階段同步通過 2 秒要求；兩台實體 LAN 裝置仍待驗 |
+| SC-002 | 兩份真實題數與單題/題組配置均核對；第二份已更名為驗收學習單二且重讀六題完整，跨分頁另由合成測試覆蓋 |
+| SC-003 | E2E、真實 API 及最新隔離 Chrome/Edge 測試通過 2 秒要求；依最新範圍不要求跨裝置 |
 | SC-004 | 併發、去重、結束交錯與封包隱私自動測試通過，第一份真實先後提交裁決相符 |
 | SC-005 | 兩份真實回寫均 verified；第一份三格另經可視抽核，第二份兩格依寫後讀回確認，失敗路徑由 adapter/SDK mock 覆蓋 |
 | SC-006 | 併發唯一占用、命名、重連與新身分拒絕自動測試通過；真實瀏覽器兩組占用狀態相符 |
 | SC-007 | 全新 store/bootId 的舊活動拒絕測試通過；有效提交後整台電腦重新開機尚待實際驗收 |
 
-T051 尚未全數完成。兩份回寫均已完成，仍需兩個學生實體裝置的 LAN 流程、異名分頁真實對應，
+T051 尚未全數完成。兩份回寫均已完成，跨裝置已取消；當時仍待異名分頁真實對應，
 以及有效提交後重新啟動老師電腦。
 T052 的維護者人工文件核對也尚待完成；AI 已逐項對照程式、測試及上列實際結果，
 修正 HTTP/HTTPS 能力、角色投影取得方式、Writeback 結構及測試建置順序等文件差異，
 未把此 AI 核對當作維護者審查。Phase 6 不合併 main，Phase 7 尚未開始。
+
+## 2026-11-25 驗收範圍更新
+
+使用者確認先不測跨裝置，因此前述實體 LAN 待驗項目取消，並同步修正 spec 的 FR-001、
+SC-003、plan、architecture.puml 與 T051/T059。先前同機 Chrome/Edge 的真實流程可作為
+目前的多瀏覽器證據；API 用戶仍不冒充實際 UI 瀏覽器。
+
+第二份試算表的分頁已經使用者明確授權，從「學習單」改為「驗收學習單二」並保留新名稱。
+只更改分頁名稱，未修改題目或答案；2026-11-25 更名後重新讀取通過，6 個單題仍完整對應 G5、G7、G9、G11、G13、G15，並已確認對應。
+
+異名分頁重新讀取與本機不同瀏覽器的最新活動確認已完成；目前仍待活動進行中整機重新開機，以及維護者人工文件審查。
+重啟驗收工具 tests/manual/restart-check.mjs 的 capture 模式會拒絕已結束活動；
+已用既有 ended 活動確認拒絕（非零退出碼），不會誤認為有效的中斷驗收。
+真正執行時，須先在 active 且至少一筆提交受理後 capture，再由使用者重新啟動電腦，
+啟動空白服務後執行 verify。工具只在 validation-results 保存 bootId、activityId 與筆數，
+不保存 Cookie、答案或 Google 權杖；該目錄已排除於 Git，應用不會讀取它來復原活動。
+
+### 本機 IP 網址相容性修正與最新瀏覽器驗收
+
+2026-11-25 真實測試定位到學生頁在一般 HTTP IP 來源中缺少 crypto.randomUUID，
+所以 health 可用但學生訂閱失敗。已更新設計圖與契約，新增共用 request-id helper：
+有原生方法時使用原生 UUID，否則以 Web Crypto getRandomValues 產生 UUID v4。
+缺乏安全隨機來源則顯示明確錯誤，沒有使用 Math.random。訂閱、重送與回寫皆共用此實作。
+
+`npm run test:unit` 34 項、`npm run test:integration` 20 項、`npm run test:contract` 7 項、
+`npm run test:e2e` 5 項，共 66 項通過；typecheck、lint、format:check、建置與 PlantUML
+檢查通過。E2E 主動移除 randomUUID，驗證缺少該方法時仍能訂閱、作答及回寫。
+
+以下以實際服務、已更名且確認的教材，啟動隔離的 Chrome 與 Edge 測試設定檔。
+不使用現有 Google 登入設定檔，不輸出 Cookie、不開啟 trace、截圖或錄影：
+
+```powershell
+node tests/manual/connected-browsers.mjs a096a12f-1c9d-417c-8ecc-50fbd9b8ed3c http://172.22.24.36:3001
+```
+
+實際 PASS：兩個瀏覽器持同一網址，各匿名占用一組；兩組各提交第 1 題一筆，
+sequence 為 1、2，第一組成功；開始階段與老師進度均在 2 秒內更新。
+active 學生實際 Socket 封包沒有 teacher:progress、sequence、receivedAt、results、submissions。
+Chrome 重新整理後恢復原組受理狀態。測試完成後保留 active，供整機重啟測試。
+
+已執行以下 capture 並通過，證據保存於 Git 排除的 validation-results/restart-evidence.json：
+
+```powershell
+node tests/manual/restart-check.mjs capture a096a12f-1c9d-417c-8ecc-50fbd9b8ed3c
+```
+
+實際結果為 CAPTURED、phase=active、submissionCount=2。尚未重新開機，不能把
+capture 當成整機重啟通過。使用者重新啟動電腦並啟動空白服務後，先不要建立活動，執行：
+
+```powershell
+node tests/manual/restart-check.mjs verify
+```
+
+verify 會先確認 bootId 已改變、舊活動回 ACTIVITY_UNAVAILABLE，再建立一個同組數的新場，
+核對占用、組名與提交均未沿用。使用者須另確認實際是整台電腦重新開機，
+不是只停止 Node；最後再讀題並讓新身分完成新提交，才完成 SC-007。

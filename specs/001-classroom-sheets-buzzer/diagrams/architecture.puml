@@ -2,7 +2,7 @@
 title Local classroom system
 actor Teacher
 actor Student
-component "Student browser UI (TypeScript)" as U
+component "Independent local student browsers (TypeScript)" as U
 rectangle "Teacher computer" {
  component "Teacher UI (TypeScript)" as T
  component "Node.js HTTP + Socket.IO" as S
@@ -13,7 +13,7 @@ cloud "Google authorization + Sheets" as C
 Teacher --> T
 Student --> U
 T --> S : teacher session
-U --> S : LAN anonymous session
+U --> S : local URL + anonymous session
 S --> M : ordered commands
 S --> G : teacher operations
 G --> C : HTTPS
@@ -21,5 +21,7 @@ note bottom of M
 Single process, one active activity.
 Restart discards all activity state.
 Role-specific snapshots only.
+Acceptance uses separate browsers on one computer.
+Cross-device LAN acceptance is out of current scope.
 end note
 @enduml

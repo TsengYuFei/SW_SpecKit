@@ -94,3 +94,13 @@ Playwright 雙組別端到端測試。每項功能包含正常及特殊情境。
 真實 Google 授權與回寫驗收由本機操作者完成，測試憑證不得進入截圖或追蹤檔。
 Rationale — 模擬可穩定覆蓋錯誤，真實試算表驗收證明直接讀寫流程。
 Alternatives considered — 僅測假資料無法證明真實 Google 互通。
+
+## 一般 HTTP 網址的瀏覽器請求編號
+
+2026-11-25 真實本機 IP 網址驗收發現，非安全來源的 Web Crypto 不提供 randomUUID，
+造成原本的學生訂閱失敗。前端改由共用 request-id helper 優先使用原生 randomUUID，
+否則以 getRandomValues 的 16 個隨機位元組設定 UUID v4 的版本與變體位元。
+不使用 Math.random；缺乏安全隨機來源時回可理解錯誤。相同邏輯命令仍沿用 requestId。
+已先更新 submission.puml 與契約，再以單元及缺少 randomUUID 的瀏覽器回歸測試驗證。
+來源：[randomUUID](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID)、
+[getRandomValues](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues)。
