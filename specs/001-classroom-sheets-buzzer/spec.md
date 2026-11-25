@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-24
 
-**Status**: Draft
+**Status**: Implemented and validated
 
 **Input**: 將學生上台寫答案的課堂搶答改為本機運行的分組線上活動，直接讀取老師的線上 Guided Notes，並將各題成功答案回寫至原試算表。
 

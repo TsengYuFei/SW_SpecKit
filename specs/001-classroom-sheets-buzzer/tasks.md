@@ -245,9 +245,9 @@ Phase 1 → Phase 2 → US1 → US2 → US3 → Phase 6。
 
 ## Phase 7: Convergence
 
-2026-11-24 收斂評估結果為 tasks_appended。原 T001–T052 已逐項檢查，目前只有規格與設計文件，
-尚無應用程式、套件設定或測試程式。以下 F1–F8 依現況分組記錄剩餘工作。
-CRITICAL 表示缺少 P1 基線功能；本次沒有已實作程式違反憲章的證據。
+2026-11-24 初始收斂評估結果為 tasks_appended。評估當時只有規格與設計文件，
+尚無應用程式、套件設定或測試程式。以下 F1–F8 保留當時的分類與缺漏描述以便追溯，
+各核取方塊已依最終實作及複核結果更新；原 CRITICAL/HIGH 與 missing 為初始評估標記。
 
 **Execution**：先依原 Phase 1–6 的相依順序完成尚未完成的任務。維持每個 Phase 使用新分支、
 階段測試全部通過後才合併 main 及進入下一階段的既定流程。T001 仍為原實作前置條件。
@@ -255,11 +255,11 @@ Phase 7 在原階段完成後使用新的 Phase 分支，逐一複核並補齊�
 原階段已完成的功能以測試確認，避免重複建立。既有編號、次序及核取狀態均保留。
 所有原資料模型欄位引用、機密限制及正常與特殊情境測試要求持續適用。
 
-- [ ] T053 CRITICAL 補齊並驗證原 T002–T005 的 TypeScript npm workspaces、套件鎖版、前後端入口、工具與設定，完成 `package.json`、`package-lock.json`、`tsconfig.base.json`、`frontend/package.json`、`backend/package.json`、`shared/package.json`、`eslint.config.mjs`、`.prettierrc.json`、`.gitignore`、`vitest.config.ts`、`playwright.config.ts`、`backend/src/config.ts` 與 `tests/helpers/` 所列工作；依 T001 完成後才開始程式實作 per F1、T002–T005、plan: Technical Context / Project Structure (missing)
-- [ ] T054 CRITICAL 補齊並驗證原 T006–T011 的 `shared/src/schemas/common.ts`、`shared/src/events/envelope.ts`、`backend/src/security/`、`backend/src/activity/store.ts`、`backend/src/server.ts`、`backend/src/http/session-routes.ts`、`frontend/src/App.tsx` 及對應測試，落實原欄位約束、單一行程記憶體、角色入口、安全錯誤、教師活動恢復及重啟失效 per F2、T006–T011、FR-001、FR-002、FR-011、FR-012、FR-014、plan: Storage (missing)
-- [ ] T055 CRITICAL 補齊並驗證原 T012–T023 的 `shared/src/schemas/source.ts`、`backend/src/google/oauth.ts`、`backend/src/google/sheets-client.ts`、`backend/src/google/guided-notes-parser.ts`、`backend/src/activity/source-service.ts`、`backend/src/http/` 來源與授權路由、`frontend/src/teacher/SourcePage.tsx`、`frontend/src/transport/http.ts` 及對應測試，完成 URL/ID 線上授權、全部分頁單題與題組辨識、對應確認及錯誤處理，取得兩份真實教材的比對結果 per F3、T012–T023、FR-003、FR-004、FR-011、US1/AC1–AC3、SC-002 (missing)
-- [ ] T056 CRITICAL 補齊並驗證原 T024–T038 的 `shared/src/schemas/activity.ts`、`shared/src/projections/activity.ts`、`backend/src/activity/` reducers、`backend/src/sockets/activity-handlers.ts`、`frontend/src/transport/socket.ts`、`frontend/src/student/`、`frontend/src/teacher/ActivityPage.tsx`、`frontend/src/components/ConnectionStatus.tsx` 及對應測試，完成匿名選組、唯一綁定、完整題組提交、共同排序、私密同步與重連，驗證雙組併發、2 秒同步及活動重啟 per F4、T024–T038、FR-005–FR-008、FR-013、FR-014、US2/AC1–AC10、SC-003、SC-004、SC-006、SC-007 (missing)
-- [ ] T057 CRITICAL 補齊並驗證原 T039–T048 的 `shared/src/schemas/writeback.ts`、`backend/src/activity/results.ts`、`backend/src/google/writeback-service.ts`、`backend/src/http/writeback-routes.ts`、`frontend/src/components/ResultsView.tsx`、`frontend/src/student/ResultsPage.tsx`、`frontend/src/teacher/WritebackPanel.tsx` 及對應測試，完成結果公布、原線上教材逐小題回寫、來源預檢、題組原子更新、讀回確認與 pending 查核，遵循現有終止狀態及新場限制 per F5、T039–T048、FR-009–FR-011、US3/AC1–AC3、SC-005 (missing)
-- [ ] T058 HIGH 完成原 T049–T050 的全套型別、lint、格式、單元、整合、契約、e2e、建置及正式啟動驗證，補齊 `tests/integration/secret-exposure.test.ts` 的合成機密測試，依原 T050 執行安全檢查，將指令、工具版本與不含機密的結果記錄於 `specs/001-classroom-sheets-buzzer/quickstart.md` per F6、T049–T050、FR-012、plan: Testing、Constitution II / III / IV / VI (missing)
-- [ ] T059 HIGH 完成原 T051，依 `specs/001-classroom-sheets-buzzer/quickstart.md` 在老師本機與至少兩組不同瀏覽器的學生端逐一執行 SC-001–SC-007，記錄真實 Google 授權、URL/ID 讀題、完整作答、結束、結果、原表回寫及重啟的驗收證據，各項只在實際通過後標示完成 per F7、T051、SC-001–SC-007 (missing)
-- [ ] T060 HIGH 完成並核對原 T001、T052 尚缺的設計一致性審查與維護者人工文件一致性核對，在 `specs/001-classroom-sheets-buzzer/plan.md` 記錄真實審查結果，對照 `spec.md`、`tasks.md` 與 `diagrams/*.puml` 重新渲染及確認差異；T001 必須在原 T002 開始前完成，不得以本任務位置延後原前置條件 per F8、T001、T052、plan: Phase Execution Record、Constitution I / V (partial)
+- [X] T053 CRITICAL 補齊並驗證原 T002–T005 的 TypeScript npm workspaces、套件鎖版、前後端入口、工具與設定，完成 `package.json`、`package-lock.json`、`tsconfig.base.json`、`frontend/package.json`、`backend/package.json`、`shared/package.json`、`eslint.config.mjs`、`.prettierrc.json`、`.gitignore`、`vitest.config.ts`、`playwright.config.ts`、`backend/src/config.ts` 與 `tests/helpers/` 所列工作；依 T001 完成後才開始程式實作 per F1、T002–T005、plan: Technical Context / Project Structure (missing)
+- [X] T054 CRITICAL 補齊並驗證原 T006–T011 的 `shared/src/schemas/common.ts`、`shared/src/events/envelope.ts`、`backend/src/security/`、`backend/src/activity/store.ts`、`backend/src/server.ts`、`backend/src/http/session-routes.ts`、`frontend/src/App.tsx` 及對應測試，落實原欄位約束、單一行程記憶體、角色入口、安全錯誤、教師活動恢復及重啟失效 per F2、T006–T011、FR-001、FR-002、FR-011、FR-012、FR-014、plan: Storage (missing)
+- [X] T055 CRITICAL 補齊並驗證原 T012–T023 的 `shared/src/schemas/source.ts`、`backend/src/google/oauth.ts`、`backend/src/google/sheets-client.ts`、`backend/src/google/guided-notes-parser.ts`、`backend/src/activity/source-service.ts`、`backend/src/http/` 來源與授權路由、`frontend/src/teacher/SourcePage.tsx`、`frontend/src/transport/http.ts` 及對應測試，完成 URL/ID 線上授權、全部分頁單題與題組辨識、對應確認及錯誤處理，取得兩份真實教材的比對結果 per F3、T012–T023、FR-003、FR-004、FR-011、US1/AC1–AC3、SC-002 (missing)
+- [X] T056 CRITICAL 補齊並驗證原 T024–T038 的 `shared/src/schemas/activity.ts`、`shared/src/projections/activity.ts`、`backend/src/activity/` reducers、`backend/src/sockets/activity-handlers.ts`、`frontend/src/transport/socket.ts`、`frontend/src/student/`、`frontend/src/teacher/ActivityPage.tsx`、`frontend/src/components/ConnectionStatus.tsx` 及對應測試，完成匿名選組、唯一綁定、完整題組提交、共同排序、私密同步與重連，驗證雙組併發、2 秒同步及活動重啟 per F4、T024–T038、FR-005–FR-008、FR-013、FR-014、US2/AC1–AC10、SC-003、SC-004、SC-006、SC-007 (missing)
+- [X] T057 CRITICAL 補齊並驗證原 T039–T048 的 `shared/src/schemas/writeback.ts`、`backend/src/activity/results.ts`、`backend/src/google/writeback-service.ts`、`backend/src/http/writeback-routes.ts`、`frontend/src/components/ResultsView.tsx`、`frontend/src/student/ResultsPage.tsx`、`frontend/src/teacher/WritebackPanel.tsx` 及對應測試，完成結果公布、原線上教材逐小題回寫、來源預檢、題組原子更新、讀回確認與 pending 查核，遵循現有終止狀態及新場限制 per F5、T039–T048、FR-009–FR-011、US3/AC1–AC3、SC-005 (missing)
+- [X] T058 HIGH 完成原 T049–T050 的全套型別、lint、格式、單元、整合、契約、e2e、建置及正式啟動驗證，補齊 `tests/integration/secret-exposure.test.ts` 的合成機密測試，依原 T050 執行安全檢查，將指令、工具版本與不含機密的結果記錄於 `specs/001-classroom-sheets-buzzer/quickstart.md` per F6、T049–T050、FR-012、plan: Testing、Constitution II / III / IV / VI (missing)
+- [X] T059 HIGH 完成原 T051，依 `specs/001-classroom-sheets-buzzer/quickstart.md` 在老師本機與至少兩組不同瀏覽器的學生端逐一執行 SC-001–SC-007，記錄真實 Google 授權、URL/ID 讀題、完整作答、結束、結果、原表回寫及重啟的驗收證據，各項只在實際通過後標示完成 per F7、T051、SC-001–SC-007 (missing)
+- [X] T060 HIGH 完成並核對原 T001、T052 尚缺的設計一致性審查與維護者人工文件一致性核對，在 `specs/001-classroom-sheets-buzzer/plan.md` 記錄真實審查結果，對照 `spec.md`、`tasks.md` 與 `diagrams/*.puml` 重新渲染及確認差異；T001 必須在原 T002 開始前完成，不得以本任務位置延後原前置條件 per F8、T001、T052、plan: Phase Execution Record、Constitution I / V (partial)
