@@ -151,4 +151,6 @@ Node24執行npm CLI時使用本機runtime的node及明確PATH，未讀取或複�
 
 Phase 1維護者文件核對範圍為本節、上述6個新增測試支援／fixture／測試檔，以及runtime／ignore／Playwright設定。
 核對本節是否與實際變更及結果一致；通過後才執行T007 commit／merge main，並開始Phase 2。
-Phase 1文件核對結論：維護者於2026-11-25明確回覆「Phase 1 文件已核對，內容一致」，本階段實作後文件核對通過，可執行T007提交及合併；合併完成後補記commit。
+Phase 1文件核對結論：維護者於2026-11-25明確回覆「Phase 1 文件已核對，內容一致」，本階段實作後文件核對通過。
+T007已完成：實作commit `daa6900`，合併main commit `774bebc`，T001–T007全數完成。
+此後僅於同一Phase 1分支補記上述既成結果，再fast-forward回main；未改已通過測試的程式。未push遠端。

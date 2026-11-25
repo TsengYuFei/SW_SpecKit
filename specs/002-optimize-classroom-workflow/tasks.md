@@ -52,7 +52,7 @@ Phase 1的實作前人審尚待維護者完成，先完成可審閱包才請其�
 - [x] T004 在 .gitignore、.prettierignore 排除 data/、SQLite主檔／WAL／SHM及備份，保留 backend/src/persistence/migrations/ 原始migration；以 git check-ignore 核對新增非機密檔名，結果記 review-notes.md
 - [x] T005 在 tests/helpers/temporary-database.ts、tests/helpers/process-harness.ts 建立臨時本機DB目錄／獨立子行程／清理生命週期，並在 tests/fixtures/google-accounts.ts、tests/fixtures/workflow-v2.ts 定義無效合成帳號與多工作表／長組名資料；同步在 playwright.config.ts、tests/helpers/playwright-database.ts 配置每次測試服務啟動專屬的絕對 DATABASE_PATH、啟動前建立與關閉後清理，拒絕指向正式DB；驗證兩次啟動路徑不同且正式DB未讀寫，此為T034接入SQLite前的必要前置；只提供測試支援，不接入正式業務
 - [x] T006 依 specs/002-optimize-classroom-workflow/quickstart.md 執行共用Phase Gate全部指令及現有66項測試基線，將實際指令、數量、exit code及六圖結果記入 specs/002-optimize-classroom-workflow/review-notes.md；不把舊測試當新版驗收
-- [ ] T007 完成本Phase程式／文件審查後commit並merge main，將合併commit與通過證據記至 specs/002-optimize-classroom-workflow/review-notes.md；通過後才允許Phase 2
+- [X] T007 完成本Phase程式／文件審查後commit並merge main，將合併commit與通過證據記至 specs/002-optimize-classroom-workflow/review-notes.md；通過後才允許Phase 2
 
 ## Phase 2: Foundational — SQLite與可靠命令基礎
 
