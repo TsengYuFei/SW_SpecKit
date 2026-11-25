@@ -1,0 +1,36 @@
+@startuml
+!pragma layout smetana
+title Feature 002 - Activity and Startup Recovery
+[*] --> Boot
+state "Open DB / migrate / check\nrestore durable state" as Boot
+state "Unavailable\nnever replace with blank DB" as Unavailable
+state "No current activity" as Empty
+state "Waiting\nstudents get no questions" as Waiting
+state "Active\naccept complete first answers" as Active
+state "Ended\nfrozen results + durable job" as Ended
+Boot --> Unavailable : DB/schema/integrity failure
+Boot --> Empty : no occupied slot
+Boot --> Waiting : saved waiting
+Boot --> Active : saved active\nautomatic, no teacher action
+Boot --> Ended : saved ended\nunfinished writing becomes pending verification
+Empty --> Waiting : validated preview + create commit
+Waiting --> Active : owner start commit
+Active --> Active : accepted submission commit\nmonotonic sequence + receipt
+Active --> Ended : owner end commit\nresults + unique job + receipt
+Ended --> Waiting : next create only when job terminal
+Waiting --> Boot : actual service restart
+Active --> Boot : actual service restart
+Ended --> Boot : actual service restart
+note right of Active
+Stable activity URL and participant digest survive restart.
+Old accepted answers / group names / sequence remain.
+Student recovery does not wait for Google authorization.
+Closing a page does not change phase.
+No automatic end or writeback on restart.
+end note
+note right of Ended
+Teacher must authorize original owner to view history.
+Worker waits for original owner credentials if absent.
+Completed jobs are not written again on history view.
+end note
+@enduml

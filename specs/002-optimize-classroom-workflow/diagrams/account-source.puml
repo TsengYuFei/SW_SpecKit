@@ -1,0 +1,55 @@
+@startuml
+title Feature 002 - Account, Catalog and First Worksheet
+actor Teacher
+participant UI
+participant "Account / Source API" as API
+participant "Google OIDC + Drive + Sheets" as G
+database SQLite as DB
+Teacher -> UI : authorize account
+UI -> API : begin OAuth (CSRF)
+API -> G : state + nonce + required scopes
+G --> API : callback code
+API -> G : exchange and verify identity
+API -> API : verify state / nonce / aud / iss / exp\nsub becomes owner; tokens memory only
+API --> UI : account + new authGeneration
+UI -> UI : clear previous account state\nignore old generation replies
+UI -> API : list(query, cursor)
+API -> G : files.list(native Sheets, not trashed)
+G --> API : items + nextPageToken + incompleteSearch
+API --> UI : canEdit + labels + nextCursor + incomplete
+Teacher -> UI : select spreadsheet
+UI -> API : preview(spreadsheetId)
+API -> G : capabilities + metadata
+G --> API : canEdit + sheet properties
+API -> API : select index = 0, not first GRID
+alt read-only or first worksheet unsupported
+  API --> UI : explicit failure; no fallback worksheet
+else supported first worksheet
+  API -> G : read selected sheetId only
+  G --> API : cells + merges
+  alt no questions or ambiguous
+    API --> UI : reject preview; no fallback worksheet
+  else valid question mapping
+  API --> UI : owner-bound preview + fingerprint + expiry
+  Teacher -> UI : confirm preview and group count
+  UI -> API : create(requestId, previewId, groupCount)
+  API -> G : revalidate edit access and first-sheet snapshot
+  G --> API : current source
+  alt changed / expired / account switched
+    API --> UI : conflict / re-preview; no partial activity
+  else unchanged
+    API -> DB : transaction: owner + waiting + snapshot + groups\nslot + account command receipt
+    DB --> API : committed
+    API --> UI : activityId + student URL
+  end
+  end
+end
+Teacher -> UI : switch account A to B
+UI -> API : reauthorize
+API -> API : invalidate A generation and subscriptions\nnever use B tokens for A jobs
+UI -> UI : clear A catalog / history / details
+UI -> API : list history as B
+API -> DB : WHERE owner = verified B sub
+DB --> API : B records only
+API --> UI : B history
+@enduml

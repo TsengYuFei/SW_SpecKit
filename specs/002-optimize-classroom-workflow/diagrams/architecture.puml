@@ -1,0 +1,39 @@
+@startuml
+!pragma layout smetana
+title Feature 002 - Planned Architecture
+actor Teacher
+actor "Anonymous student browsers" as Students
+component "React teacher UI\naccount generation + history + table" as TeacherUI
+component "React student UI\nwaiting / active / ended" as StudentUI
+component "Express + Socket.IO\nteacher loopback listener" as TeacherAPI
+component "Express + Socket.IO\nstudent listener" as StudentAPI
+component "Verified account / owner guards\nrole projections + CSRF" as Guards
+component "Serialized command service\nvalidate / transaction / commit / ack" as Commands
+component "SQLite repositories\nstartup migrations + recovery" as Repos
+component "Durable writeback worker\nowner credentials / precheck / verify" as Worker
+component "Runtime-only OAuth vault\nverified sub, tokens, auth generation" as Vault
+database "Local SQLite\nactivities / answers / receipts / outbox\nWAL + FULL / no raw tokens or cookies" as DB
+cloud "Google OIDC / Drive / Sheets" as Google
+Teacher --> TeacherUI
+Students --> StudentUI
+TeacherUI --> TeacherAPI
+StudentUI --> StudentAPI
+TeacherAPI --> Guards
+StudentAPI --> Guards
+Guards --> Commands
+Commands --> Repos
+Repos --> DB
+Commands --> Worker : wake after end commit
+Worker --> Repos : durable progress
+Worker --> Vault : credentials by job owner
+TeacherAPI --> Vault
+Vault --> Google : OAuth / verified identity
+TeacherAPI --> Google : list / first sheet preview
+Worker --> Google : original sheetId / batch / readback
+note bottom of Commands
+One Node process, one ordered mutation entry.
+No network inside DB transaction.
+Commit before successful ack and broadcast.
+end + results + job are atomic.
+end note
+@enduml
