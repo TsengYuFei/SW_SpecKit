@@ -12,6 +12,7 @@ import { newRequestId } from '../transport/request-id';
 import type { Phase } from '@classroom/shared/schemas/common';
 import { historyDetailSchema } from '@classroom/shared/schemas/history';
 import { settingsSchema } from '@classroom/shared/schemas/settings';
+import { OperationStatus } from '../components/OperationStatus';
 
 interface Props {
   csrfToken: string;
@@ -131,11 +132,12 @@ export function SourcePage({
   }, [currentActivityId]);
   const blocked = Boolean(activity && (phase ?? activity.phase) !== 'ended');
   return (
-    <section aria-labelledby="source-heading">
+    <section id="source" aria-labelledby="source-heading" className="source-panel">
       <h2 id="source-heading">選擇線上教材</h2>
+      <p className="muted">從 Google 試算表清單選取教材，核對第一張工作表後建立活動。</p>
       {!configured && <p>請先完成本機 Google 連線設定，再進行授權。</p>}
       {account && (
-        <p>
+        <p className="account-label">
           目前帳號：{account.displayName}（{account.email}）
         </p>
       )}
@@ -196,13 +198,21 @@ export function SourcePage({
           {listed && items.length === 0 && nextCursor && (
             <p>這一頁沒有項目，仍有更多教材可載入。</p>
           )}
-          <ul>
+          <ul className="catalog-list">
             {items.map((item) => (
               <li key={item.id}>
-                <strong>{item.name}</strong> — {item.ownerLabel ?? item.id}
-                {item.modifiedTime ? ' — ' + item.modifiedTime : ''}
-                {!item.canEdit && <span>（唯讀，無法建立可回填活動）</span>}
+                <div className="catalog-description">
+                  <strong>{item.name}</strong>
+                  <small>
+                    {item.ownerLabel ?? '可存取的線上教材'}
+                    {item.modifiedTime
+                      ? ' · 更新於 ' + new Date(item.modifiedTime).toLocaleDateString('zh-TW')
+                      : ''}
+                  </small>
+                  {!item.canEdit && <span>（唯讀，無法建立可回填活動）</span>}
+                </div>
                 <button
+                  aria-label={`預覽 ${item.name}（${item.id}）`}
                   disabled={busy || !item.canEdit}
                   onClick={() =>
                     void perform(async () => {
@@ -215,7 +225,7 @@ export function SourcePage({
                     })
                   }
                 >
-                  預覽 {item.name}（{item.id}）
+                  預覽題目
                 </button>
               </li>
             ))}
@@ -234,23 +244,30 @@ export function SourcePage({
         <>
           <h3>核對第一個工作表：{preview.source.sheetTitle}</h3>
           <p>來源：{preview.source.title}；僅使用第一個工作表的題目。</p>
-          {preview.questions.map((question) => (
-            <article key={question.id}>
-              <h4>
-                第 {question.displayNumber} 題
-                {question.kind === 'group' ? '（題組，須全部作答後送出）' : ''}
-              </h4>
-              {question.items.map((item) => (
-                <p key={item.id}>
-                  {item.label} {item.prompt}
-                  <br />
-                  <small>
-                    第 {item.target.rowIndex + 1} 列、第 {item.target.columnIndex + 1} 欄
-                  </small>
-                </p>
-              ))}
-            </article>
-          ))}
+          <div
+            className="preview-questions"
+            role="region"
+            aria-label="教材題目預覽，可捲動"
+            tabIndex={0}
+          >
+            {preview.questions.map((question) => (
+              <article key={question.id}>
+                <h4>
+                  第 {question.displayNumber} 題
+                  {question.kind === 'group' ? '（題組，須全部作答後送出）' : ''}
+                </h4>
+                {question.items.map((item) => (
+                  <p key={item.id}>
+                    {item.label} {item.prompt}
+                    <br />
+                    <small>
+                      第 {item.target.rowIndex + 1} 列、第 {item.target.columnIndex + 1} 欄
+                    </small>
+                  </p>
+                ))}
+              </article>
+            ))}
+          </div>
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -298,11 +315,23 @@ export function SourcePage({
             <button disabled={busy || blocked || writebackPending}>確認題目並建立活動</button>
           </form>
           {blocked && <p>目前活動尚未結束，請完成後再建立下一場。</p>}
+          {writebackPending && (
+            <OperationStatus kind="warning">
+              目前回填結果尚待確認，請先完成查核再建立下一場。
+            </OperationStatus>
+          )}
         </>
       )}
-      {activity && <p>已建立活動，共 {activity.groupCount} 組，教材已確認。</p>}
-      {busy && <p role="status">正在處理，請稍候…</p>}
-      {error && <p role="alert">{error}</p>}
+      {activity && (
+        <OperationStatus kind="success">
+          已建立活動，共 {activity.groupCount} 組，教材已確認。
+          <a className="inline-link" href="#activity">
+            返回目前活動
+          </a>
+        </OperationStatus>
+      )}
+      {busy && <OperationStatus kind="loading">正在處理，請稍候…</OperationStatus>}
+      {error && <OperationStatus kind="error">{error}</OperationStatus>}
     </section>
   );
 }

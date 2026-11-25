@@ -527,3 +527,65 @@ T082人工文件核對範圍：本節及Phase 6 Implementation and Synthetic Val
 Phase 6人工文件核對結論：維護者於2026-11-25回覆「審閱完成」，本階段審查門檻通過，T082完成；接續T083 commit／merge，不再要求重複核對同一審閱範圍。
 
 T083已完成：實作5b5a247，Phase 6合併main 9f47bf9；T069–T083完成，合併紀錄補記後fast-forward回main，未push。
+
+## Phase 7 Execution
+
+2026-11-25從Phase 6已審查合併的main 684c9a4建立codex/002-phase-7-ui，T084完成。沿用T002已審查teacher-ui.puml的組別列／題目欄、長名換行／捲動及狀態／鍵盤流程，先新增表格與操作介面E2E再實作；不變更角色投影或資料契約。
+
+T085／T086先行八項E2E全部因缺少表格、導覽或新狀態說明失敗（非fixture錯誤），確認RED後才開始T087–T090。資料使用合成四組、六單題與40字特殊字元名稱，未操作真實Google或授權。
+
+## Phase 7 Implementation and Validation
+
+T084–T090已完成；T091待維護者可見UI／鍵盤核對，T092自動化部分通過但人工門檻未完成，T093尚未commit／merge。分支codex/002-phase-7-ui，Phase 8未開始。此節為本階段實作後的審閱包。
+
+### 實作與需求對照
+
+- T085／T086先新增四組六題表格與狀態／鍵盤案例，八項均先因缺少table、導覽或說明失敗，確認RED後才實作。後續補充一項390×844學生鍵盤加入、waiting隱題及完整答案送出，新增共10項E2E。
+- T087 ProgressTable使用現有teacher snapshot，以group列／question欄顯示完整名、參與狀態、已提交總數、尚未作答、已受理、搶答成功與序號。由提交與結果建立索引，不複製首答判定；ended採固定results、進行中採tentativeResults。語意table、rowheader／columnheader、文字badge及可focus的橫捲region；固定組名欄及對應表頭，40字特殊字名稱不截斷。
+- ActivityPage目前活動優先，摘要數據、開始／結束與原因同頁；已受理答案details保留，成功答案仍由ResultsView公布。表格與CSS不新增學生端可見資料。App提供教師導覽，未授權只提示連結帳號，已授權不再重複要求授權。
+- T088 SourcePage清單限制高度、顯示日期／唯讀原因與可編輯預覽；第一張題目預覽可用鍵盤捲動。歷史／目前活動導覽及完整來源／組名保留，HistoryDetailPage加同一ProgressTable，不把舊場設為目前場。SettingsPage說明帳號級保存與下一場套用。
+- T089 OperationStatus統一loading／success／warning／error與文字，ConnectionStatus保留即時連線狀態。WritebackPanel區分進行中、待確認、失敗、衝突、讀回確認及零成功答案，只有既有pending／failed題提供復原操作。所有成功訊息仍依server receipt／readback，不把UI本機輸入當保存成功。
+- T090 GroupPage、AnswerPage與共享ResultsView（由ResultsPage使用）統一版面、長名換行及可讀結果；學生只見自己的鎖名／受理提示。等待不render題目，accepted／ended／busy／斷線／未填齊均有原因；無新增改名或單獨小題送出入口。
+- 原anonymous-join-privacy案例從舊段落斷言移轉至table row核對完整名、加入及0題，原空名不得占組、Cookie恢復、waiting資料無題／mapping、兩瀏覽器2秒開放同步仍保留。後端、SQLite schema、Google API、角色投影及契約沒有修改。
+
+### UI與鍵盤證據
+
+`teacher-progress-table.spec.ts`使用真正SQLite／HTTP／Socket.IO測試入口，合成四組、六單題，前三組已加入、第四未加入。第一組40字名（含<、&及>）完整顯示；初始尚未作答，再提交兩組Q1與第二組Q2，表格即時更新成功組、受理及2題總數。1280×720表頭9欄、含表頭共5列，40字名稱不被裁切；640×720表格有水平溢位、ArrowRight可捲，整個document不水平溢出。
+
+`workflow-usability.spec.ts`驗未授權、清單loading／empty、歷史empty、導覽Enter、writing／pending／failed／conflict／verified五種說明及有效復原按鈕、開始／結束鍵盤操作與無成功答案不更新原表。五種回填狀態的UI案例攔截安全public DTO作畫面狀態測試，不代替後端worker故障測試；後者仍在既有integration／contract。
+
+390×844學生案例以鍵盤加入第4組-鍵盤學生，waiting無textarea，老師start後填答並Enter送出，顯示本組已受理與disabled，不水平溢出。測試產生下列合成截圖，本代理已逐張檢視長名、狀態、桌面與窄視窗，未宣稱此AI檢視就是維護者人工審查：
+
+- validation-results/feature-002-phase-7/teacher-desktop.png：1280×720教師活動與導覽。
+- validation-results/feature-002-phase-7/teacher-table.png：四組六題完整表格、特殊字40字長名及逐題文字。
+- validation-results/feature-002-phase-7/teacher-narrow.png：640×720固定組別欄、橫捲及鍵盤焦點。
+- validation-results/feature-002-phase-7/student-waiting.png：390×844鎖名等待、沒有題目。
+- validation-results/feature-002-phase-7/student-answer.png：390×844答案已受理後不可重送。
+
+截圖僅合成資料，未記錄真實Google OAuth；不要求維護者提供機密。可重新整理已啟動的本機老師頁檢查新前端，再用Tab到「歷史活動」並Enter核對導覽；不用重啟Node或重新授權。
+
+### 最終驗證
+
+| 實際指令                   | 結果                                                                     |
+| -------------------------- | ------------------------------------------------------------------------ |
+| npm run typecheck          | exit0                                                                    |
+| npm run lint               | exit0                                                                    |
+| npm run format:check       | exit0                                                                    |
+| npm run test:unit          | exit0，54項                                                              |
+| npm run test:integration   | exit0，70項                                                              |
+| npm run test:contract      | exit0，15項                                                              |
+| npm run test:e2e           | exit0，20項，包含核心隱私／持久化／自動回填與新UI                        |
+| npm run build              | exit0，三workspace                                                       |
+| PlantUML -checkonly／-tsvg | exit0，六份有效SVG於validation-results/feature-002-phase-7/design-review |
+
+共159項獨立測試。最後僅固定橫捲時組別表頭的CSS，重建及受影響teacher-progress-table案例另執行確認，不將重複執行算成新增測試。所有npm scripts透過已驗證Node 24 runtime執行；測試使用隔離DB／埠與合成Google，沒有停止正式服務或再次回填真實教材。
+
+設計對照：沿用已審查teacher-ui.puml的核心驗收後才優化、同表比較、換行／捲動、復原提示與鍵盤；其他五圖流程不變，未發現需新增設計流程或契約。SC-009四組六題40字1280×720可從同表比較、窄螢幕捲動有上述證據；SC-010統一UI後完整瀏覽器核心回歸通過，真實Google／重啟／原sheetId重排驗收依Phase 6已核對紀錄，不冒稱本階段再次執行真實寫入。
+
+T091／T092人工核對範圍：上述合成畫面、在本機老師頁以Tab／Enter進入歷史區的可見操作、此節、quickstart Phase 7、plan Status及tasks進度。依憲章V與Common Phase Gate，維護者需確認實作、畫面及AI文件一致；Phase 6「審閱完成」不替代Phase 7核對。目前尚未收到此階段結論，T091–T093保持待辦，不合併或開始Phase 8。
+
+Phase 7補充長表邊界：另先新增桌面1280×720十二題案例，原固定最小寬度使題目欄被壓縮、無橫捲，案例RED。ProgressTable改依題數計算最小寬度，十二題各欄至少100px、超出桌面時橫捲，題數不限於六。第一次修正後20項中19過，十二題的欄寬及溢位已通過，但測試使用End鍵未水平捲動；改為介面標示的向右鍵，保留scrollLeft必須增加的斷言，最後完整20項全部通過，隨後三workspace build亦exit0。這是新增第10項UI E2E，不將先前重跑當成新增項目；後端與shared仍無diff。
+
+四份修改Markdown另明確Prettier check通過，git diff --check通過，118個task ID保持唯一；無extension hook。合成圖與鍵盤步驟已可供T091人工核對，尚未收到Phase 7維護者結論，沒有合併。
+
+Phase 7人工核對結論：維護者於2026-11-25回覆「審核完畢」，確認本階段畫面、鍵盤與文件審閱完成，T091／T092人工門檻通過，接續T093合併。

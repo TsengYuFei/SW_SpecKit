@@ -183,15 +183,15 @@ T002設計審查及Phase 1–2文件核對已由維護者完成；後續每Phase
 
 **Independent Test / Checkpoint**: 四組六題40字組名在1280×720可讀，長表可捲，文字狀態與鍵盤可用；重跑全部核心流程無回歸。
 
-- [ ] T084 [US5] 確認US1–4全部驗收且US4已merge main，才建立本Phase指定分支，記至 specs/002-optimize-classroom-workflow/review-notes.md
-- [ ] T085 [P] [US5] 先在 tests/e2e/teacher-progress-table.spec.ts 編寫四組六題40字／特殊字名、占用／受理／成功組、完整文字可讀與長表捲動測試，確認新增案例先失敗
-- [ ] T086 [P] [US5] 先在 tests/e2e/workflow-usability.spec.ts 編寫空／loading／未授權／等待／pending／failed／conflict／verified文字、不可用操作原因與鍵盤操作測試，確認新增案例先失敗
-- [ ] T087 [US5] 在 frontend/src/teacher/ProgressTable.tsx、frontend/src/teacher/ActivityPage.tsx 以語意table顯示組別為列、題目為欄、完整名／占用／逐題提交／成功組；使用既有teacher projection，不新增學生可見欄位
-- [ ] T088 [US5] 在 frontend/src/teacher/HistoryPage.tsx、frontend/src/teacher/HistoryDetailPage.tsx、frontend/src/teacher/SourcePage.tsx 統一清單／搜尋／歷史／返回活動／來源首張標示及錯誤復原，保留完整組名與來源辨識
-- [ ] T089 [US5] 在 frontend/src/components/OperationStatus.tsx、frontend/src/components/ConnectionStatus.tsx、frontend/src/teacher/WritebackPanel.tsx 統一可理解文字及有效操作，區分已保存／已結束／回填中／已確認，不能只用顏色
-- [ ] T090 [US5] 在 frontend/src/student/GroupPage.tsx、frontend/src/student/AnswerPage.tsx、frontend/src/student/ResultsPage.tsx、frontend/src/styles.css 統一加入／鎖名／等待／作答／結果版面；長名換行與表格捲動，不改角色資料權限
-- [ ] T091 [US5] 在 tests/e2e/teacher-progress-table.spec.ts、tests/e2e/workflow-usability.spec.ts 完成可見UI與鍵盤人工核對並記錄於 specs/002-optimize-classroom-workflow/review-notes.md；只以合成資料截圖，真實OAuth停用錄製
-- [ ] T092 [US5] 執行共用Phase Gate及SC-009／SC-010完整回歸，更新 specs/002-optimize-classroom-workflow/quickstart.md、specs/002-optimize-classroom-workflow/review-notes.md；UI變更不可破壞waiting隱題、owner隔離與自動回填
+- [x] T084 [US5] 確認US1–4全部驗收且US4已merge main，才建立本Phase指定分支，記至 specs/002-optimize-classroom-workflow/review-notes.md
+- [x] T085 [P] [US5] 先在 tests/e2e/teacher-progress-table.spec.ts 編寫四組六題40字／特殊字名、占用／受理／成功組、完整文字可讀與長表捲動測試，確認新增案例先失敗
+- [x] T086 [P] [US5] 先在 tests/e2e/workflow-usability.spec.ts 編寫空／loading／未授權／等待／pending／failed／conflict／verified文字、不可用操作原因與鍵盤操作測試，確認新增案例先失敗
+- [x] T087 [US5] 在 frontend/src/teacher/ProgressTable.tsx、frontend/src/teacher/ActivityPage.tsx 以語意table顯示組別為列、題目為欄、完整名／占用／逐題提交／成功組；使用既有teacher projection，不新增學生可見欄位
+- [x] T088 [US5] 在 frontend/src/teacher/HistoryPage.tsx、frontend/src/teacher/HistoryDetailPage.tsx、frontend/src/teacher/SourcePage.tsx 統一清單／搜尋／歷史／返回活動／來源首張標示及錯誤復原，保留完整組名與來源辨識
+- [x] T089 [US5] 在 frontend/src/components/OperationStatus.tsx、frontend/src/components/ConnectionStatus.tsx、frontend/src/teacher/WritebackPanel.tsx 統一可理解文字及有效操作，區分已保存／已結束／回填中／已確認，不能只用顏色
+- [x] T090 [US5] 在 frontend/src/student/GroupPage.tsx、frontend/src/student/AnswerPage.tsx、frontend/src/student/ResultsPage.tsx、frontend/src/styles.css 統一加入／鎖名／等待／作答／結果版面；長名換行與表格捲動，不改角色資料權限
+- [x] T091 [US5] 在 tests/e2e/teacher-progress-table.spec.ts、tests/e2e/workflow-usability.spec.ts 完成可見UI與鍵盤人工核對並記錄於 specs/002-optimize-classroom-workflow/review-notes.md；只以合成資料截圖，真實OAuth停用錄製
+- [x] T092 [US5] 執行共用Phase Gate及SC-009／SC-010完整回歸，更新 specs/002-optimize-classroom-workflow/quickstart.md、specs/002-optimize-classroom-workflow/review-notes.md；UI變更不可破壞waiting隱題、owner隔離與自動回填
 - [ ] T093 [US5] 完成審查後commit並merge main，記至 specs/002-optimize-classroom-workflow/review-notes.md，再進最終Phase
 
 ## Phase 8: Polish and Cross-Cutting — 最終整合審查
