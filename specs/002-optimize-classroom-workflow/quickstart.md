@@ -150,3 +150,27 @@ DB進度保存失敗停止派發並回安全儲存錯誤；保留原DB處理儲�
 測試以本機合成JSON模擬外部Google狀態，正式產品仍直接呼叫Google Sheets API，未使用試算表中介檔案。
 Edge亦驗兩學生作答後自動確認回填、老師關頁後續作、pending阻擋新建及只查核不重寫。
 上述均為合成來源；兩份真實Google、兩個真實帳號、三場歷史及active真正服務重啟續答仍須Phase 6驗收，不以本次worker故障測試代替。
+
+## Phase 6 歷史、設定與核心驗收（待人工文件核對）
+
+老師授權後可使用「歷史活動」分頁載入已存活動，查看來源快照、完整組名、答案、順序、結果及回填紀錄；讀取歷史不需要重新連線原Google表。查看舊場不會取代目前活動。歷史及老師設定依Google帳號隔離，其他帳號即使可編輯同一試算表，也不能取得原帳號的活動。
+
+「預設參與組數」保存至SQLite，重新開頁或重新授權原帳號後保留，之後的新活動使用保存值。授權切換立即移除原帳號資料。真正服務重啟後，老師需重新授權才可查歷史；學生保留原瀏覽器資料與網址，可在老師尚未授權時恢復原組及active作答。
+
+自動化已驗證三場資料、真正main子行程停止及同DB／埠重新啟動、原學生Cookie續答與序號接續，以及waiting／ended階段不變。這些測試使用隔離臨時DB與合成Google，不代表兩個真實帳號及正式服務已驗收。
+
+真實驗收時先保留至少兩場ended與一場含兩組答案的active活動，再於Node 24執行：
+
+```powershell
+node tests/manual/workflow-v2-restart.mjs capture
+# 在原服務終端機停止並重新啟動服務；先不要作答或重新授權。
+node tests/manual/workflow-v2-restart.mjs verify
+```
+
+預設讀取data/classroom.sqlite；若服務使用其他DATABASE_PATH，兩次指令皆需在capture或verify後傳入同一DB路徑。腳本唯讀查詢，保存非機密ID、計數與業務資料雜湊至被Git忽略的validation-results/workflow-v2-restart-evidence.json，不保存Cookie、憑證或原始答案。verify後才使用原Chrome／Edge接續提交，核對組名、已受理答案與新序號，再由使用者重新授權原Google帳號核對歷史。
+
+2026-11-25真實驗收已完成：重啟前4場（3 ended、1 active），active有兩組Q1共2筆答案、nextSequence=3；維護者實際停止並重啟Node後，verify exit0，業務資料雜湊與計數全部一致，health bootId已更換。老師未授權時原Edge先續答Q2、原Chrome再續答Q2，資料庫序號為1、2、3、4，nextSequence=5且仍active。重新授權A後，三場歷史詳情、原答案、設定4與回填紀錄均恢復，沒有B活動；B先前只見自己的活動及設定3。第三場完成上述驗收後才由老師end，亦顯示讀回已確認。
+
+兩份真實教材均從清單選取，使用原Chrome／Edge命名作答並自動回填，未要求教師輸入Spreadsheet URL／ID或使用中介檔。另經維護者同意，在第二份教材新增「驗收備用空白頁」；原教材首張時建第四場，再把空白頁移至第一張。第四場Q5／Q6仍回填原sheetId 1167716485的G13／G15，分別為堆疊／演算法，空白頁對應範圍保持空白。首張空白時新預覽明確失敗，未改讀第二張；已將「驗收學習單二」恢復第一張並確認可再讀六題，保留空白頁於第二張。
+
+T079–T081已完成。完整檢查及人工文件核對依review-notes.md最後的Phase 6 Core Acceptance and Review Gate為準；T082人工門檻與T083合併尚未完成，尚未開始Phase 7統一UI。上述UI格式核對只涵蓋可見題目、邊框與合併配置，完整自動化原表保護另由整合測試驗證。

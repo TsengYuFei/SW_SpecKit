@@ -10,6 +10,8 @@ import {
 import { http } from '../transport/http';
 import { newRequestId } from '../transport/request-id';
 import type { Phase } from '@classroom/shared/schemas/common';
+import { historyDetailSchema } from '@classroom/shared/schemas/history';
+import { settingsSchema } from '@classroom/shared/schemas/settings';
 
 interface Props {
   csrfToken: string;
@@ -32,7 +34,7 @@ export function SourcePage({
   const [query, setQuery] = useState('');
   const [loadedQuery, setLoadedQuery] = useState('');
   const [groupCount, setGroupCount] = useState(2);
-  const [busy, setBusy] = useState(false),
+  const [busy, setBusy] = useState(true),
     [error, setError] = useState('');
   const [authorized, setAuthorized] = useState(false),
     [configured, setConfigured] = useState(true);
@@ -85,6 +87,7 @@ export function SourcePage({
   }
   useEffect(() => {
     let active = true;
+    setBusy(true);
     void (async () => {
       try {
         const status = await http<{
@@ -99,15 +102,27 @@ export function SourcePage({
         setAccount(status.account);
         if (status.error) setError(status.error.message);
         if (currentActivityId) {
-          const saved = sourcePreviewSchema.parse(
+          const detail = historyDetailSchema.parse(
             await http('/api/activities/' + currentActivityId),
           );
+          const saved = sourcePreviewSchema.parse({
+            activityId: detail.activityId,
+            phase: detail.phase,
+            groupCount: detail.groupCount,
+            source: detail.source,
+          });
           if (active && alive.current) setActivity(saved);
         }
-        if (status.authorized) await loadCatalog('');
+        if (status.authorized) {
+          const settings = settingsSchema.parse(await http('/api/settings'));
+          if (active && alive.current) setGroupCount(settings.defaultGroupCount);
+          await loadCatalog('');
+        }
       } catch (error) {
         if (active && alive.current)
           setError(error instanceof Error ? error.message : '無法載入教材。');
+      } finally {
+        if (active && alive.current) setBusy(false);
       }
     })();
     return () => {

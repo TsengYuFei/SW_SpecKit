@@ -3,6 +3,8 @@ import { SourcePage } from './teacher/SourcePage';
 import { Classroom } from './components/Classroom';
 import type { Phase } from '@classroom/shared/schemas/common';
 import { io } from 'socket.io-client';
+import { HistoryPage } from './teacher/HistoryPage';
+import { SettingsPage } from './teacher/SettingsPage';
 
 export function App() {
   const [role, setRole] = useState<string>();
@@ -14,7 +16,15 @@ export function App() {
   const [writebackPending, setWritebackPending] = useState(false);
   const [authGeneration, setAuthGeneration] = useState(0);
   const authGenerationRef = useRef(0);
-  const [teacher, setTeacher] = useState<{ csrfToken: string; currentActivityId: string | null }>();
+  const bootRef = useRef(''),
+    sessionCsrfRef = useRef<string | undefined>(undefined);
+  const [sessionVersion, setSessionVersion] = useState(0);
+  const [settingsVersion, setSettingsVersion] = useState(0);
+  const [teacher, setTeacher] = useState<{
+    csrfToken: string;
+    currentActivityId: string | null;
+    authorized?: boolean;
+  }>();
   useEffect(() => {
     const controller = new AbortController();
     fetch('/api/session', { signal: controller.signal })
@@ -23,6 +33,7 @@ export function App() {
         if (!result.ok) throw new Error(result.error.message);
         setRole(result.data.role);
         setBootId(result.data.bootId);
+        bootRef.current = result.data.bootId;
         setStudentOrigin(result.data.studentOrigin ?? '');
         setActivityId(
           result.data.role === 'teacher'
@@ -31,6 +42,7 @@ export function App() {
         );
         if (result.data.role === 'teacher') {
           setTeacher(result.data);
+          sessionCsrfRef.current = result.data.csrfToken;
           authGenerationRef.current = result.data.authGeneration ?? 0;
           setAuthGeneration(authGenerationRef.current);
         }
@@ -45,13 +57,27 @@ export function App() {
     if (role !== 'teacher') return;
     const socket = io({ transports: ['websocket'] });
     async function refreshAuthorization(expected?: number) {
+      const requestedGeneration = authGenerationRef.current,
+        requestedBoot = bootRef.current,
+        requestedSession = sessionCsrfRef.current;
       try {
         const response = await fetch('/api/session');
         const result = await response.json();
-        if (!result.ok || (expected !== undefined && authGenerationRef.current !== expected))
+        if (
+          !result.ok ||
+          requestedGeneration !== authGenerationRef.current ||
+          requestedBoot !== bootRef.current ||
+          requestedSession !== sessionCsrfRef.current ||
+          (expected !== undefined && authGenerationRef.current !== expected)
+        )
           return;
         const generation = result.data.authGeneration ?? 0;
-        if (expected === undefined && generation === authGenerationRef.current) return;
+        if (sessionCsrfRef.current !== result.data.csrfToken) {
+          sessionCsrfRef.current = result.data.csrfToken;
+          setSessionVersion((value) => value + 1);
+        }
+        bootRef.current = result.data.bootId;
+        setBootId(result.data.bootId);
         authGenerationRef.current = generation;
         setAuthGeneration(generation);
         setTeacher(result.data);
@@ -63,11 +89,16 @@ export function App() {
     socket.on('connect', () => {
       void refreshAuthorization();
     });
+    socket.on('connect_error', () => {
+      void refreshAuthorization();
+    });
     socket.on('teacher:authorization-changed', (value: { authGeneration?: number }) => {
       setActivityId(null);
       setPhase('waiting');
       setWritebackPending(false);
-      setTeacher((previous) => (previous ? { ...previous, currentActivityId: null } : previous));
+      setTeacher((previous) =>
+        previous ? { ...previous, currentActivityId: null, authorized: false } : previous,
+      );
       const generation = value.authGeneration ?? authGenerationRef.current + 1;
       authGenerationRef.current = generation;
       setAuthGeneration(generation);
@@ -93,7 +124,7 @@ export function App() {
       {role === 'teacher' && <p>請授權原建立帳號以存取自己的教材與活動。</p>}
       {teacher && (
         <SourcePage
-          key={authGeneration}
+          key={`${bootId}:${sessionVersion}:${authGeneration}:${settingsVersion}`}
           csrfToken={teacher.csrfToken}
           currentActivityId={teacher.currentActivityId}
           onActivity={setActivityId}
@@ -112,6 +143,15 @@ export function App() {
           csrfToken={teacher?.csrfToken}
           onWritebackPending={setWritebackPending}
         />
+      )}
+      {teacher?.authorized && (
+        <div key={`saved-${bootId}-${sessionVersion}-${authGeneration}`}>
+          <HistoryPage csrfToken={teacher.csrfToken} />
+          <SettingsPage
+            csrfToken={teacher.csrfToken}
+            onSaved={() => setSettingsVersion((value) => value + 1)}
+          />
+        </div>
       )}
     </main>
   );

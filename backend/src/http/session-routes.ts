@@ -22,11 +22,13 @@ export function sessionRoutes(
     res.setHeader('Set-Cookie', sessions.cookie(session));
     const data = { role, csrfToken: session.csrfToken, bootId: store.bootId };
     let currentActivityId = store.activity?.id ?? null,
-      authGeneration = 0;
+      authGeneration = 0,
+      authorized = false;
     if (role === 'teacher' && authorizeTeacher) {
       try {
         const auth = authorizeTeacher(session);
         authGeneration = auth.authGeneration;
+        authorized = true;
         currentActivityId =
           store.activity?.ownerAccountId === auth.accountId ? store.activity.id : null;
       } catch (error) {
@@ -38,7 +40,7 @@ export function sessionRoutes(
         currentActivityId = null;
       }
     }
-    const teacherData = { ...data, currentActivityId, studentOrigin, authGeneration };
+    const teacherData = { ...data, currentActivityId, studentOrigin, authGeneration, authorized };
     const visibleRevision =
       role === 'teacher' && currentActivityId ? (store.activity?.revision ?? 0) : 0;
     res.json(success(role === 'teacher' ? teacherData : data, visibleRevision));

@@ -400,3 +400,128 @@ Phase 5人工文件核對範圍：本節、quickstart的Phase 5操作及限制�
 Phase 5文件人工核對結論：維護者於2026-11-25回覆「核對完成」，T068人工審查門檻通過。
 
 T068已完成：實作7cbf9e0，合併main 1cd40d7；T055–T068完成，補記後fast-forward回main，未push。
+
+## Phase 6 Execution
+
+2026-11-25從Phase 5已審查合併的main c79eb94建立codex/002-phase-6-history，T069完成。T070–T072先執行history/settings與隔離案例，兩項因缺少HTTP介面失敗，另一suite因history-service尚不存在無法載入；存在性測試已改為三場資料及真正main子行程重啟驗證。維護者已確認可準備兩個Google帳號，真實驗收尚未開始，T080–T083仍待完成。
+
+### Phase 6 Implementation and Synthetic Validation（尚未完成真實驗收）
+
+T073–T078已實作：history-service及HTTP依已驗證Google sub查詢SQLite，歷史詳情讀取已存來源、組名、答案、順序、固定結果與回填狀態，不重新讀取Google或切換目前活動。歷史分頁依created_at及id穩定排序，游標綁定帳號、瀏覽器session、授權代次、頁大小與期限；學生及其他owner不能讀取。
+
+settings HTTP保存defaultGroupCount，嚴格驗證及帳號級requestId收據支援重送；保存後新建活動套用設定。老師歷史／詳情／設定頁目前提供基本操作，統一表格及視覺優化仍在Phase 7。首次載入有明確處理中提示，避免資料尚未回來先顯示空歷史或讓使用者編輯即將被載入值覆蓋的設定。
+
+App在授權變動時立即移除舊帳號活動與歷史；新boot及老師session更換會重建相關頁面，拒絕舊請求晚到回覆。重新啟動後老師必須重新授權原Google帳號才查歷史，學生原網址及Cookie則可在沒有老師授權時恢復原組繼續作答。
+
+新增history/settings契約1項、history隔離整合2項、實際main子行程重啟整合3項、history瀏覽器2項。子行程測試以目前TypeScript原始碼執行真正backend/src/main.ts，使用同一臨時DB及埠，兩場ended與一場active跨重啟保留；原兩學生重送不重複，後續序號接續，另驗waiting與ended不因重啟改階段。不繼承真實Google環境，不讀取正式Cookie或權杖。
+
+| 實際指令                                          | 結果                                                                  |
+| ------------------------------------------------- | --------------------------------------------------------------------- |
+| npm run typecheck                                 | exit0                                                                 |
+| npm run lint                                      | exit0                                                                 |
+| npm run format:check                              | exit0                                                                 |
+| npm run test:unit                                 | exit0，54項                                                           |
+| npm run test:integration                          | exit0，70項                                                           |
+| npm run test:contract                             | exit0，15項                                                           |
+| npm run test:e2e                                  | exit0，10項Edge測試，包含三workspace build                            |
+| node --check tests/manual/workflow-v2-restart.mjs | exit0，僅語法驗證                                                     |
+| PlantUML -checkonly／-tsvg                        | exit0，六圖產生於validation-results/feature-002-phase-6/design-review |
+
+合計149項自動化測試。最後一輪曾因新增載入role=status使foundation測試的全頁status定位不再唯一而失敗（9過、1失敗）；改為精確定位原老師／學生狀態文字後重跑，10項全過。沒有刪除載入訊息或忽略失敗。
+
+新版manual capture/verify腳本已準備，只保存非機密活動ID、計數及業務資料雜湊，不匯出Cookie；尚未對正式資料執行。T079–T081真實Google、兩帳號、原Chrome／Edge及正式服務重啟驗收仍待辦；維護者需在保留Google設定的原終端機啟動新版並自行授權。上述合成測試不代替真實驗收，T082 Gate及T083人工文件審查／merge均未宣稱完成。
+
+### Phase 6 Real Acceptance Progress（進行中）
+
+2026-11-25維護者已啟動新版並自行授權帳號A。最初清單顯示GOOGLE_FORBIDDEN；維護者啟用Google Drive API後仍失敗，重新授權後確認可見試算表清單。此為操作恢復順序，未擷取Google原始錯誤，不能據此斷言唯一根因。帳號B已自行準備獨立可編輯教材，後續使用各自來源，避免不同活動回填同一份表的互相影響。
+
+已由真實清單預覽「搶答系統\_題目\_1」第一張「學習單」，辨識四題（兩題組、兩單題），目前目標為第15欄第5／6／8／9列及第14欄第11／13列；未沿用舊驗收固定欄位。已建立兩組waiting活動，Chrome原學生頁顯示組別名稱輸入及兩個選組按鈕，尚未開放作答。
+
+Windows UI驗收先遭工具無法辨識目前網址而停止；使用者回覆「繼續」後重連，可確認學生頁是目前活動，但視窗前景啟用兩次失敗（failed to activate captured window）。維護者手動還原Chrome／Edge後，改以直接指定已辨識欄位的set_value輸入，避免焦點誤判時向網址列輸入；恢復後完成下列兩場。另一次導航被工具中止，學生第二場網址由維護者自行開啟，未改用其他工具繞過限制。
+
+| 真實場次                                      | 實際驗收結果                                                                                                                                                                                                                                                                                                                                                                                                |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A第一場，4f17ce5b-6276-4f11-aa19-e84818b5e459 | 來源「搶答系統\_題目\_1」／sheetId 1028924918「學習單」；Chrome第1組-咕咕嘎嘎、Edge第2組-測試乙隊。waiting無題目且已命名後無改名欄；start後出題，題組只填第一小題時送出鈕disabled。依序受理第一組Q1、Q2，第二組Q1、Q3；各自只見本組受理，第二組看不到第一組答案或順位。老師顯示兩組各2題，Q1／Q2第一組成功、Q3第二組成功、Q4無成功組。end一次後自動回填三題，整體及逐題均「讀回已確認」，未按第二個回填鈕。 |
+| A第二場，db1cd0a3-b56e-4bc6-b19f-3d2f91eb8015 | 真實清單選「搶答系統\_題目\_2」，首張sheetId 1167716485「驗收學習單二」，辨識六單題。Chrome第1組-單題甲隊、Edge第2組-單題乙隊，waiting仍隱題；start後第一組先答Q3 IP，第二組後答Q3 IP及Q4作業系統。Q3仍第一組成功、Q4第二組成功，其餘四題無成功組。end自動回填兩題，整體及逐題「讀回已確認」。                                                                                                              |
+
+第一份原表UI回填前可見O5／O6／O8／O9及N11:O11答案空白，回填後分別為CPU／作業系統／演算法／堆疊及0；Q4 N13:O13仍空白。第二份原表UI回填前G9:H9與G11:H11空白，回填後分別為IP／作業系統；G13:H13、G15:H15仍空白。兩份可見題目、邊框與合併配置前後一致；這是可見範圍UI核對，未宣稱逐一比較所有格式屬性或未顯示的儲存格。第一場ended後Edge公布與老師一致的四題結果，原作答欄已disabled。
+
+A保存預設參與組數4，畫面回報「老師設定已保存」；按更新歷史後出現兩筆已結束活動，兩筆皆「回填已確認」，名稱及來源與上述一致。帳號B切換與設定隔離尚待維護者自行完成OAuth，尚未開始代操作授權畫面。
+
+T080尚缺真正多分頁與建立後重排驗證，已提出新增空白分頁、暫時重排並恢復原首張的具體操作範圍，待維護者答覆後才進行。T079／T081仍缺三場資料、正式服務重啟及原學生續答；T082／T083 Gate、人審與merge未完成，未開始Phase 7。
+
+維護者自行授權B後，老師頁教材清單可見獨立來源「搶答系統*帳號B*題目\_1」，歷史為空且沒有A兩場，預設組數2並未沿用A的4。將B預設組數保存為3，預覽其首張「工作表1」辨識六道資料結構單題，建場預設值確為3，建立活動f10c5a73-4b6a-47ba-bffc-9602ac6a10a1（三空組）。開始後無人作答即結束，六題均無成功組／未作答，狀態直接讀回已確認、沒有逐題待寫項目。此零項狀態由既有原子end規則產生，不能將其當成實際Google答案寫入成功證據；B實際寫入仍未測，本Phase兩份有答案的真實回填證據是A的上述兩場。
+
+B更新歷史後只列一筆自己的已結束／回填已確認活動，不出現A的兩場；設定仍為3。已請維護者自行切回A，後續確認A兩筆及預設4恢復。此刻共三場已結束（A兩場、B一場），尚未建立含兩組答案的active重啟測試場，故尚未執行manual capture/verify，T079／T081不勾完成。
+
+第三場後續重啟準備：維護者在原Chrome／Edge開啟第三場後，兩瀏覽器分別加入第1組-重啟甲隊、第2組-重啟乙隊，另外兩組保持空組。老師start後兩組依序提交Q1完整CPU／作業系統，均回報本組答案已受理；活動保持active，未end。實際執行Node 24 `tests/manual/workflow-v2-restart.mjs capture` exit0：activities=4、ended=3、activeSubmissions=2、nextSequence=3，比對檔在Git忽略路徑，只含非機密ID／計數／雜湊。重啟前公開health bootId為1330fe97-6def-428f-9db9-7cf13bafdd83、available=true；首次沙箱health連線因socket權限被拒，改用允許loopback讀取後成功，不將失敗請求記為成功。
+
+已請維護者從保留Google設定的原服務終端機真正停止並重啟Node，先不重新授權、不操作學生答案；verify及兩組續答尚待執行，T079／T081仍未勾完成。
+
+維護者自行切回A後，歷史自動恢復原兩筆「搶答系統\_題目\_1／2」已結束／回填已確認活動，不包含B活動；預設組數仍為4。A再次從清單預覽第一份題組教材，建場欄位自動為4，實際建立第三場83a0a401-69c3-42f5-83a3-291ce77a034b，四組waiting。已請維護者在原Chrome／Edge學生分頁自行開啟此場連結，以避開先前工具導航遭強制停止的問題；此時尚無第三場學生提交，未執行重啟capture。
+
+## Phase 6 Core Acceptance and Review Gate
+
+本節為Phase 6目前結論；前述Real Acceptance Progress保留各次操作的當時狀態，不以早期「尚未」取代本節已完成結果。T069–T081已完成，T082仍待本階段文件人工核對，T083尚未commit／merge。分支為codex/002-phase-6-history，未開始Phase 7。
+
+### 真正服務重啟與三場歷史
+
+- Node 24執行 `node tests/manual/workflow-v2-restart.mjs capture` exit0：4場、3 ended、1 active；active為83a0a401-69c3-42f5-83a3-291ce77a034b，兩組Q1受理共2筆、nextSequence=3。A兩場正常結束、A第三場進行中，B另有一場零答案結束。
+- 維護者實際停止並重啟原Node服務；重新授權或續答前執行 `node tests/manual/workflow-v2-restart.mjs verify` exit0，所有固定業務表雜湊、ID、計數與原序號一致。health bootId由1330fe97-6def-428f-9db9-7cf13bafdd83改為43f36b52-0a75-4c71-9e37-26882181e95d，available=true，確認是新行程。
+- 老師未重新授權時，原Chrome／Edge網址及瀏覽器身分自動恢復；原名第1組-重啟甲隊、第2組-重啟乙隊、active階段、Q1答案CPU／作業系統及已受理狀態均保留。原Edge先送Q2演算法／堆疊，原Chrome後送Q2同答案，均成功受理。
+- 對正式SQLite唯讀assert通過：仍active，submission sequences=[1,2,3,4]，next_sequence=5；原兩筆沒有遺失或重複，後續兩筆接續，未因重啟end或建立回填工作。
+- 老師重啟後未授權畫面僅顯示授權入口，無歷史／設定；維護者自行授權A後，A三場清單（兩ended、一active）、設定4及原組名／兩組各2題／成功組恢復，無B活動。逐一開啟三場詳情：第一場咕咕嘎嘎／測試乙隊及三題固定結果、第二場單題甲隊／單題乙隊及Q3 IP／Q4作業系統與已確認回填、第三場重啟甲乙兩組原Q1及新Q2答案／收件序號均可讀。查看舊場未替換目前active。
+- 上述比對完成後，才由老師結束第三場，兩題回填工作亦讀回已確認。B先前實際切換驗證為自己的空歷史與預設2，保存3並建立自己的零答案活動後只見自己的1筆；切回A恢復原4及原活動。B零答案場不是Google寫入證據，真實答案回填由A兩份來源及重排場驗證。
+
+### 多工作表、首張空白與回填原分頁
+
+維護者明確同意在 `搶答系統_題目_2` 新增空白分頁 `驗收備用空白頁`、暫時重排、測後恢復原教材第一張並保留空白頁。新增分頁sheetId=593612241，原 `驗收學習單二` sheetId=1167716485不變。
+
+兩張分頁存在、原教材第一張時，由真實清單預覽六題並建立A第四場8f8c91d9-0647-413a-837f-c3971bd4418d（兩組）；之後才將空白頁移到第一張，原教材第二張。Chrome第1組-重排甲隊提交Q5堆疊，Edge第2組-重排乙隊提交Q6演算法；老師end後，整體及兩題均讀回已確認，未按第二個回填按鈕。
+
+直接核對線上Google UI：第一張空白頁A1起的可見範圍（包含G13／G15）仍空白；第二張原教材G13:H13新增堆疊、G15:H15新增演算法，既有G9 IP／G11作業系統保持，題目、邊框與合併配置可見範圍一致。這是新答案寫入原sheetId的真實證據，不僅是既有值查核。
+
+首張仍空白時，重新從清單預覽相同檔案，明確顯示「無法確認全部題目與作答位置，請修正來源教材後重讀」，沒有改讀第二張題目。已將原教材移回第一張，保留空白頁第二張，重新預覽再次成功讀出六題。未刪除分頁、未改共用權限，未下載／上傳試算表中介檔。
+
+### 成功條件對照與實際限制
+
+| 範圍               | 核對依據                                                                                                                                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| US1／SC-001        | A兩份真實清單選表、4題混合題組及6單題、不同分頁名稱、目前第14／15欄與第7欄動態位置；多頁首張讀取、建場後重排原sheetId寫入、首張空白不fallback及復原均完成。                                                                                 |
+| US2／SC-002–SC-004 | 真實Chrome／Edge命名且鎖名、waiting隱題、start出題、題組漏一項不能送、先後首答及學生不見他組進度。2秒同步、重連及資料管道隱私、空白／超長名、同時搶組、併發／重送／end交錯由unit、contract、integration、E2E驗證，不宣稱人工UI有精密計時。  |
+| US3／SC-005–SC-006 | A兩來源及重排場正常end無第二操作自動回填；原表可見目標／非目標及格式核對，整組答案全部確認；錯誤／衝突／timeout／回覆遺失／DB故障不假成功、退避預算及唯一job由合成故障整合測試覆蓋。真實清單曾403且修正授權後恢復，未擷取上游原始機密錯誤。 |
+| US4／SC-007–SC-008 | 正式capture／verify雜湊100%一致、實際Node重啟、原兩學生無教師授權續答、重新授權A三場詳情與設定恢復。waiting／ended不改階段、pending worker跨SIGKILL及未知先核對、歷史讀取不呼叫Google／不重新派發由隔離自動化覆蓋。                         |
+| SC-010核心         | 清單→命名→開放→兩組答案→end自動回填→重啟續答與重新授權查歷史已完成；統一UI後回歸仍在Phase 7，不能宣稱SC-009與SC-010最終UI部分完成。                                                                                                         |
+| SC-011             | 真實A／B切換畫面歷史與設定隔離、未授權清空、A重授權恢復；直接HTTP／Socket跨owner與student拒絕、游標綁定與合成敏感值不進錯誤／DB／logger由自動化覆蓋。Phase 8仍須最終建置產物與備份驗證。                                                    |
+
+實作／測試對應已審查architecture、account-source、lifecycle、submission、writeback及teacher-ui六圖，無新增設計流程或schema變更；六圖checkonly／SVG已通過。Phase 6新增HTTP／前端／共享schema均延用既有owner guard、白名單投影與可靠命令，正式Google設定未讀取或複製，OAuth始終由維護者自行操作。
+
+### 最終自動化驗證與人工核對範圍
+
+補強history-recovery第一個案例：實際關閉老師page再於同browser context新開頁，確認設定4與歷史仍可用，另保留reload、切換owner與Google來源不可用的詳情讀取。補強後第一次兩項追加執行曾出現1過、1項重啟案例逾時，不以先前完整149項通過掩蓋此結果。
+
+檢查發現catalog-server測試支援程式只disconnectSockets再關HTTP，與正式main的io.close不同；改為等待兩個Socket.IO listener完整io.close後才關DB，避免測試中的舊連線／立即重連干擾替換服務。正式main關閉方式未變。修正後history-recovery兩項以repeat-each=3連跑，6次全過，再執行下列完整Gate。
+
+| 實際指令                                                                                          | 最終結果                                                    |
+| ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| npm run typecheck                                                                                 | exit0                                                       |
+| npm run lint                                                                                      | exit0                                                       |
+| npm run format:check                                                                              | exit0                                                       |
+| npm run test:unit                                                                                 | exit0，54項                                                 |
+| npm run test:integration                                                                          | exit0，70項                                                 |
+| npm run test:contract                                                                             | exit0，15項                                                 |
+| npm run test:e2e                                                                                  | exit0，10項Edge案例，包含實際關頁重開與runtime重建          |
+| npm run build                                                                                     | exit0，shared／backend／frontend三workspace                 |
+| node node_modules/@playwright/test/cli.js test tests/e2e/history-recovery.spec.ts --repeat-each=3 | exit0，6次通過，不重複計入149個獨立案例                     |
+| node tests/manual/workflow-v2-restart.mjs capture／verify                                         | 各exit0，正式服務與SQLite實際比對及原兩學生續答完成         |
+| PlantUML -checkonly／-tsvg                                                                        | checkonly通過；新目錄final-design-review產生六份非空有效SVG |
+
+共149項自動化測試通過。指令透過已驗證Node 24 runtime執行同名npm scripts；測試服務只使用隔離埠／臨時DB／合成授權，未停止正式服務或繼承真實Google設定。正式重啟由維護者在原終端機完成，manual唯讀查詢且不保存原始答案或機密。
+
+最後圖驗證曾遇既有design-review SVG無法覆寫訊息，工具仍回exit0；因此未僅憑exit code宣稱重產成功，改產生至validation-results/feature-002-phase-6/final-design-review，另斷言六檔皆非空且含svg標記通過。舊圖未刪除。
+
+另核對118個task ID不重複，正式SQLite與restart evidence均被Git忽略且沒有追蹤runtime資料；四份修改規劃／操作Markdown另外明確執行Prettier，git diff --check通過。專案無.specify/extensions.yml，無before／after implement hook可執行。
+
+T082人工文件核對範圍：本節及Phase 6 Implementation and Synthetic Validation、quickstart的Phase 6節、plan的Status與tasks的T069–T083進度；以history-service／history與settings HTTP、共享schema、三個老師頁與App、production-process及重啟／歷史測試、真實操作結果核對。憲章V要求AI文件由維護者以實際程式、設定或結果審查，先前Phase核對不替代本Phase。尚未收到此次核對結論，T082／T083保留待辦，未commit／merge，未開始Phase 7。
+
+Phase 6人工文件核對結論：維護者於2026-11-25回覆「審閱完成」，本階段審查門檻通過，T082完成；接續T083 commit／merge，不再要求重複核對同一審閱範圍。
