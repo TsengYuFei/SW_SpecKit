@@ -22,6 +22,7 @@ export async function catalogServer(
   });
   const store = createStore(config.MAX_GROUPS),
     sessions = createSessions(persistence.participation);
+  const grid = sampleSheet(17);
   const gateway: GoogleGateway = {
     authorizationUrl: (state, nonce) =>
       '/fake-google?state=' +
@@ -44,11 +45,18 @@ export async function catalogServer(
       name: id === 'source-one' ? '教材一' : '教材二',
       canEdit: id === 'source-one',
     }),
-    readFirstSheet: async () => ({ spreadsheetTitle: '教材一', sheet: sampleSheet(17) }),
-    readSheetById: async (_id, sheetId) => sampleSheet(sheetId),
-    read: async () => [sampleSheet(17)],
-    write: async () => {
-      throw new Error('清單測試不送出Google寫入');
+    readFirstSheet: async () => ({ spreadsheetTitle: '教材一', sheet: structuredClone(grid) }),
+    readSheetById: async (_id, sheetId) =>
+      sheetId === 17 ? structuredClone(grid) : sampleSheet(sheetId),
+    read: async () => [structuredClone(grid)],
+    write: async (_id, _credentials, updates) => {
+      for (const { target, answer } of updates) {
+        if (target.sheetId !== 17) throw new Error('合成來源不存在');
+        grid.rows[target.rowIndex] ??= [];
+        grid.rows[target.rowIndex]![target.columnIndex] = {
+          userEnteredValue: { stringValue: answer },
+        };
+      }
     },
   };
   const module = createSourceModule(config, store, gateway, persistence);
@@ -104,6 +112,7 @@ export async function catalogServer(
     persistence,
     client,
     async stop(preserveDatabase = false) {
+      await module.worker?.stop();
       teacher.io.disconnectSockets(true);
       student.io.disconnectSockets(true);
       await Promise.all([close(teacher.server), close(student.server)]);

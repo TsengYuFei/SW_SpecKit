@@ -5,6 +5,27 @@ import { success } from '@classroom/shared/events/envelope';
 import type { RouteContext } from '../server.js';
 import type { createWritebackService } from '../google/writeback-service.js';
 import { requireSession } from '../security/guards.js';
+import type { DurableWritebackService } from '../google/durable-writeback-service.js';
+
+export function durableWritebackRoutes(
+  app: Express,
+  ctx: RouteContext,
+  service: DurableWritebackService,
+) {
+  if (ctx.role !== 'teacher') return;
+  const base = '/api/activities/:id/writeback';
+  app.get(base, (req, res) => {
+    const session = requireSession(ctx.sessions, req, 'teacher');
+    res.json(success(service.get(session.sessionId, idSchema.parse(req.params.id))));
+  });
+  for (const kind of ['verify', 'retry'] as const)
+    app.post(base + '/' + kind, async (req, res) => {
+      const session = requireSession(ctx.sessions, req, 'teacher'),
+        id = idSchema.parse(req.params.id);
+      const { requestId } = z.strictObject({ requestId: idSchema }).parse(req.body);
+      res.json(success(await service.recover(session.sessionId, id, requestId, kind)));
+    });
+}
 
 export function writebackRoutes(
   app: Express,

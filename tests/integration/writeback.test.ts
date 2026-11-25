@@ -1,122 +1,132 @@
 import { expect, it } from 'vitest';
-import { writebackFixture } from '../helpers/writeback.js';
+import { workerFixture } from '../helpers/worker.js';
 import { AppError } from '../../backend/src/security/safe-errors.js';
 import { deferred } from '../helpers/google-adapter.js';
-
-it('writes one atomic batch for a complete question, verifies strings, and preserves other cells', async () => {
-  const c = writebackFixture();
-  const original = structuredClone(c.grid);
-  const op = c.start();
-  expect(c.activity.writebackPending).toBe(true);
-  expect(() => c.store.createActivity(2)).toThrow();
-  await c.service.wait(op.operationId);
-  expect(op.status).toBe('verified');
-  expect(c.writes).toHaveLength(1);
-  expect(c.writes[0]).toHaveLength(2);
-  expect(c.grid[0]!.rows[1]![4]!.userEnteredValue).toEqual({ stringValue: '=SUM(A1)' });
-  expect(c.grid[0]!.rows[1]![3]).toEqual(original[0]!.rows[1]![3]);
-  expect(c.grid[0]!.merges).toEqual(original[0]!.merges);
-  expect(c.activity.writebackPending).toBe(false);
-  expect(c.store.createActivity(2).id).not.toBe(c.activity.id);
+it('automatically writes a complete group as one exact string batch and preserves other cells', async () => {
+  const c = workerFixture(),
+    original = structuredClone(c.grid);
+  try {
+    await c.worker.tick();
+    expect(c.row().status).toBe('verified');
+    expect(c.writes).toHaveLength(1);
+    expect(c.writes[0]).toHaveLength(2);
+    expect(c.grid.rows[1]![4]!.userEnteredValue).toEqual({ stringValue: '=SUM(A1)' });
+    expect(c.grid.rows[1]![3]).toEqual(original.rows[1]![3]);
+    expect(c.grid.rows[4]).toEqual(original.rows[4]);
+    expect(c.grid.merges).toEqual(original.merges);
+  } finally {
+    await c.close();
+  }
 });
-
-it('skips the whole question when a target or prompt or merge changes', async () => {
+it('skips the complete question on target, prompt or merge changes', async () => {
   for (const mutation of ['value', 'prompt', 'merge']) {
-    const c = writebackFixture();
-    if (mutation === 'value')
-      c.grid[0]!.rows[1]![4] = { userEnteredValue: { stringValue: 'external edit' } };
-    if (mutation === 'prompt')
-      c.grid[0]!.rows[1]![1] = { userEnteredValue: { stringValue: 'new prompt' } };
-    if (mutation === 'merge') c.grid[0]!.merges = [];
-    const op = c.start();
-    await c.service.wait(op.operationId);
-    expect(op.status).toBe('conflict');
-    expect(c.writes).toHaveLength(0);
-    expect(c.activity.writebackPending).toBe(false);
+    const c = workerFixture();
+    try {
+      if (mutation === 'value')
+        c.grid.rows[1]![4] = { userEnteredValue: { stringValue: 'external edit' } };
+      if (mutation === 'prompt')
+        c.grid.rows[1]![1] = { userEnteredValue: { stringValue: 'new prompt' } };
+      if (mutation === 'merge') c.grid.merges = [];
+      await c.worker.tick();
+      expect(c.row().status).toBe('conflict');
+      expect(c.writes).toEqual([]);
+    } finally {
+      await c.close();
+    }
   }
 });
-
-it('retains pending after an ambiguous write and verifies the content without blindly resending', async () => {
-  const c = writebackFixture();
-  const write = c.gateway.write;
-  c.gateway.write = async (...args) => {
-    await write(...args);
-    throw new AppError('NETWORK_ERROR');
-  };
-  const op = c.start();
-  await c.service.wait(op.operationId);
-  expect(op.status).toBe('pending');
-  expect(() => c.store.createActivity(2)).toThrow();
-  await c.service.verify(c.activity.id, op.operationId, c.teacher.sessionId);
-  expect(op.status).toBe('verified');
-  expect(c.writes).toHaveLength(1);
-});
-
-it('only retries after reading an unchanged baseline and rejects mixed content', async () => {
-  for (const mixed of [true, false]) {
-    const c = writebackFixture();
-    const write = c.gateway.write;
-    c.gateway.write = async () => {
-      throw new AppError('GOOGLE_ERROR');
-    };
-    const op = c.start();
-    await c.service.wait(op.operationId);
-    expect(op.status).toBe('pending');
-    if (mixed) c.grid[0]!.rows[1]![4] = { userEnteredValue: { stringValue: '=SUM(A1)' } };
-    c.gateway.write = write;
-    await c.service.verify(c.activity.id, op.operationId, c.teacher.sessionId);
-    expect(op.status).toBe(mixed ? 'conflict' : 'verified');
-    expect(c.writes).toHaveLength(mixed ? 0 : 1);
-  }
-});
-
-it('keeps pending on failed readback or verify, and treats definite write denial as failed', async () => {
-  const c = writebackFixture();
-  const read = c.gateway.read;
-  const write = c.gateway.write;
-  c.gateway.write = async (...args) => {
-    await write(...args);
-    c.gateway.read = async () => {
+it('checks an ambiguous write immediately and never blindly resends already expected content', async () => {
+  const c = workerFixture(),
+    write = c.gateway.write;
+  try {
+    c.gateway.write = async (...args) => {
+      await write(...args);
       throw new AppError('NETWORK_ERROR');
     };
-  };
-  const op = c.start();
-  await c.service.wait(op.operationId);
-  expect(op.status).toBe('pending');
-  await c.service.verify(c.activity.id, op.operationId, c.teacher.sessionId);
-  expect(op.status).toBe('pending');
-  c.gateway.read = read;
-  await c.service.verify(c.activity.id, op.operationId, c.teacher.sessionId);
-  expect(op.status).toBe('verified');
-  for (const code of ['GOOGLE_AUTH_REQUIRED', 'GOOGLE_FORBIDDEN', 'RATE_LIMITED'] as const) {
-    const denied = writebackFixture();
-    denied.gateway.write = async () => {
-      throw new AppError(code);
-    };
-    const failed = denied.start();
-    await denied.service.wait(failed.operationId);
-    expect(failed.status).toBe('failed');
-    expect(denied.activity.writebackPending).toBe(false);
+    await c.worker.tick();
+    expect(c.row().status).toBe('verified');
+    expect(c.writes).toHaveLength(1);
+  } finally {
+    await c.close();
   }
 });
-
-it('serializes operations, deduplicates request IDs and never overlaps verify with writing', async () => {
-  const c = writebackFixture();
-  const gate = deferred<void>();
-  const write = c.gateway.write;
-  c.gateway.write = async (...args) => {
-    await gate.promise;
-    await write(...args);
-  };
-  const id = crypto.randomUUID();
-  const first = c.service.start(c.activity.id, c.teacher.sessionId, id);
-  expect(c.service.start(c.activity.id, c.teacher.sessionId, id)).toBe(first);
-  expect(c.start).toThrow();
-  await expect(
-    c.service.verify(c.activity.id, first.operationId, c.teacher.sessionId),
-  ).rejects.toThrow();
-  gate.resolve();
-  await c.service.wait(first.operationId);
-  expect(first.status).toBe('verified');
-  expect(c.writes).toHaveLength(1);
+it('keeps explicit verify read-only and only reschedules safe baseline retries', async () => {
+  for (const mixed of [true, false]) {
+    const c = workerFixture(),
+      write = c.gateway.write;
+    try {
+      c.gateway.write = async () => {
+        throw new AppError('GOOGLE_ERROR');
+      };
+      await c.worker.tick();
+      expect(c.row().status).toBe('pending');
+      if (mixed) c.grid.rows[1]![4] = { userEnteredValue: { stringValue: '=SUM(A1)' } };
+      c.gateway.write = write;
+      await c.worker.verify(c.jobId());
+      expect(c.row().status).toBe(mixed ? 'conflict' : 'pending');
+      expect(c.writes).toEqual([]);
+    } finally {
+      await c.close();
+    }
+  }
+});
+it('retains unknown readback, waits for authorization and treats definite denial as failed', async () => {
+  const c = workerFixture(),
+    read = c.gateway.readSheetById!,
+    write = c.gateway.write;
+  try {
+    c.gateway.write = async (...args) => {
+      await write(...args);
+      c.gateway.readSheetById = async () => {
+        throw new AppError('NETWORK_ERROR');
+      };
+    };
+    await c.worker.tick();
+    expect(c.row().status).toBe('pending');
+    await c.worker.verify(c.jobId());
+    expect(c.row().status).toBe('pending');
+    c.gateway.readSheetById = read;
+    await c.worker.verify(c.jobId());
+    expect(c.row().status).toBe('verified');
+  } finally {
+    await c.close();
+  }
+  for (const code of ['GOOGLE_AUTH_REQUIRED', 'GOOGLE_FORBIDDEN', 'RATE_LIMITED'] as const) {
+    const denied = workerFixture();
+    try {
+      if (code === 'GOOGLE_AUTH_REQUIRED') denied.authorized = false;
+      else
+        denied.gateway.write = async () => {
+          throw new AppError(code);
+        };
+      await denied.worker.tick();
+      expect(denied.row().status).toBe(code === 'GOOGLE_AUTH_REQUIRED' ? 'pending' : 'failed');
+    } finally {
+      await denied.close();
+    }
+  }
+});
+it('serializes worker processing and never overlaps verify with an ongoing write', async () => {
+  const c = workerFixture(),
+    gate = deferred<void>(),
+    entered = deferred<void>(),
+    write = c.gateway.write;
+  try {
+    c.gateway.write = async (...args) => {
+      entered.resolve();
+      await gate.promise;
+      await write(...args);
+    };
+    const first = c.worker.tick();
+    await entered.promise;
+    expect(c.worker.tick()).toBe(first);
+    await expect(c.worker.verify(c.jobId())).rejects.toMatchObject({ code: 'WRITE_PENDING' });
+    gate.resolve();
+    await first;
+    expect(c.row().status).toBe('verified');
+    expect(c.writes).toHaveLength(1);
+  } finally {
+    gate.resolve();
+    await c.close();
+  }
 });

@@ -68,6 +68,21 @@ export function createOAuth(
     return { ...identity };
   }
   return {
+    forOwner(owner: string) {
+      for (const [sessionId, identity] of [...accounts].reverse()) {
+        const value = tokens.get(sessionId),
+          expected = generation(sessionId);
+        if (identity.sub === owner && value)
+          return {
+            credentials: value,
+            valid: () =>
+              generation(sessionId) === expected &&
+              accounts.get(sessionId)?.sub === owner &&
+              tokens.get(sessionId) === value,
+          };
+      }
+      throw new AppError('GOOGLE_AUTH_REQUIRED');
+    },
     begin,
     finish,
     credentials,

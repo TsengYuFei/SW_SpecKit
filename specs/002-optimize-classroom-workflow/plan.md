@@ -4,7 +4,7 @@
 
 **Input**: 第二版功能規格、三項釐清、使用者指定 SQLite。
 
-**Status**: Phase 1–3已通過審查及合併；Phase 4已實作必填鎖名、waiting隱題、持久join／start／submit與跨boot重訂閱，待本階段文件人工核對。end的固定結果／唯一job與自動回填、歷史／設定、完整行程恢復驗收及整體UI仍留後續Phase；最新測試與人審狀態見review-notes.md。
+**Status**: Phase 1–4已通過審查及合併；Phase 5已實作end／固定結果／唯一job同交易、自動worker與安全復原，141項測試通過，待本階段文件人工核對。歷史／設定、完整核心真實驗收、統一UI及備份恢復仍待後續Phase；實測與人審狀態見review-notes.md。
 
 ## Summary
 

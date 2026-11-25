@@ -43,11 +43,12 @@ function start() {
   function stop() {
     if (stopping) return;
     stopping = true;
-    void Promise.all(
-      [teacher, student].map(
+    void Promise.all([
+      source.worker?.stop(),
+      ...[teacher, student].map(
         (listener) => new Promise<void>((done) => listener.io.close(() => done())),
       ),
-    )
+    ])
       .then(() => {
         connection.close();
         log({ event: 'server_stopped' });

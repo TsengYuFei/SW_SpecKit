@@ -1,6 +1,8 @@
 import type { Activity, ActivityStore } from './store.js';
 import type { RuntimePersistence } from '../persistence/repositories.js';
 import { selectResults } from '@classroom/shared/projections/activity';
+import { persistentWriteback } from '../persistence/writeback-projection.js';
+import { AppError } from '../security/safe-errors.js';
 
 export function readPersistentActivity(
   persistence: RuntimePersistence,
@@ -8,6 +10,7 @@ export function readPersistentActivity(
   id: string,
 ): Activity {
   const saved = persistence.activities.require(id);
+  const job = persistentWriteback(persistence, id);
   const submissions = persistence.connection.database
     .prepare('SELECT * FROM submissions WHERE activity_id=? ORDER BY sequence')
     .all(id);
@@ -61,12 +64,35 @@ export function readPersistentActivity(
     ),
     nextSequence: saved.nextSequence,
     commandReceipts: new Map(),
-    writebacks: new Map(),
+    writebacks: job ? new Map([[job.operationId, job]]) : new Map(),
     finalResults: null,
     writebackPending: ['pending', 'writing'].includes(
       String(persistence.writebacks.getForActivity(id)?.status),
     ),
   };
-  if (activity.phase === 'ended') activity.finalResults = selectResults(activity);
+  if (activity.phase === 'ended') {
+    const frozen = persistence.connection.database
+      .prepare('SELECT question_id,winner_submission_id FROM results WHERE activity_id=?')
+      .all(id);
+    if (!job) activity.finalResults = selectResults(activity);
+    else
+      activity.finalResults = activity.questions.map((question) => {
+        const result = frozen.find((row) => row.question_id === question.id);
+        if (!result) throw new AppError('STORAGE_CORRUPT');
+        const submission = [...activity.submissions.values()].find(
+          (value) => value.id === result.winner_submission_id,
+        );
+        const group = submission ? activity.groups.get(submission.groupId) : undefined;
+        const expected = job.questions.find((value) => value.questionId === question.id);
+        if (result.winner_submission_id !== null && (!group || !expected))
+          throw new AppError('STORAGE_CORRUPT');
+        return {
+          questionId: question.id,
+          displayNumber: question.displayNumber,
+          winnerGroup: group ? { id: group.id, ordinal: group.ordinal, name: group.name } : null,
+          answers: expected ? { ...expected.expectedAnswers } : {},
+        };
+      });
+  }
   return activity;
 }

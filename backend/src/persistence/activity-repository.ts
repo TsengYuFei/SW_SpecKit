@@ -82,11 +82,14 @@ export function createActivityRepository(connection: DatabaseConnection, maxGrou
         )
         .get();
       if (
-        current?.phase &&
-        (current.phase !== 'ended' ||
-          current.status === null ||
-          current.status === 'writing' ||
-          current.status === 'pending')
+        db
+          .prepare("SELECT 1 FROM writeback_jobs WHERE status IN ('pending','writing') LIMIT 1")
+          .get() ||
+        (current?.phase &&
+          (current.phase !== 'ended' ||
+            current.status === null ||
+            current.status === 'writing' ||
+            current.status === 'pending'))
       )
         throw new AppError('SYSTEM_BUSY');
       const id = randomUUID();

@@ -1,11 +1,11 @@
 # 第二版設計審查與驗證紀錄
 
-日期：2026-11-25。憲章1.0.0。Phase 1–3已合併；Phase 4學生流程已實作並完成Gate，待本階段文件人工核對，後續故事仍在開發中。
+日期：2026-11-25。憲章1.0.0。Phase 1–4已合併；Phase 5自動回填已實作並通過141項測試，待本階段文件人工核對。
 
 ## Review Status
 
 AI 已核對現有程式接點、規格、研究、資料模型、契約與六圖的一致性，並執行下列工具驗證。
-**新版人工設計審查T002及Phase 1–3實作後文件核對均已通過**；各Phase實測及合併紀錄見本文後文。
+**新版人工設計審查T002及Phase 1–4實作後文件核對均已通過**；各Phase實測及合併紀錄見本文後文。
 依憲章 I 與 V，任務必須保留實作前設計審查及合併前依實際行為核對文件的門檻。
 此處記錄待辦，不阻止本次產生可供審閱的規劃文件，也不要求重新確認使用者已指定的SQLite。
 
@@ -331,3 +331,70 @@ Phase 4最後文件檢查：本功能Markdown明確Prettier檢查exit0，git dif
 Phase 4文件人工核對結論：維護者於2026-11-25回覆「核對完成」，確認本階段實作與文件一致。T054人審門檻通過。
 
 T054已完成：實作9317545，合併main b3da52f8，T041–T054完成；補記既成結果後fast-forward回main，未push。
+
+## Phase 5 Execution
+
+2026-11-25從Phase 4已審查合併的main e4079ee建立codex/002-phase-5-writeback，T055完成。T056–T058先執行新增測試：三個案例因job／worker缺少而失敗，另worker套件尚不存在而無法載入；完成後以真正worker、控制時鐘及實體DB／獨立子行程故障點補足測試，沒有以最初的存在性測試作完成證據。
+
+### Phase 5 Implementation and Validation
+
+T055–T067完成，全部Gate通過。T068須本階段人工文件核對後才commit／merge main，未開始Phase 6。
+
+| 範圍                 | 實作與核對證據                                                                                                                                                                                                                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T056–T058 測試先行   | 新end/job與HTTP案例因缺少功能失敗，worker檔不存在而無法載入；最初存在性測試已被實體DB／控制時鐘／真正子行程與功能斷言取代，不以模組存在宣稱完成                                                                                                                                                                                             |
+| T059 原子end         | persistent-commands.ts復用command-service，ended／ended_at、固定逐題results、唯一job、完整expected／target及成功receipt同交易；job插入失敗全部rollback、重送同request回原結果、新request重複end拒絕、零成功組存verified零項工作。persistent-store依固定winner及expected投影，不重新按目前提交另選成功組                                     |
+| T060–T062 worker     | writeback-worker.ts單行程序列化與持久attempt／cycle／計數／排程；claim writing和寫入次數先commit，Google在交易外；startup將writing轉pending先核對。writeback-check.ts只核對原sheetId題目／merge／baseline及全expected，整題組一batch stringValue，不能以單項成功報全組成功                                                                  |
+| 原owner與授權        | oauth.forOwner只取原Google sub最新的記憶體grant，各API await後重驗代次；缺少或拒絕授權pending、不盲目用帳號B代寫；401同一失效grant不安排立即無界循環。原帳號重新授權喚醒，但不重設已暫停的讀取預算                                                                                                                                          |
+| T063–T064 復原與狀態 | durable-writeback-service.ts及owner HTTP get/verify/retry；舊POST初次派發正式入口404。verify不送寫；retry先確認baseline才以receipt同交易開新cycle，只處理eligible failed/pending，同request不再遞增。job中有conflict仍可恢復其他安全failed題。writeback-projection.ts只提供安全碼／計數，未向student送job；儲存故障停止派發，查詢回安全錯誤 |
+| T065–T066 UI與移轉   | 明示結束自動回填與暫停外部編輯，移除初次回填按鈕。WritebackPanel顯示持久整體／逐題狀態，只有例外提供查核／安全重試；老師關頁不取消工作。writeback.test、writeback-http及results-writeback已移轉自動流程，保留原表保護、網路／權限／未知及重送案例                                                                                           |
+
+正式main有persistence時只建立durable worker／服務，不建立舊記憶體回寫服務；舊createWritebackService仍供單獨純核心fixture回歸使用。
+Google安全錯誤轉譯抽至errors.ts並由sheets-client重新export，讀取退避及write 15秒／retry=false不變。
+整體有任何pending／writing job時，包含已切換到其他目前活動的舊job，活動repository均阻擋新建，不只核對目前slot。
+既有17表／110欄位schema未變，新增方法使用原欄位，不更動已保存migration checksum。
+
+本Phase新增20項：durable-writeback 5、writeback-crash 12、automatic-writeback-http 2、automatic-writeback Edge 1。
+正常案例含兩組有效提交、唯一首答、整題組文字回填、無成功組不改格、無第二按鈕及關老師頁後完成。
+故障案例含end job插入失敗全回滾、原表prompt／merge／值衝突、mixed題組、錯誤及遺失回覆先查核、
+三次寫入與2／4秒到期才派發、四次邏輯讀取與1／2／4秒後pending暫停、第三次未知不誤報failed、restart不歸零、
+缺少原owner／同grant 401不耗預算、不以B授權代寫、晚到預檢後切帳號不寫、原帳號重授權接續、retry收據去重及DB失敗停止派發。
+
+四個實際child SIGKILL情境打包並執行目前persistent-commands／repositories／worker原始碼，不是手寫模擬worker流程：
+
+1. end transaction commit後、worker前；2. writing及attempt commit後、送寫前；3. 送寫後、讀回前；4. 讀回後、本機保存前。
+   child與parent共用同一臨時DB，外部狀態由合成JSON cloud double保留；parent讀回DB／receipt／計數，重建worker先查核，
+   確認已套用答案不再送寫、未送出的已claim attempt仍消耗預算、唯一job不重建。子行程不繼承Google設定，stdout／stderr不擷取。
+
+測試打包器esbuild 0.25.12已存在於目前安裝及lockfile，新增明確devDependency以免依賴Vite偶然hoist。
+嘗試離線npm package-lock-only時因缺少registry metadata cache而ENOTCACHED，未下載套件；改同步package.json與lockfile根metadata，
+以Node assert確認已安裝版本、既有lock entry及兩份root宣告一致。此失敗不是測試Gate通過結果，已明確區分。
+
+| 實際指令                   | 結果                                                                  |
+| -------------------------- | --------------------------------------------------------------------- |
+| npm run typecheck          | exit0                                                                 |
+| npm run lint               | exit0                                                                 |
+| npm run format:check       | exit0                                                                 |
+| npm run test:unit          | exit0，54項                                                           |
+| npm run test:integration   | exit0，65項                                                           |
+| npm run test:contract      | exit0，14項                                                           |
+| npm run test:e2e           | exit0，8項Edge測試                                                    |
+| npm run build              | 由test:e2e實際執行，三個workspace通過                                 |
+| PlantUML -checkonly／-tsvg | exit0，六圖產生於validation-results/feature-002-phase-5/design-review |
+
+合計141項。最終Gate後只更新文件，未再改程式。loopback案例在允許隔離本機連線的環境執行，DB／cloud double／child bundle均在專用臨時目錄，
+未停止原有正式服務、未讀正式DB或真實Google授權，也未寫真實Google表。
+
+設計對照：writeback.puml的end/result/job原子、原owner憑證、原sheetId預檢、整組送寫、未知先讀回、固定預算與restart保留均已接通；
+submission與lifecycle的正常end及after-commit wake亦完成。architecture維持一個Node、雙listener與一個有序worker，無外部queue或ORM。
+六圖原始檔未修改，沿用T002已通過設計；新增服務分檔、wire名稱沿用operationId/status映射持久jobId/currentStatus，契約已明確記載。
+
+尚未完成範圍：history／settings頁與HTTP、三場已確認資料跨頁面／瀏覽器／真正服務重啟比對、active原兩學生續答的完整行程驗收、
+兩份真實Google及兩帳號整體驗收仍在Phase 6；統一表格UI在Phase 7，安全備份與完整產物驗證在Phase 8。
+本次worker child fault測試不能代替這些後續驗收。Convergence任務保留待辦，不提前勾整體收斂完成。
+
+Phase 5人工文件核對範圍：本節、quickstart的Phase 5操作及限制、plan狀態、contracts新增wire mapping與tasks進度。
+請以persistent-commands／writeback-worker／durable-writeback-service／writeback-projection、老師回填介面及上述實測核對；
+確認後才T068合併並開始Phase 6。
+
+Phase 5文件人工核對結論：維護者於2026-11-25回覆「核對完成」，T068人工審查門檻通過。

@@ -58,36 +58,8 @@ export function writebackFixture(persistence?: PersistenceFixture) {
 }
 
 export async function catalogWritebackFixture() {
-  const { catalogClassroom } = await import('./activity.js');
-  const c = await catalogClassroom();
-  const run = (session: typeof c.a, event: string, extra = {}) =>
-    executeCommand(c.store, session, event, {
-      activityId: c.activity.id,
-      requestId: randomUUID(),
-      ...extra,
-    });
-  run(c.a, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' });
-  run(c.teacher, 'activity:start');
-  run(c.a, 'answer:submit', {
-    questionId: c.question.id,
-    answers: Object.fromEntries(
-      c.question.items.map((item, index) => [item.id, index === 0 ? '=SUM(A1)' : '安全答案']),
-    ),
-  });
-  run(c.teacher, 'activity:end');
-  const grid = structuredClone(c.activity.source!.baseline);
-  const writes: unknown[] = [];
-  const gateway = c.server.gateway;
-  gateway.read = async () => structuredClone(grid);
-  gateway.write = async (_id, _credentials, updates) => {
-    writes.push(structuredClone(updates));
-    for (const { target, answer } of updates) {
-      const sheet = grid.find((sheet) => sheet.sheetId === target.sheetId)!;
-      sheet.rows[target.rowIndex] ??= [];
-      sheet.rows[target.rowIndex]![target.columnIndex] = {
-        userEnteredValue: { stringValue: answer },
-      };
-    }
-  };
-  return { ...c, gateway, service: c.server.writeback, writes, grid };
+  const { automaticFixture } = await import('./automatic-writeback.js');
+  const c = await automaticFixture();
+  c.answer();
+  return { ...c, gateway: c.server.gateway, grid: [c.grid], service: c.server.durableWriteback! };
 }

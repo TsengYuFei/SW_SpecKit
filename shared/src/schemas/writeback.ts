@@ -10,7 +10,16 @@ export const writeStatusSchema = z.enum([
   'failed',
 ]);
 export type WriteStatus = z.infer<typeof writeStatusSchema>;
+export const writeReasonSchema = z.union([
+  errorCodeSchema,
+  z.enum(['QUEUED', 'VERIFICATION_PAUSED', 'AUTO_RETRY_EXHAUSTED']),
+]);
 export const questionWritebackSchema = z.strictObject({
+  reasonCode: writeReasonSchema.optional(),
+  retryCycle: z.number().int().nonnegative().optional(),
+  writeAttemptCount: z.number().int().min(0).max(3).optional(),
+  verificationFailureCount: z.number().int().min(0).max(4).optional(),
+  nextAttemptAt: z.number().int().nullable().optional(),
   questionId: z.string(),
   status: writeStatusSchema,
   expectedAnswers: z.record(z.string(), z.string()),
@@ -21,6 +30,7 @@ export const questionWritebackSchema = z.strictObject({
 });
 export type QuestionWriteback = z.infer<typeof questionWritebackSchema>;
 export const writebackSchema = z.strictObject({
+  reasonCode: writeReasonSchema.optional(),
   operationId: idSchema,
   activityId: idSchema,
   status: writeStatusSchema,

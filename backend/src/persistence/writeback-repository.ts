@@ -122,11 +122,35 @@ export function createWritebackRepository(
         ['writing', 'pending', 'conflict', 'failed'].find((candidate) =>
           statuses.includes(candidate),
         ) ?? 'verified';
-      db.prepare('UPDATE writeback_jobs SET status=?,updated_at=? WHERE id=?').run(
+      const overallReason =
+        db
+          .prepare(
+            'SELECT safe_error_code FROM writeback_question_states WHERE job_id=? AND status=? ORDER BY question_id LIMIT 1',
+          )
+          .get(jobId, overall)?.safe_error_code ?? null;
+      db.prepare('UPDATE writeback_jobs SET status=?,reason_code=?,updated_at=? WHERE id=?').run(
         overall,
+        overallReason,
         Date.now(),
         jobId,
       );
+      db.prepare(
+        'UPDATE activities SET revision=revision+1 WHERE id=(SELECT activity_id FROM writeback_jobs WHERE id=?)',
+      ).run(jobId);
+    },
+    finishAttempt(
+      id: string,
+      outcome: 'success' | 'failed' | 'unknown',
+      safeErrorCode: string | null = null,
+      at = Date.now(),
+    ) {
+      connection.requireTransaction();
+      const result = db
+        .prepare(
+          'UPDATE writeback_attempts SET finished_at=?,outcome=?,safe_error_code=? WHERE id=? AND finished_at IS NULL',
+        )
+        .run(at, outcome, safeErrorCode, id);
+      if (result.changes !== 1) throw new AppError('REQUEST_CONFLICT');
     },
     recordAttempt(
       jobId: string,
@@ -136,6 +160,7 @@ export function createWritebackRepository(
         retryCycle: number;
         outcome: 'started' | 'success' | 'failed' | 'unknown';
         safeErrorCode?: string | null;
+        startedAt?: number;
       },
     ) {
       connection.requireTransaction();
@@ -145,6 +170,7 @@ export function createWritebackRepository(
           retryCycle: z.number().int().nonnegative().safe(),
           outcome: z.enum(['started', 'success', 'failed', 'unknown']),
           safeErrorCode: reason.optional(),
+          startedAt: z.number().int().safe().optional(),
         })
         .parse(input);
       const current = db
@@ -161,7 +187,7 @@ export function createWritebackRepository(
           .get(jobId, questionId)!.ordinal,
       );
       const id = randomUUID();
-      const now = Date.now();
+      const now = value.startedAt ?? Date.now();
       db.prepare('INSERT INTO writeback_attempts VALUES(?,?,?,?,?,?,?,?,?,?)').run(
         id,
         jobId,
