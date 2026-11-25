@@ -1,0 +1,58 @@
+@startuml
+title Feature 002 - Durable Automatic Writeback and Recovery
+participant "End Command" as End
+database SQLite as DB
+participant Worker as W
+participant "Owner Runtime Credentials" as V
+participant "Original Google Sheet" as S
+End -> DB : transaction: ended + results + unique job + receipt
+DB --> End : COMMIT
+End -> W : wake (page may close)
+W -> DB : claim pending job, original owner + sheetId
+W -> V : credentials for job owner only
+alt no original owner authorization
+  V --> W : unavailable
+  W -> DB : pending / GOOGLE_AUTH_REQUIRED
+  note right of W : Owner reauthorization wakes verification.\nOther account tokens are never substituted.
+else authorized
+  loop each winning question or complete question group
+    W -> S : read original sheetId structure and target values
+    alt original owner authorization unavailable
+      W -> DB : pending / GOOGLE_AUTH_REQUIRED\nno budget consumed, no scheduled retry
+    else transient read failure
+      W -> DB : persist read failure count + due time\nafter 4 transient failures: pending, paused
+    else structure changed or mixed/unexpected values
+      W -> DB : entire question conflict
+    else all expected
+      W -> DB : verified, no new write
+    else all baseline and structure matches
+      alt write budget remains in current cycle
+      W -> DB : one transaction: writing + attempt + write count increment\nmax 3, retain retry cycle across restart
+      DB --> W : committed
+      W -> S : single batch updateCells\nall subitems, stringValue, value-only field mask
+      alt timeout / response lost / process crash
+        W -> DB : pending if process alive
+        note right of DB : On restart durable writing becomes pending.\nReadback first; never blind resend.
+      else response received
+        W -> S : readback original sheetId
+        S --> W : current values
+        W -> DB : verified only if all expected\notherwise pending/conflict with safe reason
+      end
+      else 3 write attempts already consumed
+        W -> DB : failed / AUTO_RETRY_EXHAUSTED\nonly after baseline confirmed
+      end
+    end
+  end
+end
+note over W,DB
+Google calls never run inside SQLite transactions.
+Persistence failure stops dispatch; never false verified.
+Repeated end or history view does not create another job.
+No winners: zero-item verified job, no write API call.
+Write retry delays: 2s / 4s, precheck before each write.
+Read failure delays: 1s / 2s / 4s, then pending pause.
+Unknown outcome never becomes failed solely from retry limit.
+Only explicit owner retry opens a new durable cycle.
+Same retry requestId never opens another cycle.
+end note
+@enduml

@@ -1,0 +1,48 @@
+@startuml
+title Feature 002 - Teacher and Student UI Flow (After Core Acceptance)
+start
+:Teacher authorize Google account;
+:Clear previous account data;
+:Show own history + spreadsheet catalog;
+if (Review saved activity?) then (yes)
+  :Owner-only history detail from SQLite;
+  :Show full names, answers, results, writeback status;
+else (new)
+  :Search / next page / select spreadsheet;
+  :Preview first worksheet + mapping;
+  :Set group count and create waiting activity;
+  fork
+    :Teacher table: group rows / question columns;
+    :Full names wrap; long table scrolls;
+    :Text for joined / unanswered / accepted / winner;
+  fork again
+    :Students choose group and required name;
+    :Atomic join; name becomes immutable;
+    :Waiting screen, no question content;
+  end fork
+  :Teacher opens activity;
+  :Students see questions; submit complete groups;
+  :Teacher live table updates after commits;
+  :Teacher presses End and automatically fill answers;
+  :Publish frozen results;
+  :Automatic writeback status with text;
+endif
+if (Writeback needs recovery?) then (yes)
+  :Explain authorization / verify / safe retry / conflict;
+  :Allow only actions valid for current state and owner;
+else (no)
+  if (Still processing?) then (yes)
+    :Show queued / writing text and live progress;
+  else (no)
+    :Show verified or no winning answers;
+  endif
+endif
+:History remains after page close or service restart;
+stop
+note right
+UI polish starts only after stories 1-4 pass.
+Loading, empty and errors have text and actionable guidance.
+1280x720, four groups, six questions, 40-character names.
+Keyboard operation; status never relies on color alone.
+end note
+@enduml

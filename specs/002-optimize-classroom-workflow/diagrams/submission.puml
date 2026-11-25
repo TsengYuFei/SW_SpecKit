@@ -1,0 +1,66 @@
+@startuml
+title Feature 002 - Atomic Join, Concurrent Submit and End
+actor "Student A" as A
+actor "Student B" as B
+actor Teacher as T
+participant "Role / Account Guards" as G
+participant "Ordered Command Service" as C
+database SQLite as DB
+A -> G : join(groupId, name, requestId)
+G -> C : stable participant, validate name
+C -> DB : BEGIN IMMEDIATE\ncheck available group + no prior group
+C -> DB : bind participant + lock name + revision + receipt
+DB --> C : COMMIT
+C --> A : success, full group name
+B -> G : competing join same group
+G -> C : validate
+C -> DB : check occupied
+DB --> C : group occupied
+C --> B : reject; no partial bind or rename
+B -> G : join another free group with required name
+G -> C : validate participant and name
+C -> DB : atomically bind free group + name + receipt
+DB --> C : COMMIT
+C --> B : success, other full group name
+note over A,DB
+Waiting student projection contains no question data.
+Only after owner start commit do student questions appear.
+end note
+par close-in-time submissions
+  A -> G : complete answers(request A)
+  G -> C : validated actor + payload
+else
+  B -> G : complete answers(request B)
+  G -> C : validated actor + payload
+end
+C -> DB : first queued command: BEGIN IMMEDIATE\nvalidate active + full item set + not answered
+alt invalid or incomplete
+  C -> DB : no submission / no sequence allocation
+  C --> A : explicit rejection
+else valid
+  C -> DB : all answers + nextSequence + revision + receipt
+  DB --> C : COMMIT
+  C --> A : own receipt only
+  C --> T : owner-only progress after commit
+end
+C -> DB : process next queued command using next sequence
+DB --> C : COMMIT or explicit rejection
+A -> C : ack timeout / reconnect / resend same request
+C -> DB : lookup durable actor/event/requestId receipt
+DB --> C : same fingerprint: prior outcome
+C --> A : same receipt; no new sequence
+T -> G : end(requestId)
+G -> C : verified owner
+C -> DB : end + frozen results + unique job + receipt
+DB --> C : COMMIT
+C --> T : ended; automatic writeback queued
+B -> C : later answer
+C -> DB : phase already ended
+C --> B : INVALID_PHASE; order unchanged
+note over C,DB
+DB failure: rollback, no success ack.
+No visible mutation before commit.
+Crash after commit before ack: restart then read same receipt.
+Same requestId with different payload: REQUEST_CONFLICT.
+end note
+@enduml

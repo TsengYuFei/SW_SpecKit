@@ -2,6 +2,11 @@ node_modules/
 dist/
 build/
 coverage/
+validation-results/
+data/
+backups/
+*.sqlite*
+*.db*
 test-results/
 playwright-report/
 package-lock.json
