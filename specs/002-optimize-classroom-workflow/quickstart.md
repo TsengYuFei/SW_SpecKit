@@ -175,7 +175,7 @@ node tests/manual/workflow-v2-restart.mjs verify
 
 T069–T083已完成，維護者已回覆「審閱完成」，Phase 6合併main 9f47bf9。完整檢查及人工文件核對依review-notes.md的Phase 6 Core Acceptance and Review Gate為準；接續Phase 7統一UI。上述UI格式核對只涵蓋可見題目、邊框與合併配置，完整自動化原表保護另由整合測試驗證。
 
-## Phase 7 統一介面與作答表（待人工核對）
+## Phase 7 統一介面與作答表（已審查合併）
 
 老師頁以目前活動為優先，上方導覽可前往活動、教材、歷史與設定。活動內顯示已加入組數、已保存答案筆數及教材題目數；各組作答表以組別為列、題目為欄，列出完整組名、加入、提交總數、尚未作答、已受理、搶答成功及收件序號。長組名換行，窄視窗可橫向捲動，固定組名欄與表頭；查看歷史詳情也使用相同表格，不改變目前活動。
 
@@ -195,4 +195,4 @@ npm run test:e2e
 
 合成畫面位於validation-results/feature-002-phase-7：teacher-desktop.png、teacher-table.png、teacher-narrow.png、student-waiting.png、student-answer.png；不包含真實Google授權或憑證。這些檔案被Git忽略。真實Google及正式重啟證據仍見Phase 6；本階段沒有更改後端、角色投影或資料契約，也沒有再次改寫真實Google教材。
 
-本機服務已啟動時，只需重新整理老師頁即可載入新前端，不必重啟Node或重新授權。人工核對時可用Tab將焦點移到「歷史活動」導覽連結，再按Enter，確認可前往歷史區；不要為核對導覽而結束或另建活動。T091可見UI／鍵盤與文件核對、T092人工門檻及T093合併尚待完成，不以Phase 6的核對替代。
+本機服務已啟動時，只需重新整理老師頁即可載入新前端，不必重啟Node或重新授權。人工核對時可用Tab將焦點移到「歷史活動」導覽連結，再按Enter，確認可前往歷史區；不要為核對導覽而結束或另建活動。維護者已完成Phase 7可見UI／鍵盤與文件核對，T084–T093完成，合併main 9602880；接續Phase 8最終整合。

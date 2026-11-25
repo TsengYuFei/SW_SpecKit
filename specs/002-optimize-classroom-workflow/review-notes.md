@@ -589,3 +589,5 @@ Phase 7補充長表邊界：另先新增桌面1280×720十二題案例，原固�
 四份修改Markdown另明確Prettier check通過，git diff --check通過，118個task ID保持唯一；無extension hook。合成圖與鍵盤步驟已可供T091人工核對，尚未收到Phase 7維護者結論，沒有合併。
 
 Phase 7人工核對結論：維護者於2026-11-25回覆「審核完畢」，確認本階段畫面、鍵盤與文件審閱完成，T091／T092人工門檻通過，接續T093合併。
+
+T093已完成：實作799da6d，合併main 9602880；T084–T093完成，補記後fast-forward回main，未push。

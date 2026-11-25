@@ -4,7 +4,7 @@
 
 **Input**: 第二版功能規格、三項釐清、使用者指定 SQLite。
 
-**Status**: Phase 1–6已通過審查及合併；Phase 6實作5b5a247、合併main 9f47bf9，維護者已回覆「審閱完成」。Phase 7已實作統一UI、教師作答表與狀態／鍵盤支援，159項測試通過，待本階段可見介面與文件人工核對後合併；備份恢復及最終收斂仍在後續Phase，實測與各階段人審依review-notes.md記錄。
+**Status**: Phase 1–6已通過審查及合併；Phase 6實作5b5a247、合併main 9f47bf9，維護者已回覆「審閱完成」。Phase 7統一UI、教師作答表與狀態／鍵盤支援已通過159項測試及維護者審核，合併main 9602880；接續Phase 8備份恢復與最終驗證，整體收斂仍在後續Phase，實測與各階段人審依review-notes.md記錄。
 
 ## Summary
 

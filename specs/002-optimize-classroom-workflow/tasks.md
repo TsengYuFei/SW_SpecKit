@@ -192,7 +192,7 @@ T002設計審查及Phase 1–2文件核對已由維護者完成；後續每Phase
 - [x] T090 [US5] 在 frontend/src/student/GroupPage.tsx、frontend/src/student/AnswerPage.tsx、frontend/src/student/ResultsPage.tsx、frontend/src/styles.css 統一加入／鎖名／等待／作答／結果版面；長名換行與表格捲動，不改角色資料權限
 - [x] T091 [US5] 在 tests/e2e/teacher-progress-table.spec.ts、tests/e2e/workflow-usability.spec.ts 完成可見UI與鍵盤人工核對並記錄於 specs/002-optimize-classroom-workflow/review-notes.md；只以合成資料截圖，真實OAuth停用錄製
 - [x] T092 [US5] 執行共用Phase Gate及SC-009／SC-010完整回歸，更新 specs/002-optimize-classroom-workflow/quickstart.md、specs/002-optimize-classroom-workflow/review-notes.md；UI變更不可破壞waiting隱題、owner隔離與自動回填
-- [ ] T093 [US5] 完成審查後commit並merge main，記至 specs/002-optimize-classroom-workflow/review-notes.md，再進最終Phase
+- [x] T093 [US5] 完成審查後commit並merge main，記至 specs/002-optimize-classroom-workflow/review-notes.md，再進最終Phase
 
 ## Phase 8: Polish and Cross-Cutting — 最終整合審查
 
