@@ -2,6 +2,8 @@ import { fullGroupName } from '@classroom/shared/formatters/group-name';
 import type { ActivityClient } from '../transport/socket';
 import { ResultsView } from '../components/ResultsView';
 import { WritebackPanel } from './WritebackPanel';
+import { ProgressTable } from './ProgressTable';
+import { OperationStatus } from '../components/OperationStatus';
 
 export function ActivityPage({
   client,
@@ -14,51 +16,76 @@ export function ActivityPage({
 }) {
   const s = client.snapshot!;
   return (
-    <section aria-label="活動控制">
-      <h2>活動控制</h2>
-      <p>
+    <section id="activity" aria-label="活動控制" className="activity-panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">目前活動</p>
+          <h2>活動控制</h2>
+        </div>
+        <span className={`badge phase-${s.phase}`}>
+          {s.phase === 'waiting' ? '等待開始' : s.phase === 'active' ? '搶答進行中' : '搶答已結束'}
+        </span>
+      </div>
+      <p className="join-link">
         學生加入連結：
         <a href={`${studentOrigin}/student/${s.activityId}`} target="_blank" rel="noreferrer">
           {studentOrigin}/student/{s.activityId}
         </a>
       </p>
-      <p>
-        階段：
-        {s.phase === 'waiting' ? '等待開始' : s.phase === 'active' ? '搶答進行中' : '搶答已結束'}
+      <div className="action-row">
+        <button
+          disabled={!client.connected || client.busy || s.phase !== 'waiting' || !s.sourceReady}
+          onClick={() => void client.command('activity:start')}
+        >
+          開始搶答
+        </button>
+        <button
+          disabled={!client.connected || client.busy || s.phase !== 'active'}
+          onClick={() => void client.command('activity:end')}
+        >
+          結束搶答並自動回填
+        </button>
+      </div>
+      <p className="control-hint">
+        {!client.connected
+          ? '連線恢復後才能控制活動。'
+          : client.busy
+            ? '正在保存操作，請稍候。'
+            : s.phase === 'waiting'
+              ? s.sourceReady
+                ? '老師開放後，學生才能看到題目並提交答案。'
+                : '請先確認教材，才能開始搶答。'
+              : s.phase === 'active'
+                ? '活動正在收答，無須再次開始。'
+                : '活動已結束，不能重新開始或再次結束。'}
       </p>
-      <button
-        disabled={!client.connected || client.busy || s.phase !== 'waiting' || !s.sourceReady}
-        onClick={() => void client.command('activity:start')}
-      >
-        開始搶答
-      </button>
-      <button
-        disabled={!client.connected || client.busy || s.phase !== 'active'}
-        onClick={() => void client.command('activity:end')}
-      >
-        結束搶答並自動回填
-      </button>
       {s.phase === 'active' && (
-        <p>結束後會自動回填成功答案，請先暫停從其他視窗編輯原試算表；無須再按回填按鈕。</p>
-      )}
-      <h3>各組作答狀況</h3>
-      {s.groups.map((g) => (
-        <p key={g.id}>
-          {fullGroupName(g)}：{g.occupied ? '已加入' : '未加入'}，已提交{' '}
-          {s.submissions?.filter((item) => item.groupId === g.id).length ?? 0} 題
+        <p className="control-hint">
+          結束後會自動回填成功答案，請先暫停從其他視窗編輯原試算表；無須再按回填按鈕。
         </p>
-      ))}
-      <h3>暫定搶答成功組</h3>
-      {s.tentativeResults?.map((r) => (
-        <div key={r.questionId}>
-          第 {r.displayNumber} 題：
-          {r.winnerGroup ? fullGroupName(r.winnerGroup) : '尚無成功組'}
-          {Object.entries(r.answers).map(([id, answer]) => (
-            <p key={id}>{answer}</p>
-          ))}
+      )}
+      <div className="activity-metrics">
+        <div>
+          <strong>
+            {s.groups.filter((group) => group.occupied).length}
+            <small> / {s.groups.length}</small>
+          </strong>
+          <span>組已加入</span>
         </div>
-      ))}
-      <details>
+        <div>
+          <strong>{s.submissions?.length ?? 0}</strong>
+          <span>筆答案已保存</span>
+        </div>
+        <div>
+          <strong>{s.questions.length}</strong>
+          <span>道教材題目</span>
+        </div>
+      </div>
+      {s.phase === 'active' && !s.submissions?.length && (
+        <OperationStatus>尚無答案，等待各組提交完整作答。</OperationStatus>
+      )}
+      <ProgressTable snapshot={s} />
+      <details className="answer-log">
         <summary>全組已受理答案</summary>
         {s.submissions?.map((item) => (
           <div key={item.id}>

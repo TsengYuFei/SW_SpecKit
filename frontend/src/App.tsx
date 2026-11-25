@@ -49,7 +49,13 @@ export function App() {
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted)
-          setError(error instanceof Error ? error.message : '連線失敗');
+          setError(
+            error instanceof TypeError
+              ? '無法連線至本機服務，請確認服務已啟動後重新整理。'
+              : error instanceof Error
+                ? error.message
+                : '連線失敗',
+          );
       });
     return () => controller.abort();
   }, []);
@@ -112,25 +118,39 @@ export function App() {
     };
   }, [role]);
   return (
-    <main>
-      <h1>課堂搶答</h1>
-      {error ? (
-        <p role="alert">{error}</p>
-      ) : (
-        <p role="status">
-          {role === 'teacher' ? '老師控制台' : role === 'student' ? '學生作答頁' : '連線中…'}
-        </p>
+    <main className={`workspace ${role === 'teacher' ? 'teacher-workspace' : 'student-workspace'}`}>
+      <header className="workspace-header">
+        <div className="brand">
+          <span className="brand-mark" aria-hidden="true">
+            答
+          </span>
+          <div>
+            <p className="eyebrow">GUIDED NOTES</p>
+            <h1>課堂搶答</h1>
+          </div>
+        </div>
+        {error ? (
+          <p role="alert">{error}</p>
+        ) : (
+          <p role="status" className="role-label">
+            {role === 'teacher' ? '老師控制台' : role === 'student' ? '學生作答頁' : '連線中…'}
+          </p>
+        )}
+      </header>
+      {role === 'teacher' && (
+        <nav className="workspace-nav" aria-label="老師導覽">
+          {activityId && <a href="#activity">目前活動</a>}
+          <a href="#source">選擇教材</a>
+          {teacher?.authorized && (
+            <>
+              <a href="#history">歷史活動</a>
+              <a href="#settings">老師設定</a>
+            </>
+          )}
+        </nav>
       )}
-      {role === 'teacher' && <p>請授權原建立帳號以存取自己的教材與活動。</p>}
-      {teacher && (
-        <SourcePage
-          key={`${bootId}:${sessionVersion}:${authGeneration}:${settingsVersion}`}
-          csrfToken={teacher.csrfToken}
-          currentActivityId={teacher.currentActivityId}
-          onActivity={setActivityId}
-          phase={phase}
-          writebackPending={writebackPending}
-        />
+      {role === 'teacher' && !teacher?.authorized && (
+        <p className="welcome-hint">請先連結 Google 帳號，選擇教材或查看自己的歷史活動。</p>
       )}
       {activityId && bootId && (
         <Classroom
@@ -144,8 +164,21 @@ export function App() {
           onWritebackPending={setWritebackPending}
         />
       )}
+      {teacher && (
+        <SourcePage
+          key={`${bootId}:${sessionVersion}:${authGeneration}:${settingsVersion}`}
+          csrfToken={teacher.csrfToken}
+          currentActivityId={teacher.currentActivityId}
+          onActivity={setActivityId}
+          phase={phase}
+          writebackPending={writebackPending}
+        />
+      )}
       {teacher?.authorized && (
-        <div key={`saved-${bootId}-${sessionVersion}-${authGeneration}`}>
+        <div
+          className="saved-workspace"
+          key={`saved-${bootId}-${sessionVersion}-${authGeneration}`}
+        >
           <HistoryPage csrfToken={teacher.csrfToken} />
           <SettingsPage
             csrfToken={teacher.csrfToken}

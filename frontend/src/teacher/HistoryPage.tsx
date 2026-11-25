@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { historyPageSchema, type historySummarySchema } from '@classroom/shared/schemas/history';
 import type { z } from 'zod';
 import { HistoryDetailPage } from './HistoryDetailPage';
+import { OperationStatus } from '../components/OperationStatus';
 import { http } from '../transport/http';
 export function HistoryPage({ csrfToken }: { csrfToken: string }) {
   const alive = useRef(true);
@@ -75,7 +76,7 @@ export function HistoryPage({ csrfToken }: { csrfToken: string }) {
             更新歷史清單
           </button>
           {items.length === 0 && !busy && !error && <p>目前沒有已保存活動。</p>}
-          <ul>
+          <ul className="history-list">
             {items.map((item) => (
               <li key={item.id}>
                 <button onClick={() => setSelected(item.id)}>
@@ -106,8 +107,8 @@ export function HistoryPage({ csrfToken }: { csrfToken: string }) {
               載入更多歷史
             </button>
           )}
-          {busy && <p role="status">正在讀取歷史…</p>}
-          {error && <p role="alert">{error}</p>}
+          {busy && <OperationStatus kind="loading">正在讀取歷史…</OperationStatus>}
+          {error && <OperationStatus kind="error">{error}</OperationStatus>}
         </>
       )}
     </section>

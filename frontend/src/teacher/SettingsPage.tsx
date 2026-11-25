@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { settingsSchema } from '@classroom/shared/schemas/settings';
 import { http, HttpError } from '../transport/http';
 import { newRequestId } from '../transport/request-id';
+import { OperationStatus } from '../components/OperationStatus';
 export function SettingsPage({ csrfToken, onSaved }: { csrfToken: string; onSaved: () => void }) {
   const alive = useRef(true);
   useEffect(() => {
@@ -34,7 +35,9 @@ export function SettingsPage({ csrfToken, onSaved }: { csrfToken: string; onSave
   return (
     <section id="settings" aria-label="老師設定">
       <h2>老師設定</h2>
+      <p className="muted">預設組數會套用到下一場活動，並依目前 Google 帳號保存。</p>
       <form
+        className="settings-form"
         onSubmit={(event) => {
           event.preventDefault();
           if (busy) return;
@@ -81,8 +84,9 @@ export function SettingsPage({ csrfToken, onSaved }: { csrfToken: string; onSave
         </label>
         <button disabled={busy}>保存老師設定</button>
       </form>
-      {saved && <p role="status">老師設定已保存。</p>}
-      {error && <p role="alert">{error}</p>}
+      {busy && <OperationStatus kind="loading">正在讀取或保存設定，請稍候…</OperationStatus>}
+      {saved && <OperationStatus kind="success">老師設定已保存。</OperationStatus>}
+      {error && <OperationStatus kind="error">{error}</OperationStatus>}
     </section>
   );
 }

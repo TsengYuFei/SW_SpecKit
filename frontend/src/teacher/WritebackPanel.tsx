@@ -8,6 +8,7 @@ import type { ActivitySnapshot } from '@classroom/shared/projections/activity';
 import { fullGroupName } from '@classroom/shared/formatters/group-name';
 import { http, HttpError } from '../transport/http';
 import { newRequestId } from '../transport/request-id';
+import { OperationStatus } from '../components/OperationStatus';
 const labels: Record<WriteStatus, string> = {
   idle: '尚未回填',
   writing: '回填中',
@@ -80,14 +81,34 @@ export function WritebackPanel({
     }
   }
   return (
-    <section aria-label="回寫線上教材">
+    <section aria-label="回寫線上教材" className="writeback-panel">
       <h2>自動回填線上教材</h2>
       <p>搶答結束後由系統自動處理。讀回確認前請暫停在其他視窗編輯此試算表。</p>
       {operation ? (
         <>
           <p aria-live="polite">回填狀態：{labels[operation.status]}</p>
+          <OperationStatus
+            kind={
+              operation.status === 'verified'
+                ? 'success'
+                : operation.status === 'writing'
+                  ? 'loading'
+                  : 'warning'
+            }
+          >
+            {operation.status === 'verified' && operation.questions.length === 0
+              ? '本場沒有成功答案，原表不需更新。'
+              : {
+                  idle: '活動結束後會自動回填成功答案。',
+                  writing: '正在回填，請保留本機服務運作。',
+                  pending: '回填結果尚未確認，請先查核原表。',
+                  failed: '回填未完成，可先查核原表，再安全重試。',
+                  conflict: '來源內容已改變，請先核對教材；系統不會直接覆寫。',
+                  verified: '成功答案已回填並讀回確認。',
+                }[operation.status]}
+          </OperationStatus>
           {operation.questions.map((question) => (
-            <div key={question.questionId}>
+            <div key={question.questionId} className="writeback-item">
               第 {snapshot.questions.find((item) => item.id === question.questionId)?.displayNumber}{' '}
               題：{labels[question.status]}
               <p>
@@ -111,6 +132,7 @@ export function WritebackPanel({
             (question) => question.status === 'pending' || question.status === 'failed',
           ) && (
             <>
+              {!connected && <p>連線恢復後才能查核或重試回填。</p>}
               <button disabled={!connected || busy} onClick={() => void perform('verify')}>
                 查核原表
               </button>
@@ -121,10 +143,10 @@ export function WritebackPanel({
           )}
         </>
       ) : (
-        <p role="status">正在載入自動回填狀態…</p>
+        <OperationStatus kind="loading">正在載入自動回填狀態…</OperationStatus>
       )}
-      {busy && <p role="status">正在查核回填…</p>}
-      {error && <p role="alert">{error}</p>}
+      {busy && <OperationStatus kind="loading">正在查核回填…</OperationStatus>}
+      {error && <OperationStatus kind="error">{error}</OperationStatus>}
     </section>
   );
 }

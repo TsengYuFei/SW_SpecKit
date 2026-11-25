@@ -4,6 +4,8 @@ import { fullGroupName } from '@classroom/shared/formatters/group-name';
 import { ResultsView } from '../components/ResultsView';
 import { WritebackPanel } from './WritebackPanel';
 import { http } from '../transport/http';
+import { ProgressTable } from './ProgressTable';
+import { OperationStatus } from '../components/OperationStatus';
 export function HistoryDetailPage({
   activityId,
   csrfToken,
@@ -34,8 +36,11 @@ export function HistoryDetailPage({
     <section aria-label="歷史活動詳情">
       <h3>活動紀錄</h3>
       <button onClick={onBack}>返回歷史清單</button>
-      {error && <p role="alert">{error}</p>}
-      {!detail && !error && <p role="status">正在讀取已保存活動…</p>}
+      <a className="inline-link" href="#activity">
+        返回目前活動
+      </a>
+      {error && <OperationStatus kind="error">{error}</OperationStatus>}
+      {!detail && !error && <OperationStatus kind="loading">正在讀取已保存活動…</OperationStatus>}
       {detail && (
         <>
           <p>
@@ -50,6 +55,7 @@ export function HistoryDetailPage({
                 : '已結束'}
           </p>
           <p>以下為本機保存的教材與答案，查看不會重新讀取或回填Google。</p>
+          <ProgressTable snapshot={detail.snapshot} />
           <h4>組別與已受理答案</h4>
           {detail.snapshot.groups.map((group) => (
             <div key={group.id}>

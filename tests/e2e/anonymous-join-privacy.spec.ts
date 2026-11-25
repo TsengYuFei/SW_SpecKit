@@ -45,9 +45,13 @@ test('requires immutable names, hides waiting packets and reveals questions to t
       expect(b.locator('textarea').first()).toBeVisible({ timeout: 2000 }),
     ]);
     expect(Date.now() - opened).toBeLessThanOrEqual(2000);
-    await expect(
-      teacher.getByText('第1組-' + longName + '：已加入，已提交 0 題', { exact: true }),
-    ).toBeVisible();
+    const row = teacher
+      .getByRole('table', { name: '各組作答狀況', exact: true })
+      .getByRole('row')
+      .nth(1);
+    await expect(row.getByRole('rowheader')).toHaveText('第1組-' + longName);
+    await expect(row).toContainText('已加入');
+    await expect(row).toContainText('已提交 0 題');
   } finally {
     await Promise.all([teacherContext.close(), aContext.close(), bContext.close()]);
     await c.stop();
