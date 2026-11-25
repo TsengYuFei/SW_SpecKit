@@ -4,7 +4,7 @@
 
 **Input**: 第二版功能規格、三項釐清、使用者指定 SQLite。
 
-**Status**: Phase 1–5已通過審查及合併。Phase 6已實作歷史／設定、帳號隔離與啟動恢復；兩份真實Google、兩帳號、原Chrome／Edge、實際服務重啟續答及建立後工作表重排驗收已完成，完整檢查與本階段文件人工核對依review-notes.md記錄，尚未合併。統一UI、備份恢復及最終收斂仍在後續Phase，前階段審查合併前不開始。
+**Status**: Phase 1–6已通過審查及合併；Phase 6實作5b5a247、合併main 9f47bf9，149項測試及真實核心驗收通過，維護者已回覆「審閱完成」。接續Phase 7統一UI，備份恢復及最終收斂仍在後續Phase；實測與各階段人審依review-notes.md記錄。
 
 ## Summary
 

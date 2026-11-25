@@ -173,7 +173,7 @@ T002設計審查及Phase 1–2文件核對已由維護者完成；後續每Phase
 - [x] T080 [US4] 依 specs/002-optimize-classroom-workflow/quickstart.md 完成兩份真實Google清單選表→兩瀏覽器命名→開放→作答→end自動回填，另驗首張及重排；將Google讀回、目標／非目標與格式核對證據安全記入 specs/002-optimize-classroom-workflow/review-notes.md
 - [x] T081 [US4] 依 specs/002-optimize-classroom-workflow/quickstart.md 完成兩個真實Google帳號歷史隔離、至少三場資料比對、實際服務重啟原學生自動續答及重新授權後查歷史；由使用者完成OAuth，不記機密，結果記 specs/002-optimize-classroom-workflow/review-notes.md
 - [x] T082 [US4] 執行共用Phase Gate，逐項核對US1–4與SC-001–SC-008、SC-010核心、SC-011並同步 specs/002-optimize-classroom-workflow/quickstart.md、specs/002-optimize-classroom-workflow/review-notes.md；真實或人審未完成不得勾通過
-- [ ] T083 [US4] 完成審查後commit並merge main，記至 specs/002-optimize-classroom-workflow/review-notes.md；核心驗收全部通過才允許US5統一UI優化
+- [x] T083 [US4] 完成審查後commit並merge main，記至 specs/002-optimize-classroom-workflow/review-notes.md；核心驗收全部通過才允許US5統一UI優化
 
 ## Phase 7: User Story 5 — 核心驗收後統一UI (P2)
 

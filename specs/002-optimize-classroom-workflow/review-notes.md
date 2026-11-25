@@ -525,3 +525,5 @@ B更新歷史後只列一筆自己的已結束／回填已確認活動，不出�
 T082人工文件核對範圍：本節及Phase 6 Implementation and Synthetic Validation、quickstart的Phase 6節、plan的Status與tasks的T069–T083進度；以history-service／history與settings HTTP、共享schema、三個老師頁與App、production-process及重啟／歷史測試、真實操作結果核對。憲章V要求AI文件由維護者以實際程式、設定或結果審查，先前Phase核對不替代本Phase。尚未收到此次核對結論，T082／T083保留待辦，未commit／merge，未開始Phase 7。
 
 Phase 6人工文件核對結論：維護者於2026-11-25回覆「審閱完成」，本階段審查門檻通過，T082完成；接續T083 commit／merge，不再要求重複核對同一審閱範圍。
+
+T083已完成：實作5b5a247，Phase 6合併main 9f47bf9；T069–T083完成，合併紀錄補記後fast-forward回main，未push。
