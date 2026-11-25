@@ -5,6 +5,19 @@ import { idSchema } from '@classroom/shared/schemas/common';
 import type { RouteContext } from '../server.js';
 import type { createSourceService } from '../activity/source-service.js';
 import { requireSession } from '../security/guards.js';
+import type { CatalogService } from '../activity/catalog-service.js';
+
+export function catalogSourceRoutes(app: Express, ctx: RouteContext, catalog: CatalogService) {
+  if (ctx.role !== 'teacher') return;
+  app.get('/api/google/spreadsheets', async (req, res) => {
+    const session = requireSession(ctx.sessions, req, 'teacher');
+    res.json(success(await catalog.list(session.sessionId, req.query)));
+  });
+  app.post('/api/source-previews', async (req, res) => {
+    const session = requireSession(ctx.sessions, req, 'teacher');
+    res.json(success(await catalog.preview(session.sessionId, req.body)));
+  });
+}
 
 export function sourceRoutes(
   app: Express,

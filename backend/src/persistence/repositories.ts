@@ -18,3 +18,6 @@ export function createRepositories(connection: DatabaseConnection, maxGroups = 1
     commands: createCommandService(connection),
   };
 }
+export type RuntimePersistence = { connection: DatabaseConnection } & ReturnType<
+  typeof createRepositories
+>;

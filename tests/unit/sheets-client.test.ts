@@ -101,3 +101,55 @@ it('rejects the entire read when a later chunk fails', async () => {
     createGoogleGateway(readConfig(config)).read('example_sheet', {}),
   ).rejects.toMatchObject({ code: 'GOOGLE_FORBIDDEN' });
 });
+
+it('downloads only the index-zero worksheet and later resolves the original sheet ID after reordering', async () => {
+  const original = {
+    properties: {
+      sheetId: 17,
+      index: 0,
+      title: '首張',
+      sheetType: 'GRID',
+      hidden: true,
+      gridProperties: { rowCount: 1, columnCount: 1 },
+    },
+  };
+  const second = {
+    properties: {
+      sheetId: 29,
+      index: 1,
+      title: '第二張',
+      sheetType: 'GRID',
+      gridProperties: { rowCount: 1, columnCount: 1 },
+    },
+  };
+  rpc.get.mockResolvedValue({
+    data: { properties: { title: '教材' }, sheets: [second, original] },
+  });
+  rpc.getByDataFilter.mockImplementation(async (params) => ({
+    data: {
+      sheets: [
+        { properties: { sheetId: params.requestBody.dataFilters[0].gridRange.sheetId }, data: [] },
+      ],
+    },
+  }));
+  const gateway = createGoogleGateway(readConfig(config));
+  const first = await gateway.readFirstSheet!('sheet', {});
+  expect(first).toMatchObject({ spreadsheetTitle: '教材', sheet: { sheetId: 17 } });
+  expect(
+    rpc.getByDataFilter.mock.calls.map(
+      (call) => call[0].requestBody.dataFilters[0].gridRange.sheetId,
+    ),
+  ).toEqual([17]);
+  original.properties.index = 1;
+  original.properties.title = '重新命名';
+  second.properties.index = 0;
+  expect(await gateway.readSheetById!('sheet', 17, {})).toMatchObject({
+    sheetId: 17,
+    title: '重新命名',
+  });
+  expect(
+    rpc.getByDataFilter.mock.calls.map(
+      (call) => call[0].requestBody.dataFilters[0].gridRange.sheetId,
+    ),
+  ).toEqual([17, 17]);
+});

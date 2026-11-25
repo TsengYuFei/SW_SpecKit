@@ -1,17 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { expect, it } from 'vitest';
-import { createListener } from '../../backend/src/server.js';
-import { writebackRoutes } from '../../backend/src/http/writeback-routes.js';
-import { readConfig } from '../../backend/src/config.js';
-import { writebackFixture } from '../helpers/writeback.js';
-import { close, listen } from '../helpers/server.js';
+import { catalogWritebackFixture } from '../helpers/writeback.js';
 
 it('protects writeback routes and returns a stable operation with safe status and verify', async () => {
-  const c = writebackFixture();
-  const server = createListener('teacher', c.store, c.sessions, readConfig({}), {
-    registerRoutes: (app, ctx) => writebackRoutes(app, ctx, c.service),
-  });
-  const url = await listen(server.server);
+  const c = await catalogWritebackFixture();
+  const url = c.server.url;
   try {
     const headers = {
       Cookie: c.sessions.cookie(c.teacher),
@@ -62,7 +55,6 @@ it('protects writeback routes and returns a stable operation with safe status an
       ).status,
     ).toBe(409);
   } finally {
-    server.io.disconnectSockets(true);
-    await close(server.server);
+    await c.server.stop();
   }
 });

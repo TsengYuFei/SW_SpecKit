@@ -2,6 +2,26 @@ import type { IncomingMessage } from 'node:http';
 import type { Role } from '@classroom/shared/schemas/common';
 import { AppError } from './safe-errors.js';
 import { sameSecret, type BrowserSession, type Sessions } from './sessions.js';
+import type { OAuthService } from '../google/oauth.js';
+import type { ActivityRepository } from '../persistence/activity-repository.js';
+export type TeacherAuthorization = (
+  session: BrowserSession,
+  activityId?: string,
+) => { accountId: string; authGeneration: number };
+
+export function requireAuthorizedTeacherAccount(oauth: OAuthService, sessionId: string) {
+  return { account: oauth.account(sessionId), authGeneration: oauth.generation(sessionId) };
+}
+export function requireActivityOwner(
+  oauth: OAuthService,
+  activities: ActivityRepository,
+  sessionId: string,
+  activityId: string,
+) {
+  const auth = requireAuthorizedTeacherAccount(oauth, sessionId);
+  activities.getOwned(activityId, auth.account.sub);
+  return auth;
+}
 
 export function expectedOrigin(req: IncomingMessage, configured?: string) {
   return configured ?? `http://127.0.0.1:${req.socket.localPort}`;

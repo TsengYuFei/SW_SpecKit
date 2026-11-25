@@ -4,7 +4,7 @@
 
 **Input**: 第二版功能規格、三項釐清、使用者指定 SQLite。
 
-**Status**: 設計審查已通過，已進行Phase 1–2基礎工作；正式業務功能尚未切換，最新測試及人審狀態見review-notes.md。
+**Status**: 設計審查與Phase 1–2文件核對及合併已完成；Phase 3已實作Google帳號／清單／首張預覽及SQLite原子建場，待本階段文件核對。學生持久命令、自動回填、歷史及整體UI留後續Phase；最新測試及人審狀態見review-notes.md。
 
 ## Summary
 

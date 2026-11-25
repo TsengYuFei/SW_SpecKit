@@ -1,6 +1,6 @@
 # Quickstart and Validation: 第二版
 
-此為實作完成後的預定驗收指南，2026-11-25。新增功能尚未實作；不能把第一版66項測試通過當成本版驗收。
+2026-11-25狀態：Phase 1–2已合併，Phase 3來源流程已實作、待人工文件核對；後續學生持久命令、自動回填、歷史與整體UI仍為預定驗收，不把第一版測試通過當作本版完整驗收。
 資料與介面細節見 [data-model](data-model.md)、[contracts](contracts/interfaces.md)。
 
 ## Prerequisites
@@ -12,7 +12,7 @@
 - 新scopes見research R4；Drive metadata scope的同意畫面及測試使用者必須可用；原有Sheets授權不等於已有清單和帳號scope。
 - 準備兩個Google測試帳號，各有活動且共用至少一份可編輯測試來源；兩份不同題數、單題／題組教材，另有多工作表、首張零題、唯讀、歧義、衝突等合成資料。
 - 真實流程會在結束時自動修改原試算表，應使用獲授權的驗收教材；寫入期間停止外部編輯，不以正式未授權教材測試。
-- DATABASE_PATH 是預定新增設定；預設本機 `data/classroom.sqlite`，保留資料夾可寫且整目錄排除Git。測試使用獨立臨時目錄／埠，不碰使用者正式DB或既有服務。
+- DATABASE_PATH 已加入設定；預設本機 `data/classroom.sqlite`，保留資料夾可寫且整目錄排除Git。測試使用獨立臨時目錄／埠，不碰使用者正式DB或既有服務。
 
 ## Install, Check and Run
 
@@ -98,3 +98,21 @@ writing保存後送寫前、送寫後讀回前、讀回後本機保存前。work
 第一版測試中舊boot失效、改名、等待顯題、手動回填等被取代預期須更新；其餘安全／題組／衝突案例繼續通過。
 自動Google double不冒充真實Google證據，API雙client不冒充兩個UI瀏覽器。
 新版AI文件及圖須人工核對；完成回覆前不把人審標通過。本次規劃驗證結果另見review-notes。
+
+## Phase 3 已實作範圍與合成驗證
+
+正式啟動先開SQLite及migration，初始化失敗只記安全錯誤且不開始listen；不fallback空DB。
+老師完成包含OIDC／Drive metadata／Sheets scopes的授權後，由清單搜尋、繼續載入、預覽第一工作表，
+設定組數並確認建場；無URL／ID輸入欄位。唯讀來源不可建場，第一張沒有題目時不改讀第二張。
+預覽與cursor綁教師session、Google owner、代次及5分鐘有效期；建立前重驗編輯權限及來源指紋。
+requestId建場收據、來源、題目、空組與全域slot同交易保存；重送回同一活動。
+切換／解除帳號會清舊畫面、斷開舊教師訂閱，晚到清單回覆不採用；其他owner看不到活動。
+
+本階段測試完全使用隔離DB與合成OIDC／Google回應，未測真實Drive權限同意、未寫任何真實Sheets。
+合成頁面操作：授權 Google Sheets → 預覽 教材一 → 確認題目並建立活動 → 重新整理，來源仍可恢復。
+兩份不同配置教材由整合測試分別建立；瀏覽器測試另驗唯讀、空搜尋、預覽網路錯誤及回寫待確認時禁止新建。
+
+舊URL來源HTTP入口在正式main不註冊；獨立純核心fixture仍保留第一版reducer，以保留排序／回寫錯誤回歸，
+不代表新版學生持久化或自動回填已完成。source-http／source-preview、受影響的writeback-http／results-writeback、
+secret-exposure均已改由合成授權→清單／preview→requestId建場。真正Google及故事1–4整體驗收在後續Phase。
+具體測試指令、數量及圖對照見review-notes.md的Phase 3 Implementation and Validation。

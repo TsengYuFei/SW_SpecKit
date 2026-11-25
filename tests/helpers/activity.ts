@@ -28,3 +28,32 @@ export function classroom() {
     question: activity.questions[0]!,
   };
 }
+
+// Pure reducer tests use classroom(); HTTP/UI source tests enter through this verified catalog flow.
+export async function catalogClassroom() {
+  const { catalogServer } = await import('./catalog-server.js');
+  const server = await catalogServer();
+  const client = await server.client();
+  const preview = (
+    await (await client.post('/api/source-previews', { spreadsheetId: 'source-one' })).json()
+  ).data;
+  const { randomUUID } = await import('node:crypto');
+  await client.post('/api/activities', {
+    requestId: randomUUID(),
+    previewId: preview.previewId,
+    groupCount: 2,
+  });
+  const activity = server.store.activity!;
+  return {
+    server,
+    client,
+    store: server.store,
+    sessions: server.sessions,
+    activity,
+    teacher: server.sessions.find(client.cookie, 'teacher')!,
+    a: server.sessions.create('student'),
+    b: server.sessions.create('student'),
+    groups: [...activity.groups.values()],
+    question: activity.questions[0]!,
+  };
+}
