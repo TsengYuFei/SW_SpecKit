@@ -8,6 +8,7 @@ import type { Config } from './config.js';
 import type { ActivityStore } from './activity/store.js';
 import type { Sessions } from './security/sessions.js';
 import { checkOrigin, consumeMutation, requireCsrf, requireSession } from './security/guards.js';
+import type { TeacherAuthorization } from './security/guards.js';
 import { normalizeError, safeError } from './security/safe-errors.js';
 import { sessionRoutes } from './http/session-routes.js';
 import { attachActivityHandlers } from './sockets/activity-handlers.js';
@@ -17,10 +18,12 @@ export interface RouteContext {
   store: ActivityStore;
   sessions: Sessions;
   config: Config;
+  authorizeTeacher?: TeacherAuthorization;
 }
 interface Options {
   publicOrigin?: string;
   registerRoutes?: (app: Express, context: RouteContext) => void;
+  authorizeTeacher?: TeacherAuthorization;
 }
 
 export function createListener(
@@ -44,7 +47,7 @@ export function createListener(
     }
   });
   app.use(express.json({ limit: TRANSPORT_LIMIT }));
-  sessionRoutes(app, role, store, sessions, config.STUDENT_PUBLIC_ORIGIN);
+  sessionRoutes(app, role, store, sessions, config.STUDENT_PUBLIC_ORIGIN, options.authorizeTeacher);
   app.use((req, _res, next) => {
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       try {
@@ -58,7 +61,13 @@ export function createListener(
     }
     next();
   });
-  options.registerRoutes?.(app, { role, store, sessions, config });
+  options.registerRoutes?.(app, {
+    role,
+    store,
+    sessions,
+    config,
+    authorizeTeacher: options.authorizeTeacher,
+  });
   const dist = fileURLToPath(new URL('../../frontend/dist/', import.meta.url));
   app.use(express.static(dist, { index: false }));
   app.get(['/', '/student/:id'], (_req, res) => res.sendFile('index.html', { root: dist }));
@@ -71,9 +80,7 @@ export function createListener(
   );
   const handleError: ErrorRequestHandler = (error: unknown, _req, res, _next) => {
     const normalized = normalizeError(error);
-    res
-      .status(normalized.status)
-      .json({ ok: false, error: safeError(normalized), revision: store.activity?.revision ?? 0 });
+    res.status(normalized.status).json({ ok: false, error: safeError(normalized), revision: 0 });
   };
   app.use(handleError);
   const server = createServer(app);
@@ -97,6 +104,6 @@ export function createListener(
       next(new Error('UNAUTHORIZED'));
     }
   });
-  attachActivityHandlers(io, store, sessions, role);
+  attachActivityHandlers(io, store, sessions, role, options.authorizeTeacher);
   return { app, server, io };
 }

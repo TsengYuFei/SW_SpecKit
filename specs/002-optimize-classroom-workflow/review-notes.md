@@ -1,6 +1,6 @@
 # 第二版設計審查與驗證紀錄
 
-日期：2026-11-25。憲章1.0.0。Phase 1已合併，Phase 2基礎測試通過；正式業務功能尚未切換。
+日期：2026-11-25。憲章1.0.0。Phase 1–2已合併；Phase 3來源流程已實作，待本階段文件人工核對，後續故事仍在開發中。
 
 ## Review Status
 
@@ -205,3 +205,68 @@ security/sessions.ts／participants.ts／safe-errors.ts、config.ts、shared錯�
 Phase 2文件核對結論：維護者於2026-11-25明確回覆「Phase 2 文件已核對，內容一致」。
 T023已完成：實作commit `000ff01`，合併main commit `4f35e7e`，T008–T023全數完成。
 其後只在同一Phase 2分支補記既成結果，再fast-forward回main，未改已驗證程式、未push遠端。
+
+## Phase 3 Execution
+
+2026-11-25從最新main `11085ca` 建立 `codex/002-phase-3-catalog`，T024完成。
+先撰寫Google清單／OAuth／preview／create契約、清單邊界與首張選取測試；正式main只註冊新版來源入口，
+獨立舊核心測試fixture可保留其既有記憶體服務，以便US2／US3分階段移轉，不能從正式HTTP選擇legacy入口。
+
+### Phase 3 Implementation and Validation
+
+T024–T039完成，全部Gate通過；T040須本階段文件人工核對後才commit／merge main。
+本Phase只驗US1與既有回歸，不宣稱學生新規則、自動回填、歷史或全站UI已完成。
+
+| 範圍                     | 實作與核對                                                                                                                                                                                                                                                                                                                          |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T025–T027 測試先行       | 新增catalog契約／清單整合／首張unit先因缺少模組失敗，再完成服務；補OIDC／Drive SDK、過期／權限變動／來源變動／競爭建場／owner訂閱與E2E                                                                                                                                                                                              |
+| T028–T030 帳號及清單     | oauth.ts保存state、nonce、5分鐘期限與代次；sheets-client經Google SDK驗ID token audience／簽章／issuer／期限後比對nonce，僅公開帳號upsert DB。drive-client只列原生未刪除試算表，跳脫query、支援shared drives、canEdit與incompleteSearch；cursor不暴露provider token                                                                  |
+| T031 首張                | worksheet-selection按properties.index=0且唯一選取，hidden照讀，非GRID／無題不fallback；sheets-client僅下載選中sheet的cells，以sheetId讀回時不隨重排／改名換表                                                                                                                                                                       |
+| T032–T033 預覽及建立     | catalog-service.ts集中預覽與原子建場協調，避免拆分後重複權限／代次規則；復用source-service的teacher preview投影、activity-repository與command-service，未另建重複create-activity.ts。preview綁session／owner／generation／expiry，建立前重讀權限、首張與指紋；來源與題目／組別／slot／account receipt同交易；重送不重建，競爭只一場 |
+| T034 正式接入            | main先初始化SQLite及repos／persistent sessions，再註冊新來源入口及雙listener；初始化失敗只記安全碼、不listen。來源快照持久保存並可重新載入；學生命令完整持久化與跨boot續答在US2／US4，不以此過渡store bridge冒充完成                                                                                                                |
+| T035–T036 schema及基本UI | strict account／catalog schemas、搜尋與分頁、同名識別、唯讀提示、首張mapping核對、組數確認建場與錯誤文字；未做全站美化。沒有URL／ID輸入欄位                                                                                                                                                                                         |
+| T037 owner與代次         | HTTP及每次教師subscribe／command／push核owner；bootstrap只回自己的currentActivityId，未授權／他人不透露revision。切帳號清cache與前端舊資料、斷開舊教師socket，晚到清單回覆拒絕                                                                                                                                                      |
+| T038 測試移轉            | source-server改為隔離SQLite catalogServer；activity.ts加入catalogClassroom合成授權→清單／preview→requestId建場；source-http、source-preview、writeback-http、results-writeback、secret-exposure均移轉。保留無效額外欄位、越權、網路錯誤、機密排除與待確認阻擋下一場；舊source／confirm及空create入口由契約測試明確拒絕              |
+
+純reducer排序／Google來源演算法及回寫演算法fixture不註冊production listener，仍獨立測第一版核心；
+正式main一律注入persistence，無HTTP參數可選擇legacy source分支。手動回寫路由在US3改為自動job；
+本階段移轉回歸測試的建場入口，不把其舊手動回寫成功當作新版自動回填驗收。
+所有Google值皆為無效示範／合成值；未讀正式DB、未讀取原服務權杖、未操作真實Google。
+
+| 實際指令                   | 結果                                                                      |
+| -------------------------- | ------------------------------------------------------------------------- |
+| npm run test:unit          | exit0，53項                                                               |
+| npm run test:integration   | exit0，44項                                                               |
+| npm run test:contract      | exit0，10項                                                               |
+| npm run test:e2e           | exit0，6項Edge測試；測試專用DB及埠                                        |
+| npm run build              | test:e2e內已實際執行，shared／backend／frontend全通過                     |
+| PlantUML -checkonly／-tsvg | exit0，六圖重新產生於validation-results/feature-002-phase-3/design-review |
+
+合計113項。首輪新增owner測試因預期錯誤碼寫為不存在的ACTIVITY_NOT_FOUND失敗，改用既定ACTIVITY_UNAVAILABLE後通過；
+首次E2E有5通過／1失敗，原因是舊回寫測試仍找已移除的「建立下一場活動」按鈕；已改由新版preview確認建場檢查待回寫時禁用，6/6通過。
+移轉writeback-http清理段遺留舊server變數曾被typecheck抓出並修正，重跑契約及E2E通過。未刪除安全案例或略過失敗。
+
+六圖原始檔未修改；已對照T002通過設計：account-source與architecture的帳號／清單／首張／建場／owner路徑已實作；
+lifecycle及submission本Phase僅接資料橋接與權限檢查，完整durable start／join／submit／resume待US2／US4；
+writeback自動工作待US3，teacher-ui統一表格待US5。無新增未審查的業務流程。
+
+Phase 3人工文件核對範圍：本節、quickstart新狀態與Phase 3節、plan狀態、contracts開頭的部分實作標示及tasks進度；
+請以實際來源／帳號模組、前端SourcePage、SQLite建場及上述測試結果核對。確認後才執行T040合併並開始US2。
+
+Phase 3最後複查另修正共用HTTP錯誤與session envelope可能帶出全域revision：未授權／他人活動及學生bootstrap均為0；
+owner-isolation把目前活動revision設為7，確認他人bootstrap、HTTP拒絕與Socket拒絕仍回0，舊訂閱切換後無進度。
+修正後重跑44項integration、10項contract及6項E2E皆通過；未重新宣稱尚未實作的學生題目隱藏已驗收。
+最後format檢查發現4份檔案排版需更新，已Prettier修正後全數通過；無業務邏輯變更。
+
+| 最後靜態／文件檢查                                                                       | 結果                               |
+| ---------------------------------------------------------------------------------------- | ---------------------------------- |
+| npm run typecheck                                                                        | exit0                              |
+| npm run lint                                                                             | exit0                              |
+| npm run format:check                                                                     | exit0                              |
+| Prettier --ignore-path .gitignore --check specs/002-optimize-classroom-workflow/\*_/_.md | exit0                              |
+| node validation-results/feature-002-tasks/check-tasks.mjs                                | exit0，13/13、101任務、110模型欄位 |
+| git diff --check                                                                         | exit0                              |
+
+此處程式核對由AI完成，尚不代替維護者的本階段文件人工核對。T040保留未完成，分支尚未合併。
+
+Phase 3文件核對結論：維護者於2026-11-25明確回覆「Phase 3 文件已核對，內容一致」。T040人工文件核對通過，接續完成本階段合併；converge追加任務仍依原Phase順序執行。

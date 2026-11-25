@@ -6,27 +6,80 @@ import { createGoogleGateway, type GoogleGateway } from './google/sheets-client.
 import { createOAuth } from './google/oauth.js';
 import { createSourceService } from './activity/source-service.js';
 import { googleRoutes } from './http/google-routes.js';
-import { activityRoutes } from './http/activity-routes.js';
-import { sourceRoutes } from './http/source-routes.js';
+import { activityRoutes, catalogActivityRoutes } from './http/activity-routes.js';
+import { sourceRoutes, catalogSourceRoutes } from './http/source-routes.js';
 import { createWritebackService } from './google/writeback-service.js';
 import { writebackRoutes } from './http/writeback-routes.js';
+import type { RuntimePersistence } from './persistence/repositories.js';
+import { createCatalogService } from './activity/catalog-service.js';
+import { requireSession } from './security/guards.js';
+import { invalidateTeacherSubscriptions } from './sockets/activity-handlers.js';
 
 export function createSourceModule(
   config: Config,
   store: ActivityStore,
   gateway: GoogleGateway = createGoogleGateway(config),
+  persistence?: RuntimePersistence,
 ) {
-  const oauth = createOAuth(gateway);
+  const oauth = createOAuth(gateway, Date.now, {
+    onAccount: (identity) => {
+      persistence?.connection.transaction(() =>
+        persistence.accounts.upsert({
+          accountId: identity.sub,
+          displayEmail: identity.email,
+          displayName: identity.displayName,
+        }),
+      );
+    },
+  });
+  const catalog = persistence
+    ? createCatalogService(store, oauth, gateway, config, persistence)
+    : undefined;
+  catalog?.restoreCurrent();
+  oauth.onChange((sessionId, generation) =>
+    invalidateTeacherSubscriptions(store, sessionId, generation),
+  );
   const source = createSourceService(store, oauth, gateway, config);
-  const writeback = createWritebackService(store, oauth, gateway);
+  const writeback = createWritebackService(
+    store,
+    {
+      credentials: (sessionId) => {
+        if (catalog) catalog.authorize(sessionId, store.activity?.id);
+        return oauth.credentials(sessionId);
+      },
+    },
+    gateway,
+  );
   return {
     oauth,
     source,
     writeback,
+    catalog,
+    authorizeTeacher: catalog
+      ? (session: import('./security/sessions.js').BrowserSession, id?: string) =>
+          catalog.authorize(session.sessionId, id)
+      : undefined,
     registerRoutes(app: Express, ctx: RouteContext) {
-      googleRoutes(app, ctx, oauth);
-      activityRoutes(app, ctx);
-      sourceRoutes(app, ctx, source);
+      googleRoutes(app, ctx, oauth, Boolean(catalog));
+      if (catalog) {
+        catalogActivityRoutes(app, ctx, catalog);
+        catalogSourceRoutes(app, ctx, catalog);
+        if (ctx.role === 'teacher')
+          app.use('/api/activities/:id/writeback', (req, _res, next) => {
+            try {
+              const session = requireSession(ctx.sessions, req, 'teacher');
+              catalog.authorize(session.sessionId, String(req.params.id));
+              next();
+            } catch (error) {
+              next(error);
+            }
+          });
+      } else {
+        // Standalone v1 fixtures retain their existing flow until each subsequent story migrates it.
+        // Production main always provides persistence, so these endpoints are never registered there.
+        activityRoutes(app, ctx);
+        sourceRoutes(app, ctx, source);
+      }
       writebackRoutes(app, ctx, writeback);
     },
   };

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { afterEach, expect, it } from 'vitest';
 import { sourceServer } from '../helpers/source-server.js';
 
@@ -6,58 +7,42 @@ afterEach(async () => {
   for (const stop of stops.splice(0)) await stop();
 });
 
-it('authorizes, loads source and confirms mapping through normal HTTP entry points', async () => {
+it('authorizes and confirms first-sheet mapping through catalog HTTP entry points', async () => {
   const server = await sourceServer();
   stops.push(server.stop);
-  const session = await fetch(`${server.url}/api/session`);
-  const cookie = session.headers.get('set-cookie')!.split(';')[0]!;
-  const { csrfToken } = (await session.json()).data;
-  const headers = { cookie, 'x-csrf-token': csrfToken, 'content-type': 'application/json' };
-  const post = (path: string, body: unknown) =>
-    fetch(`${server.url}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
-  const start = await post('/api/google/start', {});
-  const url = (await start.json()).data.url;
-  const state = new URL(url, server.url).searchParams.get('state')!;
-  const callback = await fetch(`${server.url}/api/google/callback?state=${state}&code=demo`, {
-    headers,
-    redirect: 'manual',
-  });
-  expect(callback.status).toBe(302);
-  expect(callback.headers.get('location')).toBe('/');
-  const replay = await fetch(`${server.url}/api/google/callback?state=${state}&code=demo`, {
-    headers,
-    redirect: 'manual',
-  });
-  expect(replay.headers.get('location')).toBe('/');
-  const created = await post('/api/activities', { groupCount: 2 });
-  const id = (await created.json()).data.activityId;
-  const read = await post(`/api/activities/${id}/source`, { spreadsheetUrlOrId: 'example_sheet' });
-  expect(read.status).toBe(200);
-  const data = (await read.json()).data;
-  expect(data.source.questions).toHaveLength(4);
-  expect(JSON.stringify(data)).not.toContain('invalid-demo-token');
-  const invalid = await post(`/api/activities/${id}/source/confirm`, {
-    mappingVersion: data.source.mappingVersion + 1,
-  });
-  expect(invalid.status).toBe(409);
-  const confirmed = await post(`/api/activities/${id}/source/confirm`, {
-    mappingVersion: data.source.mappingVersion,
-  });
-  expect((await confirmed.json()).data.source.confirmed).toBe(true);
-  expect((await post('/api/activities', { groupCount: 0 })).status).toBe(400);
-  expect((await post('/api/activities', { groupCount: 2, role: 'teacher' })).status).toBe(400);
+  const client = await server.client();
+  const page = (await (await client.get('/api/google/spreadsheets')).json()).data;
+  const preview = (
+    await (await client.post('/api/source-previews', { spreadsheetId: page.items[0].id })).json()
+  ).data;
+  expect(preview.questions).toHaveLength(2);
+  expect(JSON.stringify(preview)).not.toContain('invalid-demo-token');
+  const body = { requestId: randomUUID(), previewId: preview.previewId, groupCount: 2 };
+  const created = (await (await client.post('/api/activities', body)).json()).data;
+  expect(created.source.confirmed).toBe(true);
+  expect((await client.post('/api/activities', { ...body, groupCount: 0 })).status).toBe(400);
+  expect((await client.post('/api/activities', { ...body, role: 'teacher' })).status).toBe(400);
   expect(
-    (
-      await post(`/api/activities/${id}/source/confirm`, {
-        mappingVersion: data.source.mappingVersion,
-        extra: true,
-      })
-    ).status,
-  ).toBe(400);
-  expect(
-    (await post(`/api/activities/${id}/source`, { spreadsheetUrlOrId: 'https://evil.invalid' }))
+    (await client.post('/api/source-previews', { spreadsheetId: 'source-one', extra: true }))
       .status,
   ).toBe(400);
+  expect(
+    (await client.post('/api/source-previews', { spreadsheetId: 'https://evil.invalid' })).status,
+  ).toBe(400);
+  expect(
+    (
+      await client.post(`/api/activities/${created.activityId}/source`, {
+        spreadsheetUrlOrId: 'source-one',
+      })
+    ).status,
+  ).toBe(404);
+  expect(
+    (
+      await client.post(`/api/activities/${created.activityId}/source/confirm`, {
+        mappingVersion: 1,
+      })
+    ).status,
+  ).toBe(404);
 });
 
 it('does not expose teacher routes on the student listener', async () => {

@@ -14,6 +14,7 @@ interface Receipt {
 }
 export interface Activity {
   id: string;
+  ownerAccountId?: string;
   bootId: string;
   phase: Phase;
   revision: number;
@@ -109,6 +110,9 @@ export function createStore(maxGroups: number) {
       return activity;
     },
     createActivity,
+    installActivity(value: Activity) {
+      activity = value;
+    },
     requireActivity,
     command,
   };

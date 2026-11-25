@@ -11,6 +11,11 @@ export const durableSourceSchema = z.strictObject({
   questions: z.array(questionSchema).min(1),
 });
 export type DurableSource = z.infer<typeof durableSourceSchema>;
+export function durableSourceFingerprint(source: DurableSource) {
+  return createHash('sha256')
+    .update(JSON.stringify(durableSourceSchema.parse(source)))
+    .digest('hex');
+}
 export function createActivityRepository(connection: DatabaseConnection, maxGroups: number) {
   const db = connection.database;
   function requireActivity(id: string) {
@@ -87,7 +92,7 @@ export function createActivityRepository(connection: DatabaseConnection, maxGrou
       const id = randomUUID();
       const now = Date.now();
       const snapshot = JSON.stringify(source);
-      const fingerprint = createHash('sha256').update(snapshot).digest('hex');
+      const fingerprint = durableSourceFingerprint(source);
       db.prepare(
         `INSERT INTO activities(id,owner_account_id,phase,created_at,group_count,spreadsheet_id,spreadsheet_title,
         source_sheet_id,source_sheet_title,source_snapshot_json,source_fingerprint,source_confirmed_at)
