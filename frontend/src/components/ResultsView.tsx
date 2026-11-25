@@ -1,3 +1,4 @@
+import { fullGroupName } from '@classroom/shared/formatters/group-name';
 import type { ActivitySnapshot } from '@classroom/shared/projections/activity';
 
 export function ResultsView({ snapshot }: { snapshot: ActivitySnapshot }) {
@@ -9,9 +10,7 @@ export function ResultsView({ snapshot }: { snapshot: ActivitySnapshot }) {
         <article key={result.questionId} aria-label={`第 ${result.displayNumber} 題結果`}>
           <h3>第 {result.displayNumber} 題</h3>
           <p>
-            {result.winnerGroup
-              ? `搶答成功：第 ${result.winnerGroup.ordinal} 組${result.winnerGroup.name ? `－${result.winnerGroup.name}` : ''}`
-              : '無成功組'}
+            {result.winnerGroup ? `搶答成功：${fullGroupName(result.winnerGroup)}` : '無成功組'}
           </p>
           {snapshot.questions
             .find((q) => q.id === result.questionId)

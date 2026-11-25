@@ -26,7 +26,7 @@ test('publishes the same results to both roles and verifies exact grouped writeb
     await pupil.goto(`${c.server.studentUrl}/student/${c.activity.id}`);
     for (const view of [page, pupil]) {
       const results = view.getByRole('region', { name: '公布結果', exact: true });
-      await expect(results.getByText('搶答成功：第 1 組', { exact: true })).toBeVisible();
+      await expect(results.getByText('搶答成功：第1組-測試組', { exact: true })).toBeVisible();
       await expect(results.getByText('無成功組', { exact: true })).toBeVisible();
       await expect(results.getByText(/=SUM\(A1\)/)).toBeVisible();
     }

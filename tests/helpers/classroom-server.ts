@@ -1,32 +1,12 @@
-import { createListener } from '../../backend/src/server.js';
-import { createSourceModule } from '../../backend/src/source-module.js';
-import { readConfig } from '../../backend/src/config.js';
-import { classroom } from './activity.js';
-import { fakeGateway } from './source-server.js';
-import { close, listen } from './server.js';
+import { catalogClassroom } from './activity.js';
 import type { PersistenceFixture } from './persistence.js';
 
 export async function classroomServer(persistence?: PersistenceFixture) {
-  const c = classroom();
-  const config = readConfig({});
-  const source = createSourceModule(config, c.store, fakeGateway());
-  const student = createListener('student', c.store, c.sessions, config);
-  const studentUrl = await listen(student.server);
-  config.STUDENT_PUBLIC_ORIGIN = studentUrl;
-  const teacher = createListener('teacher', c.store, c.sessions, config, {
-    registerRoutes: source.registerRoutes,
-  });
+  const c = await catalogClassroom(persistence);
   return {
     ...c,
-    persistence,
-    teacherUrl: await listen(teacher.server),
-    studentUrl,
-    async stop() {
-      teacher.io.disconnectSockets(true);
-      student.io.disconnectSockets(true);
-      await close(teacher.server);
-      await close(student.server);
-      persistence?.close();
-    },
+    teacherUrl: c.server.url,
+    studentUrl: c.server.studentUrl,
+    stop: () => c.server.stop(),
   };
 }

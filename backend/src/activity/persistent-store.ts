@@ -40,7 +40,7 @@ export function readPersistentActivity(
     ),
     submissions: new Map(
       submissions.map((row) => [
-        String(row.id),
+        JSON.stringify([String(row.group_id), String(row.question_id)]),
         {
           id: String(row.id),
           requestId: String(row.request_id),

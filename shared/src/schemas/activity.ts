@@ -9,6 +9,7 @@ export const groupSchema = z.strictObject({
   browserSessionId: z.string().nullable(),
 });
 export type Group = z.infer<typeof groupSchema>;
+export const groupNameSchema = z.string().trim().min(1).max(GROUP_NAME_LIMIT);
 export const answersSchema = z.record(
   z.string().min(1),
   z.string().trim().min(1).max(ANSWER_LIMIT),
@@ -30,7 +31,7 @@ export interface SelfReceipt {
 }
 export const commandSchemas = {
   'activity:subscribe': commandSchema,
-  'group:join': commandSchema.extend({ groupId: idSchema }),
+  'group:join': commandSchema.extend({ groupId: idSchema, name: groupNameSchema }),
   'group:rename': commandSchema.extend({ name: z.string().trim().min(1).max(GROUP_NAME_LIMIT) }),
   'activity:start': commandSchema,
   // Content validation happens inside the deduplicated command, so rejected submissions are cached too.

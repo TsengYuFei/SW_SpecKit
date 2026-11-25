@@ -16,6 +16,7 @@ export interface Result {
   answers: Record<string, string>;
 }
 export interface ActivitySnapshot {
+  authGeneration?: number;
   activityId: string;
   bootId: string;
   revision: number;
@@ -70,7 +71,10 @@ export function projectActivity(
     bootId: activity.bootId,
     revision: activity.revision,
     phase: activity.phase,
-    questions: activity.questions.map((q) => ({
+    questions: (session.role === 'student' && activity.phase === 'waiting'
+      ? []
+      : activity.questions
+    ).map((q) => ({
       id: q.id,
       displayNumber: q.displayNumber,
       kind: q.kind,
@@ -79,7 +83,10 @@ export function projectActivity(
     groups: [...activity.groups.values()].map((g) => ({
       id: g.id,
       ordinal: g.ordinal,
-      name: g.name,
+      name:
+        session.role === 'teacher' || g.id === group?.id || activity.phase === 'ended'
+          ? g.name
+          : '',
       occupied: g.browserSessionId !== null,
     })),
     self: {
@@ -104,6 +111,6 @@ export function projectActivity(
   }
   return snapshot;
 }
-export function receiptFor(submission: Submission): SelfReceipt {
+export function receiptFor(submission: Pick<Submission, 'id' | 'questionId'>): SelfReceipt {
   return { submissionId: submission.id, questionId: submission.questionId, accepted: true };
 }

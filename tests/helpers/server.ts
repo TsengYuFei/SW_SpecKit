@@ -1,9 +1,9 @@
 import type { Server } from 'node:http';
 
-export async function listen(server: Server, host = '127.0.0.1'): Promise<string> {
+export async function listen(server: Server, host = '127.0.0.1', port = 0): Promise<string> {
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject);
-    server.listen(0, host, resolve);
+    server.listen(port, host, resolve);
   });
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('測試伺服器沒有可用位址');

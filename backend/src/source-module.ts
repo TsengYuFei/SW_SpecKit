@@ -14,6 +14,7 @@ import type { RuntimePersistence } from './persistence/repositories.js';
 import { createCatalogService } from './activity/catalog-service.js';
 import { requireSession } from './security/guards.js';
 import { invalidateTeacherSubscriptions } from './sockets/activity-handlers.js';
+import { createPersistentCommands } from './activity/persistent-commands.js';
 
 export function createSourceModule(
   config: Config,
@@ -36,6 +37,12 @@ export function createSourceModule(
     ? createCatalogService(store, oauth, gateway, config, persistence)
     : undefined;
   catalog?.restoreCurrent();
+  if (catalog && persistence)
+    store.bindCommands(
+      createPersistentCommands(store, persistence, (session, id) =>
+        catalog.authorize(session.sessionId, id),
+      ),
+    );
   oauth.onChange((sessionId, generation) =>
     invalidateTeacherSubscriptions(store, sessionId, generation),
   );

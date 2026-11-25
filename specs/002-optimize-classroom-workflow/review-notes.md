@@ -1,11 +1,11 @@
 # 第二版設計審查與驗證紀錄
 
-日期：2026-11-25。憲章1.0.0。Phase 1–2已合併；Phase 3來源流程已實作，待本階段文件人工核對，後續故事仍在開發中。
+日期：2026-11-25。憲章1.0.0。Phase 1–3已合併；Phase 4學生流程已實作並完成Gate，待本階段文件人工核對，後續故事仍在開發中。
 
 ## Review Status
 
 AI 已核對現有程式接點、規格、研究、資料模型、契約與六圖的一致性，並執行下列工具驗證。
-**新版人工設計審查T002及Phase 1–2實作後文件核對均已通過**；各Phase實測及合併紀錄見本文後文。
+**新版人工設計審查T002及Phase 1–3實作後文件核對均已通過**；各Phase實測及合併紀錄見本文後文。
 依憲章 I 與 V，任務必須保留實作前設計審查及合併前依實際行為核對文件的門檻。
 此處記錄待辦，不阻止本次產生可供審閱的規劃文件，也不要求重新確認使用者已指定的SQLite。
 
@@ -272,3 +272,60 @@ owner-isolation把目前活動revision設為7，確認他人bootstrap、HTTP拒�
 Phase 3文件核對結論：維護者於2026-11-25明確回覆「Phase 3 文件已核對，內容一致」。T040人工文件核對通過，接續完成本階段合併；converge追加任務仍依原Phase順序執行。
 
 T040已完成：Phase 3實作commit ca4da6f，合併main commit a9f5e4b；T024–T040全部完成。此後僅在原Phase分支補記既成結果再fast-forward回main，未push。
+
+## Phase 4 Execution
+
+2026-11-25從已完成Phase 3審查及合併的main cae2ce3建立codex/002-phase-4-students，T041完成。T042／T043先執行五個新測試：四個因waiting洩題或join未接受必填名稱而失敗；一個儲存失敗測試當時先被舊schema拒絕，後續須確認確實觸及SQLite故障，不能把該初始通過當作耐久性證據。依既有已審查submission／lifecycle圖實作，不改設計流程。
+
+### Phase 4 Implementation and Validation
+
+T041–T053完成，T054待本階段文件人工核對後才commit／merge main。Phase 5尚未開始。
+
+| 任務                 | 實際變更與證據                                                                                                                                                                                                                                                                                      |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T042–T043 測試先行   | student-projections兩案例、atomic-group-answer初三案例先執行，四個按預期失敗；後加真正Socket競爭案例。儲存故障案例加強為必須回STORAGE_UNAVAILABLE，確認觸及SQLite，不接受單純schema錯誤當作故障證據                                                                                                 |
+| T044–T046 驗證與交易 | groupNameSchema共用trim／1–40 UTF-16字；persistent-commands.ts整合既有command-service／repositories，正式join／start／submit持久保存、穩定participant及teacher owner actor收據、保存後刷新投影。group-reducer保留純核心fixture入口但共用命名規則與鎖定要求；rename對有效已授權角色均拒絕NAME_LOCKED |
+| T047 投影與推播      | waiting學生questions空陣列、不含題號／item／來源；他組自訂名稱不出現在尚未結束的學生快照。teacher保留完整教材及進度。Socket原統一入口於持久命令返回後才ack／publish，自組receipt不含答案／sequence／時間                                                                                            |
+| T048–T049 基本介面   | GroupPage先填名再點空組，一次確認後無改名控制；AnswerPage等待不建題目表單。fullGroupName統一第1組-名稱格式，老師全組答案明細、暫定／最終結果及現有回寫狀態均含完整名；特殊字元React純文字，尚不做作答表格美化                                                                                       |
+| T050 重連            | 重新連線先取session確認boot／教師授權代次，subscribe完整快照；接受已確認新boot、拒絕舊boot／舊socket／舊代次與過期subscribe/retry回覆。服務端關閉連線後主動重新連接，不再要求換活動連結                                                                                                             |
+| T051–T052 測試移轉   | classroom-server改用合成OIDC→preview→持久建場；舊匿名無名加入、改名成功及重啟必須新活動的預期已移轉。保留同Cookie多分頁／清Cookie不可接管、私密完整題組、原首答／排序／權限／限流及安全回寫案例；結果unit改驗鎖定組名仍保留在固定結果投影                                                           |
+
+本Phase新增8項：student-projections 2、atomic-group-answer 4、跨boot比較器unit 1、anonymous-join-privacy Edge 1。
+新測試涵蓋空白／41字拒絕不占組、40字／特殊字名、名稱trim、老師與學生rename拒絕、同request不同payload、
+ack遺失重放、同搶一組只一成功、兩組近乎同時完整提交、漏答不配置序號、時鐘回撥仍按序號排序、end後提交拒絕、
+SQLite query_only故障rollback且不先改Map、waiting封包無題目、開放兩學生≤2秒顯題與跨runtime原組名續答。
+兩個既有瀏覽器案例也移轉至正式持久入口；clearCookie不可接管與同身分跨頁恢復仍保留。
+
+| 實際指令                   | 結果                                                                  |
+| -------------------------- | --------------------------------------------------------------------- |
+| npm run typecheck          | exit0                                                                 |
+| npm run lint               | exit0                                                                 |
+| npm run format:check       | exit0                                                                 |
+| npm run test:unit          | exit0，54項                                                           |
+| npm run test:integration   | exit0，48項                                                           |
+| npm run test:contract      | exit0，12項                                                           |
+| npm run test:e2e           | exit0，7項Edge測試，隔離DB／埠與合成OAuth                             |
+| npm run build              | 由test:e2e實際執行，三個workspace通過                                 |
+| PlantUML -checkonly／-tsvg | exit0，六圖產生於validation-results/feature-002-phase-4/design-review |
+
+合計121項。完整Gate之後未再改程式。最初回歸曾因舊結果測試仍預期空白組名失敗，修正為已確認名稱後通過；
+首輪E2E 5通過／2失敗，一處仍嘗試填已移除的改名欄位，另一處發現server disconnect後未自動重連。
+已移轉舊控制項並實作重連，最後7/7通過；未刪掉重啟情境或放寬為要求學生換網址。
+
+圖對照：submission的atomic join／complete submit／receipt、lifecycle的waiting隱題與start、architecture的交易後ack均已接入；
+原圖end/results/job、持久worker及history／完整行程恢復驗收仍由Phase 5–6完成，teacher-ui統一表格由Phase 7完成。
+本Phase未改六圖原始檔及設計流程；新增persistent-commands.ts為既定交易入口的協調層，不新增業務規則或多行程服務。
+
+範圍限制：end目前持久保存phase／ended_at／receipt，固定results與唯一job同交易在T059；不把目前end視為完整US3。
+現有手動回寫的Map進度暫作橋接以保留回歸，跨訂閱保留但不宣稱可耐久恢復；Phase 5會以持久工作取代。
+跨runtime Edge案例在同一測試行程內關閉舊listener／DB連線，再由同一臨時DB建立新store／sessions／listener並保留原埠／Cookie。
+它驗證T050重訂閱層；Phase 6仍須三場歷史、真正獨立Node服務重啟、原答案與序號完整比較、真實Google及兩帳號驗收。
+本次沒有停止既有正式服務、讀取正式DB／真實授權、操作真實Google或做統一UI美化。
+Convergence T102–T118仍保留待辦，待原Phase全部完成後逐項以實測關閉，不能提前宣稱整體收斂。
+
+Phase 4人工文件核對範圍為本節、quickstart新增Phase 4節與狀態、plan及contracts的部分完成標示、tasks進度；
+請對照persistent-commands／角色投影、GroupPage／socket transport、完整組名及上述實測結果。確認後才T054合併並開始Phase 5。
+
+Phase 4最後文件檢查：本功能Markdown明確Prettier檢查exit0，git diff --check exit0；任務結構唯讀檢查通過，118個唯一連續ID、9個Phase，T001–T053完成、T054–T118待辦，沒有提前勾選Convergence任務。E2E後本次臨時測試目錄無殘留。未設定extension hooks。
+
+Phase 4文件人工核對結論：維護者於2026-11-25回覆「核對完成」，確認本階段實作與文件一致。T054人審門檻通過。

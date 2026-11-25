@@ -1,3 +1,4 @@
+import { fullGroupName } from '@classroom/shared/formatters/group-name';
 import type { ActivityClient } from '../transport/socket';
 import { ResultsView } from '../components/ResultsView';
 import { WritebackPanel } from './WritebackPanel';
@@ -40,7 +41,7 @@ export function ActivityPage({
       <h3>各組作答狀況</h3>
       {s.groups.map((g) => (
         <p key={g.id}>
-          第 {g.ordinal} 組{g.name ? `－${g.name}` : ''}：{g.occupied ? '已加入' : '未加入'}，已提交{' '}
+          {fullGroupName(g)}：{g.occupied ? '已加入' : '未加入'}，已提交{' '}
           {s.submissions?.filter((item) => item.groupId === g.id).length ?? 0} 題
         </p>
       ))}
@@ -48,9 +49,7 @@ export function ActivityPage({
       {s.tentativeResults?.map((r) => (
         <div key={r.questionId}>
           第 {r.displayNumber} 題：
-          {r.winnerGroup
-            ? `第 ${r.winnerGroup.ordinal} 組${r.winnerGroup.name ? `－${r.winnerGroup.name}` : ''}`
-            : '尚無成功組'}
+          {r.winnerGroup ? fullGroupName(r.winnerGroup) : '尚無成功組'}
           {Object.entries(r.answers).map(([id, answer]) => (
             <p key={id}>{answer}</p>
           ))}
@@ -60,7 +59,7 @@ export function ActivityPage({
         <summary>全組已受理答案</summary>
         {s.submissions?.map((item) => (
           <div key={item.id}>
-            第 {s.groups.find((g) => g.id === item.groupId)?.ordinal} 組，題目{' '}
+            {fullGroupName(s.groups.find((g) => g.id === item.groupId)!)}，題目{' '}
             {s.questions.find((q) => q.id === item.questionId)?.displayNumber}，收件序號{' '}
             {item.sequence}
             {Object.entries(item.answers).map(([id, value]) => (

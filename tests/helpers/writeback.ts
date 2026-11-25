@@ -13,7 +13,7 @@ export function writebackFixture(persistence?: PersistenceFixture) {
       requestId: randomUUID(),
       ...extra,
     });
-  run(c.a, 'group:join', { groupId: c.groups[0]!.id });
+  run(c.a, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' });
   run(c.teacher, 'activity:start');
   run(c.a, 'answer:submit', {
     questionId: c.question.id,
@@ -66,7 +66,7 @@ export async function catalogWritebackFixture() {
       requestId: randomUUID(),
       ...extra,
     });
-  run(c.a, 'group:join', { groupId: c.groups[0]!.id });
+  run(c.a, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' });
   run(c.teacher, 'activity:start');
   run(c.a, 'answer:submit', {
     questionId: c.question.id,

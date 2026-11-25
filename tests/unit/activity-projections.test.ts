@@ -12,7 +12,7 @@ it('keeps other answers, progress, sequence, targets and browser identifiers out
       requestId: randomUUID(),
       ...extra,
     });
-  run(c.a, 'group:join', { groupId: c.groups[0]!.id });
+  run(c.a, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' });
   run(c.teacher, 'activity:start');
   run(c.a, 'answer:submit', {
     questionId: c.question.id,

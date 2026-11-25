@@ -7,6 +7,7 @@ import {
 import type { ActivitySnapshot } from '@classroom/shared/projections/activity';
 import { http, HttpError } from '../transport/http';
 import { newRequestId } from '../transport/request-id';
+import { fullGroupName } from '@classroom/shared/formatters/group-name';
 
 const labels: Record<WriteStatus, string> = {
   idle: '尚未回寫',
@@ -74,6 +75,14 @@ export function WritebackPanel({
             <div key={q.questionId}>
               第 {snapshot.questions.find((item) => item.id === q.questionId)?.displayNumber} 題：
               {labels[q.status]}
+              <p>
+                {(() => {
+                  const winner = snapshot.results?.find(
+                    (result) => result.questionId === q.questionId,
+                  )?.winnerGroup;
+                  return winner ? fullGroupName(winner) : '無成功組';
+                })()}
+              </p>
               {Object.entries(q.itemStatuses).map(([id, status]) => (
                 <p key={id}>
                   {snapshot.questions.flatMap((question) => question.items).find((i) => i.id === id)
