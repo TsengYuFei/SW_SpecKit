@@ -655,3 +655,70 @@ quickstart新增實際DATABASE_PATH／Node版本、backup API、先停服務再�
 Phase 8人工核對結論：維護者於2026-11-26回覆「審核完畢」，確認本階段文件與實作、設定及測試結果一致；T099通過，接續T101合併。正式DB未恢復，未新增Google寫入。
 
 T101已完成：Phase 8實作602c48c、合併main e025649，T001–T101全部完成。維護者核對已記錄；補記狀態後同步main，再建立Phase 9獨立分支。未push或部署。
+
+## Phase 9 Execution and Convergence Review
+
+2026-11-26從已審核的main fece4a0建立 `codex/002-phase-9-convergence`，先前Phase 1–8全部完成。依本節Execution規則，逐項核對原2026-11-25的17項findings，而非把既有勾選或舊113項測試當作完成依據。沒有再建真實活動、重寫Google教材、讀真實憑證或覆蓋正式DB。本階段只補齊與移轉測試及更新證據文件，產品程式、schema與已審查六圖流程皆無變更。
+
+### 補充測試與移轉
+
+逐項檢查發現，既有證據未直接在正式入口涵蓋兩個儲存失敗邊界，並缺少明確原分頁刪除／改名worker斷言，因此先新增以下4項測試。既有產品已具備正確行為，新增測試首次即通過，不虛報為缺少產品功能造成的RED。
+
+- atomic-group-answer新增正式Socket案例：偽造owner額外欄位拒絕；20個emoji為40 UTF-16字的合法名稱；SQLite唯讀時join／submit回STORAGE_UNAVAILABLE、Map／DB／sequence／成功收據不變；恢復寫入後同request成功，再重送只回原收據且sequence僅增加一次。
+- history-settings-http新增HTTP案例：SQLite唯讀時503、不回保存成功、不改設定或保存成功收據；同request恢復後一次保存、重送不改updated_at；B僅改自己設定，A重新授權仍取7組，超過部署MAX_GROUPS拒絕。
+- durable-writeback新增原sheetId改名案例：gateway.read與readFirstSheet均設為不可使用，只接受保存的17；預檢／讀回均查17、一次整題寫入後verified。另新增原分頁刪除案例：明確failed及SHEET_NOT_FOUND_OR_INACCESSIBLE、write_attempt_count=0、沒有改寫替代分頁。
+- student-projections既有案例補上41 UTF-16字emoji與額外owner欄位拒絕，保持無效輸入不占組。沒有增加測試數來重算同一案例。
+
+T113另發現activity-sockets兩案例與activity-ordering原四個適用排序案例仍用記憶體fixture。已改用catalogClassroom：實際合成OAuth→清單預覽→SQLite建場、持久命令與正式兩listeners；開放階段也走命令，不直接改Map.phase。保留原角色／schema／隱私／限流／同搶組／重連／完整題組／序號／重送／end交錯斷言。原「未確認來源不可開始／fresh standalone store不可用」是v1純reducer邊界，完整保留並移至tests/unit/lifecycle-source-guard.test.ts，不把它當新版重啟失效規則；新版重啟繼續由實際Node子行程測試驗證。unit增加1、integration減1，總數不因移檔增加。
+
+### T102–T118逐項結論與證據
+
+表內檔案路徑以儲存庫根為準；測試在本階段完整Gate重跑，既有真實Google與人工驗收只依原Phase 6–8已確認紀錄引用，不再製造相同副作用。
+
+| 任務     | 程式核對與正常／特殊情境證據                                                                                                                                                                                                                      | 結論                                               |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| T102 F01 | activity strict schema、persistent-commands、participation repository及GroupPage一次加入鎖名；student-projections與atomic-group-answer驗空白／40／41 UTF-16、額外欄位、同搶組、重送不可換名、rename拒絕                                           | 原Phase 4已實作；補強入口邊界通過                  |
+| T103 F02 | shared projections在waiting對student給questions=[]、移除source／進度／答案；activity-handlers按角色publish；student-projections及anonymous-join-privacy驗初載、刷新／重連、兩組開始後≤2秒顯題                                                     | 通過，沒有把教師投影交學生再用CSS隱藏              |
+| T104 F03 | main→source-module.bindCommands→persistent-commands→command-service短交易，持久收據後refresh、ack、publish；atomic-group-answer新增Socket儲存失敗／恢復，durable-commands驗rollback／ack遺失／crash／sequence                                     | 通過，正式入口亦驗未保存不受理                     |
+| T105 F04 | persistent end與writeback-repository同交易固定結果／唯一job／receipt，wake在commit後；ActivityPage結束文案及WritebackPanel例外操作；durable-writeback、automatic-writeback E2E驗零答案、重送end、關老師頁仍回填、無初次手動按鈕                   | 通過，初次POST writeback不註冊                     |
+| T106 F05 | 單worker、owner grant、持久attempt／cycle／budget／schedule、啟動writing先pending；writeback-crash驗三次寫入2／4秒、四次讀取1／2／4秒、真實kill四點、DB失敗halt、未知不誤報failed、人工retry收據去重                                              | 通過，Google網路不在SQLite交易內                   |
+| T107 F06 | persistent-store重建group／submission索引及frozen results，sessions由digest恢復原學生；socket重取session並用boot／epoch／authGeneration拒絕舊回覆；activity-restart真實停止啟動後兩原學生序號1–4續答、不等OAuth，waiting／ended保持               | 通過，Phase 6亦有使用者原服務實測                  |
+| T108 F07 | history-service與routes從DB讀owner限定分頁／詳情，HistoryPage／HistoryDetail／App導航；history-isolation驗同時戳分頁、cursor跨owner／session／limit／expiry拒絕、來源不可讀仍可查；history-recovery及真實三場歷史紀錄                             | 通過，不改目前活動、不借Google重新生成歷史         |
+| T109 F08 | 正式分派在writeback-worker，不走仍供standalone fixture的舊writeback-service；只用原readSheetById，classifyWriteback檢查prompt／merge／baseline；本階段改名／刪除案例、sheets-client原ID重排及value-only mask、writeback非目標／未答／混合衝突案例 | 通過，真實重排回填原分頁見Phase 6                  |
+| T110 F09 | durableWritebackRoutes／service、writeback schema與panel提供owner既有job查核／重試；automatic-writeback-http驗越權、額外欄位、verified拒絕及同request只開一次cycle；durable-writeback驗conflict題不動而安全failed題可恢復                         | 通過，verify只讀、不另建正常job                    |
+| T111 F10 | settings routes使用POST、strict白名單／部署上限、owner account receipt；SettingsPage及SourcePage使用保存值；新增HTTP失敗／原request恢復／跨owner案例，history-recovery驗reload／頁面重開與重新授權                                                | 通過，不將未保存草稿或OAuth資料當設定保存          |
+| T112 F11 | fullGroupName共用於ProgressTable、ActivityPage答案明細、ResultsView、WritebackPanel、HistoryDetail；anonymous-join-privacy及teacher-progress-table驗完整40字／特殊字；未加入狀態有文字，React文字渲染                                             | 通過，學生結束前無他組名字／順位／答案進度         |
+| T113 F12 | 舊改名／無名加入／初次手動寫入預期已移轉；本階段將activity-sockets及四個activity-ordering適用案例改走正式SQLite，保留原斷言；純reducer相容邊界放unit，真實重啟由activity-restart驗證                                                              | 通過，不以記憶體fixture冒充持久驗收                |
+| T114 F13 | persistent-secret-exposure與secret-exposure重新執行，含SDK verifyIdToken／getToken安全錯誤、HTTP／Socket／DB／WAL／SHM／backup／log及安全report；git check-ignore與檔名稽核見Phase 8                                                              | 通過，僅無效合成值，沒有讀實際機密                 |
+| T115 F14 | sqlite-backup-restore重新執行：釘住舊WAL snapshot、backup API、停listeners後新路徑恢復、17表rows一致、integrity／FK、損壞保留bytes拒絕；quickstart兩段操作已隔離實跑                                                                              | 通過，正式DB未覆蓋                                 |
+| T116 F15 | Phase 3–8各人審與合併依序記錄；workflow-v2-restart真實hash核對、兩份Google／兩帳號／兩獨立瀏覽器／三場與分頁重排證據已完成；本階段全Gate、六圖及文件核對包如下                                                                                    | 技術與既有驗收核對完成；本階段文件人工結論待維護者 |
+| T117 F16 | 核心驗收後才實作ProgressTable，四組六題40字、1280×720、十二題長表與窄畫面鍵盤橫捲，組別／受理／成功都有文字；teacher-progress-table兩項與Phase 7可見畫面／人工結論                                                                                | 通過，未擴大學生投影                               |
+| T118 F17 | OperationStatus、ConnectionStatus及teacher／student頁、styles統一載入／等待／保存／回填／錯誤與不可用原因；workflow-usability八項、核心20項E2E重新跑，包含權限／隱題／持久化／自動回填                                                            | 通過，後端例外另有整合測試，不以UI mock取代        |
+
+### Phase 9最終Gate與文件審查範圍
+
+本階段沒有設計流程／契約變更；六張既有PlantUML已checkonly及重新渲染exit0，六個非空SVG含有效svg標記，位於validation-results/feature-002-phase-9/design-review。產品程式與migration無diff，新增／移轉測試不更改Google或DB業務行為。完整Gate結果將於同節補記，沒有以先前Phase的164項結果直接宣告本階段完成。
+
+本階段人工核對範圍：本節17項結論及測試增補／移轉說明、tasks完成邊界、quickstart及plan／spec目前狀態。依Common Phase Gate「該Phase新增或修改的AI文件須依憲章V由維護者以程式／設定／實測結果核對」，仍需取得Phase 9結論；Phase 8的「審核完畢」已記錄並用於e025649合併，不重複視作Phase 9核對。核對前T116保持未勾，不合併本分支。
+
+Phase 9最終Gate已全部完成，詳細輸出位於Git排除的validation-results/feature-002-phase-9：
+
+| 指令                       | 結果                |
+| -------------------------- | ------------------- |
+| npm run typecheck          | exit0               |
+| npm run lint               | exit0               |
+| npm run format:check       | exit0               |
+| npm run test:unit          | exit0，18檔／55項   |
+| npm run test:integration   | exit0，17檔／77項   |
+| npm run test:contract      | exit0，8檔／16項    |
+| npm run test:e2e           | exit0，20項，23.3秒 |
+| npm run build              | exit0，三workspace  |
+| PlantUML -checkonly／-tsvg | exit0，六份有效SVG  |
+
+共168項，比Phase 8增加4項，不將分類移動、局部重跑或真實舊驗收算成新增。第一次本階段Gate亦全部通過；後續發現原Socket／排序fixture仍有移轉空間，完成移轉後再跑以上最終全套，所有斷言保留。新增及移轉測試首次均通過，沒有為了製造RED而故意改壞產品。
+
+目前117/118項已勾，唯一未勾T116待本階段文件人工核對。請核對本Phase 9節、quickstart Phase 9、plan／spec狀態與tasks標記，確認對照表的實作／測試／限制一致。這是最後Phase的文件審查，完成後依Common Phase Gate提交本分支並合併main；不自動push或部署。
+
+Phase 9文件與產物稽核：8份本版Markdown明確Prettier check、git diff --check均通過；17表／110欄、118個連續唯一task ID及45個相對文件連結檔案存在，未填範本0。沿用Phase 8欄位／檔名稽核器重新對照目前工作樹，DB／sidecars／備份／常見機密檔名的Git目前追蹤及歷史異動路徑命中0（僅檔名核對）。本階段8份Gate logs的動態合成敏感標記前綴出現0次；未把正式憑證或DB內容作為稽核輸入。無extension hooks。
+
+Phase 9人工核對結論：維護者於2026-11-26回覆「審核完成」，確認本階段文件與實作、測試及限制一致，T116通過。T001–T118全部勾選；依Common Phase Gate提交及合併main，實際commit於合併後補記。未再操作真實Google或正式DB。

@@ -4,7 +4,7 @@
 
 **Input**: 第二版功能規格、三項釐清、使用者指定 SQLite。
 
-**Status**: Phase 1–7已通過審查及合併；Phase 6實作5b5a247、合併main 9f47bf9，Phase 7實作799da6d、合併main 9602880。Phase 8備份恢復、安全產物、164項測試及六圖驗證通過，維護者已核對，實作602c48c、合併main e025649；接續Phase 9逐項收斂核對。實測與各階段人審依review-notes.md記錄。
+**Status**: Phase 1–7已通過審查及合併；Phase 6實作5b5a247、合併main 9f47bf9，Phase 7實作799da6d、合併main 9602880。Phase 8備份恢復、安全產物、164項測試及六圖驗證通過，維護者已核對，實作602c48c、合併main e025649；Phase 9已逐項覆核17項原findings並補強／移轉測試，168項及六圖通過，維護者已核對，接續最終合併。實測與各階段人審依review-notes.md記錄。
 
 ## Summary
 

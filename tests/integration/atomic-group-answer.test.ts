@@ -144,3 +144,75 @@ it('arbitrates competing joins and near-simultaneous complete answers through th
     for (const socket of sockets) socket.disconnect();
   }
 });
+
+it('rejects unsaved joins and answers through Socket.IO and replays the same request only after a successful commit', async () => {
+  const { io } = await import('socket.io-client');
+  const c = await catalogClassroom();
+  stops.push(c.server.stop);
+  const db = c.server.persistence.connection.database;
+  const socket = io(c.server.studentUrl, {
+    transports: ['websocket'],
+    reconnection: false,
+    extraHeaders: { Origin: c.server.studentUrl, Cookie: c.sessions.cookie(c.a) },
+  });
+  try {
+    await new Promise<void>((resolve, reject) => {
+      socket.once('connect', resolve);
+      socket.once('connect_error', () => reject(new Error('TEST_SOCKET_CONNECT_FAILED')));
+    });
+    const payload = {
+      activityId: c.activity.id,
+      requestId: randomUUID(),
+      groupId: c.groups[0]!.id,
+      name: '😀'.repeat(20),
+    };
+    const send = (event: string, body: object) => socket.timeout(2000).emitWithAck(event, body);
+    expect(await send('group:join', { ...payload, owner: 'forged-owner' })).toMatchObject({
+      ok: false,
+      error: { code: 'INVALID_INPUT' },
+    });
+    db.exec('PRAGMA query_only=ON');
+    expect(await send('group:join', payload)).toMatchObject({
+      ok: false,
+      error: { code: 'STORAGE_UNAVAILABLE' },
+    });
+    expect(c.store.activity!.groups.get(payload.groupId)!.browserSessionId).toBeNull();
+    expect(c.server.persistence.activities.groups(c.activity.id)[0]!.participantId).toBeNull();
+    db.exec('PRAGMA query_only=OFF');
+    const joined = await send('group:join', payload);
+    expect(joined).toMatchObject({ ok: true, data: { name: '😀'.repeat(20) } });
+    expect(await send('group:join', payload)).toEqual(joined);
+    executeCommand(c.store, c.teacher, 'activity:start', {
+      activityId: c.activity.id,
+      requestId: randomUUID(),
+    });
+    const answer = {
+      activityId: c.activity.id,
+      requestId: randomUUID(),
+      questionId: c.question.id,
+      answers: Object.fromEntries(c.question.items.map((item) => [item.id, '已確認整題組答案'])),
+    };
+    db.exec('PRAGMA query_only=ON');
+    expect(await send('answer:submit', answer)).toMatchObject({
+      ok: false,
+      error: { code: 'STORAGE_UNAVAILABLE' },
+    });
+    expect(c.store.activity!.submissions.size).toBe(0);
+    expect(c.server.persistence.activities.require(c.activity.id).nextSequence).toBe(1);
+    expect(db.prepare('SELECT count(*) AS n FROM submissions').get()).toEqual({ n: 0 });
+    expect(
+      db
+        .prepare('SELECT count(*) AS n FROM command_receipts WHERE request_id=?')
+        .get(answer.requestId),
+    ).toEqual({ n: 0 });
+    db.exec('PRAGMA query_only=OFF');
+    const accepted = await send('answer:submit', answer);
+    expect(accepted).toMatchObject({ ok: true, data: { accepted: true } });
+    expect(await send('answer:submit', answer)).toEqual(accepted);
+    expect(db.prepare('SELECT sequence FROM submissions').all()).toEqual([{ sequence: 1 }]);
+    expect(c.server.persistence.activities.require(c.activity.id).nextSequence).toBe(2);
+  } finally {
+    db.exec('PRAGMA query_only=OFF');
+    socket.disconnect();
+  }
+});

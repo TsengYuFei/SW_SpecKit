@@ -1,11 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { afterEach, expect, it } from 'vitest';
 import { io, type Socket } from 'socket.io-client';
-import { createListener } from '../../backend/src/server.js';
-import { readConfig } from '../../backend/src/config.js';
+import { executeCommand } from '../../backend/src/activity/lifecycle-reducer.js';
 import type { Envelope } from '../../shared/src/events/envelope.js';
-import { classroom } from '../helpers/activity.js';
-import { listen, close } from '../helpers/server.js';
+import { catalogClassroom } from '../helpers/activity.js';
 
 const cleanup: (() => Promise<void>)[] = [];
 const clients: Socket[] = [];
@@ -15,14 +13,10 @@ afterEach(async () => {
 });
 
 it('enforces every command role and schema and broadcasts across both listeners without leaking progress', async () => {
-  const c = classroom();
+  const c = await catalogClassroom();
+  cleanup.push(c.server.stop);
   async function connect(role: 'teacher' | 'student', session: typeof c.a) {
-    const server = createListener(role, c.store, c.sessions, readConfig({}));
-    const url = await listen(server.server);
-    cleanup.push(async () => {
-      server.io.disconnectSockets(true);
-      await close(server.server);
-    });
+    const url = role === 'teacher' ? c.server.url : c.server.studentUrl;
     const socket = io(url, {
       transports: ['websocket'],
       reconnection: false,
@@ -90,13 +84,9 @@ it('enforces every command role and schema and broadcasts across both listeners 
 });
 
 it('arbitrates simultaneous sockets, preserves identity across reconnect, and limits mutation rate', async () => {
-  const c = classroom();
-  const server = createListener('student', c.store, c.sessions, readConfig({}));
-  const url = await listen(server.server);
-  cleanup.push(async () => {
-    server.io.disconnectSockets(true);
-    await close(server.server);
-  });
+  const c = await catalogClassroom();
+  cleanup.push(c.server.stop);
+  const url = c.server.studentUrl;
   async function connect(session: typeof c.a) {
     const socket = io(url, {
       transports: ['websocket'],
@@ -130,7 +120,10 @@ it('arbitrates simultaneous sockets, preserves identity across reconnect, and li
   expect(
     (await command(loser, 'group:join', { groupId: c.groups[1]!.id, name: '測試組' })).ok,
   ).toBe(true);
-  c.activity.phase = 'active';
+  executeCommand(c.store, c.teacher, 'activity:start', {
+    activityId: c.activity.id,
+    requestId: randomUUID(),
+  });
   const payload = {
     questionId: c.question.id,
     answers: Object.fromEntries(c.question.items.map((i) => [i.id, 'answer'])),
