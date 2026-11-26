@@ -39,6 +39,57 @@ it('ends a zero-answer scene with a verified zero-item job and no Google write',
   }
 });
 
+it('prechecks and verifies only the saved sheet ID after renaming, without consulting other sheets', async () => {
+  const c = await automaticFixture();
+  const read = c.server.gateway.readSheetById!;
+  const reads: number[] = [];
+  try {
+    c.answer();
+    c.grid.title = '重排後的新名稱';
+    c.server.gateway.read = async () => {
+      throw new Error('Other worksheets must not affect the saved source');
+    };
+    c.server.gateway.readFirstSheet = async () => {
+      throw new Error('The current first sheet must not replace the original source');
+    };
+    c.server.gateway.readSheetById = async (...args) => {
+      reads.push(args[1]);
+      return read(...args);
+    };
+    c.end();
+    await c.server.worker!.drain();
+    expect(reads).toEqual([17, 17]);
+    expect(c.writes).toHaveLength(1);
+    expect(c.server.persistence.writebacks.getForActivity(c.activity.id)!.status).toBe('verified');
+  } finally {
+    await c.server.stop();
+  }
+});
+
+it('reports a missing original worksheet as failed without writing to a replacement sheet', async () => {
+  const c = await automaticFixture();
+  try {
+    c.answer();
+    c.server.gateway.readSheetById = async () => {
+      throw new (await import('../../backend/src/security/safe-errors.js')).AppError(
+        'SHEET_NOT_FOUND_OR_INACCESSIBLE',
+      );
+    };
+    c.end();
+    await c.server.worker!.drain();
+    const job = c.server.persistence.writebacks.getForActivity(c.activity.id)!;
+    expect(job.status).toBe('failed');
+    expect(c.server.persistence.writebacks.questions(String(job.id))[0]).toMatchObject({
+      status: 'failed',
+      safe_error_code: 'SHEET_NOT_FOUND_OR_INACCESSIBLE',
+      write_attempt_count: 0,
+    });
+    expect(c.writes).toEqual([]);
+  } finally {
+    await c.server.stop();
+  }
+});
+
 it('rolls end back entirely when the job insert fails, then admits the same final state once', async () => {
   const c = await automaticFixture();
   try {

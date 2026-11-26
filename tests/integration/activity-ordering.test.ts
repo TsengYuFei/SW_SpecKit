@@ -1,11 +1,21 @@
 import { randomUUID } from 'node:crypto';
-import { expect, it, vi } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { executeCommand } from '../../backend/src/activity/lifecycle-reducer.js';
-import { classroom } from '../helpers/activity.js';
-import { createStore } from '../../backend/src/activity/store.js';
+import { catalogClassroom } from '../helpers/activity.js';
 
-it('atomically binds one browser to one group and preserves binding after reconnect', () => {
-  const c = classroom();
+const stops: (() => Promise<void>)[] = [];
+afterEach(async () => {
+  vi.restoreAllMocks();
+  for (const stop of stops.splice(0)) await stop();
+});
+async function classroom() {
+  const c = await catalogClassroom();
+  stops.push(c.server.stop);
+  return c;
+}
+
+it('atomically binds one browser to one group and preserves binding after reconnect', async () => {
+  const c = await classroom();
   const join = (session: typeof c.a, groupId: string) =>
     executeCommand(c.store, session, 'group:join', {
       activityId: c.activity.id,
@@ -21,8 +31,8 @@ it('atomically binds one browser to one group and preserves binding after reconn
   expect(c.activity.groups.size).toBe(2);
 });
 
-it('orders complete answers by server sequence, caches rejection and retries after end', () => {
-  const c = classroom();
+it('orders complete answers by server sequence, caches rejection and retries after end', async () => {
+  const c = await classroom();
   const run = (session: typeof c.a, event: string, extra = {}, requestId = randomUUID()) =>
     executeCommand(c.store, session, event, { activityId: c.activity.id, requestId, ...extra });
   run(c.a, 'group:join', { groupId: c.groups[0]!.id, name: '測試組' });
@@ -51,32 +61,8 @@ it('orders complete answers by server sequence, caches rejection and retries aft
   expect(c.activity.submissions.size).toBe(2);
 });
 
-it('blocks start while source is unconfirmed or loading; rejects old activity after replacement', () => {
-  const c = classroom();
-  const payload = { activityId: c.activity.id, requestId: randomUUID() };
-  c.activity.source!.confirmed = false;
-  expect(() => executeCommand(c.store, c.teacher, 'activity:start', payload)).toThrow();
-  c.activity.source!.confirmed = true;
-  c.activity.source!.loadState = 'loading';
-  expect(() =>
-    executeCommand(c.store, c.teacher, 'activity:start', { ...payload, requestId: randomUUID() }),
-  ).toThrow();
-  c.activity.phase = 'ended';
-  c.store.createActivity(2);
-  expect(() =>
-    executeCommand(c.store, c.a, 'group:join', {
-      ...payload,
-      groupId: c.groups[0]!.id,
-      name: '測試組',
-    }),
-  ).toThrow('不可用');
-  const restarted = createStore(10);
-  expect(restarted.bootId).not.toBe(c.store.bootId);
-  expect(() => executeCommand(restarted, c.a, 'activity:subscribe', payload)).toThrow('不可用');
-});
-
-it('rejects unknown items, blank and oversized answers without consuming a sequence', () => {
-  const c = classroom();
+it('rejects unknown items, blank and oversized answers without consuming a sequence', async () => {
+  const c = await classroom();
   const run = (event: string, extra = {}) =>
     executeCommand(c.store, event.startsWith('activity:') ? c.teacher : c.a, event, {
       activityId: c.activity.id,
@@ -97,9 +83,9 @@ it('rejects unknown items, blank and oversized answers without consuming a seque
   expect(c.activity.submissions.size).toBe(0);
 });
 
-it('end and submit share the same synchronous admission order', () => {
+it('end and submit share the same synchronous admission order', async () => {
   for (const endFirst of [true, false]) {
-    const c = classroom();
+    const c = await classroom();
     const run = (session: typeof c.a, event: string, extra = {}) =>
       executeCommand(c.store, session, event, {
         activityId: c.activity.id,

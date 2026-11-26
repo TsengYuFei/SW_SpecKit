@@ -41,6 +41,9 @@ it('requires an atomic valid name, rejects rename, and never occupies a group on
   expect(() => run({})).toThrow();
   expect(() => run({ name: '   ' })).toThrow();
   expect(() => run({ name: '長'.repeat(41) })).toThrow();
+  expect(() => run({ name: '合法名字', owner: 'forged-owner' })).toThrow();
+  // Astral characters occupy two UTF-16 code units each, as required by the shared schema.
+  expect(() => run({ name: '😀'.repeat(20) + '甲' })).toThrow();
   expect(c.server.persistence.activities.groups(c.activity.id)[0]!.participantId).toBeNull();
   expect(run({ name: '  咕咕嘎嘎  ' })).toMatchObject({
     name: '咕咕嘎嘎',
