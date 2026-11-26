@@ -1,12 +1,12 @@
 # Feature Specification: 課堂搶答流程與歷史管理優化
 
-**Feature Branch**: 各Phase使用獨立codex分支，見 [tasks.md](tasks.md)；Phase 1–8已合併main，接續codex/002-phase-9-convergence。
+**Feature Branch**: 各Phase使用獨立codex分支，見 [tasks.md](tasks.md)；Phase 1–9已合併main，各階段分支保留作紀錄。
 
 **Feature Directory**: specs/002-optimize-classroom-workflow
 
 **Created**: 2026-11-25
 
-**Status**: Phase 1–8已實作、驗證及人工核對並合併；Phase 9已完成技術收斂、168項測試及六圖驗證，維護者已完成人工核對，接續最終合併。需求與驗收定義如下，實測結果見 [review-notes.md](review-notes.md)。
+**Status**: Completed — Phase 1–9已實作、驗證、人工核對並合併main；T001–T118全數完成，最終168項測試及六圖驗證通過，Phase 9合併1a40898。需求與驗收定義如下，實測結果見 [review-notes.md](review-notes.md)。
 
 **Input**: 優化既有課堂搶答系統：從已授權 Google 帳號的試算表清單選表建場、開放後才向學生顯示題目、加入時必填且鎖定組名、結束自動回填、以資料庫保存活動與老師後台資料，功能完成後統一改善 UI 與教師作答狀況表格。
 

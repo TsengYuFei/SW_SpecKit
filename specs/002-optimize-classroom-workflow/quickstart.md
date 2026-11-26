@@ -1,6 +1,6 @@
 # Quickstart and Validation: 第二版
 
-2026-11-26狀態：Phase 1–7已通過測試、人工核對並合併main；清單建場、持久化、歷史／設定、自動回填及統一UI已實作。Phase 6已完成真實Google與服務重啟驗收。Phase 8備份恢復、安全產物與164項回歸已通過人工核對，合併main e025649；Phase 9收斂與168項測試通過，維護者已完成人工核對，接續合併。
+2026-11-26狀態：Phase 1–7已通過測試、人工核對並合併main；清單建場、持久化、歷史／設定、自動回填及統一UI已實作。Phase 6已完成真實Google與服務重啟驗收。Phase 8備份恢復、安全產物與164項回歸已通過人工核對，合併main e025649；Phase 9收斂、168項測試及人工核對完成，已合併main 1a40898；全部118項任務完成。
 資料與介面細節見 [data-model](data-model.md)、[contracts](contracts/interfaces.md)。
 
 ## Prerequisites
@@ -277,10 +277,10 @@ Phase 8的隔離測試以尚未checkpoint的WAL資料執行backup API，停止�
 
 本階段實際Gate：typecheck、lint、format:check、build均exit0；test:unit 54、test:integration 75、test:contract 15、test:e2e 20，共164項通過。六圖checkonly及SVG渲染、8份本版Markdown明確格式檢查、欄位／連結稽核亦通過。T099維護者已核對，T101已合併main e025649；接續Phase 9。
 
-## Phase 9 收斂核對（人工核對已通過）
+## Phase 9 收斂核對（已審查合併）
 
 原17項findings已逐項對照正式程式與測試，對照表見review-notes.md的Phase 9節。新增4項正常／特殊測試，補正式Socket與settings HTTP在SQLite不可寫時不誤報成功、原request安全重試、原sheetId改名與刪除的回填行為。activity-sockets兩案例及activity-ordering四案例已改走合成授權、真實SQLite與持久命令；原standalone來源guard案例移至unit保留，不當作新版重啟失效規則。
 
 最終Gate實跑：typecheck、lint、format:check、build均exit0；test:unit 55、test:integration 77、test:contract 16、test:e2e 20，共168項全通過，最後E2E 23.3秒。相較Phase 8新增4項；移檔只改分類、不增加總數。六圖checkonly及SVG渲染通過。沿用Phase 6已獲核對的真實Google、兩帳號及原兩學生重啟續答證據，本階段沒有再建場或改真實教材。
 
-產品程式、資料模型與部署方式不變，使用者不需重啟現有服務。維護者於2026-11-26回覆「審核完成」，T116本階段人工門檻通過，T001–T118全數完成，接續最終合併。
+產品程式、資料模型與部署方式不變，使用者不需重啟現有服務。維護者於2026-11-26回覆「審核完成」，T116本階段人工門檻通過，T001–T118全數完成，已合併main 1a40898。
