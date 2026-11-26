@@ -1,6 +1,6 @@
 # Quickstart and Validation: 第二版
 
-2026-11-25狀態：Phase 1–4已合併；Phase 5自動回填及安全復原已實作，141項測試通過，待本階段文件人工核對。歷史／設定、核心真實Google及完整活動恢復驗收、統一UI與備份恢復仍為後續工作。
+2026-11-26狀態：Phase 1–7已通過測試、人工核對並合併main；清單建場、持久化、歷史／設定、自動回填及統一UI已實作。Phase 6已完成真實Google與服務重啟驗收。Phase 8進行備份恢復、安全產物與完整回歸，尚待本階段文件人工核對及後續Phase 9收斂核對。
 資料與介面細節見 [data-model](data-model.md)、[contracts](contracts/interfaces.md)。
 
 ## Prerequisites
@@ -10,7 +10,7 @@
 - Google Cloud 啟用 Sheets API 及 Drive API；OAuth Web client callback維持 `http://127.0.0.1:3000/api/google/callback`。
 - 設定 GOOGLE_CLIENT_ID、GOOGLE_CLIENT_SECRET、GOOGLE_REDIRECT_URI，真實值只由既有安全執行環境注入，不寫終端歷史、截圖、文件、測試報告或對話。
 - 新scopes見research R4；Drive metadata scope的同意畫面及測試使用者必須可用；原有Sheets授權不等於已有清單和帳號scope。
-- 準備兩個Google測試帳號，各有活動且共用至少一份可編輯測試來源；兩份不同題數、單題／題組教材，另有多工作表、首張零題、唯讀、歧義、衝突等合成資料。
+- 準備兩個Google測試帳號，各有自己的可編輯驗收教材與活動；兩份不同題數、單題／題組教材，另有多工作表、首張零題、唯讀、歧義、衝突等合成資料。共用來源可能讓不同活動寫同一格，帳號歷史隔離不代表雲端儲存格隔離；本次B使用獨立教材。
 - 真實流程會在結束時自動修改原試算表，應使用獲授權的驗收教材；寫入期間停止外部編輯，不以正式未授權教材測試。
 - DATABASE_PATH 已加入設定；預設本機 `data/classroom.sqlite`，保留資料夾可寫且整目錄排除Git。測試使用獨立臨時目錄／埠，不碰使用者正式DB或既有服務。
 
@@ -196,3 +196,83 @@ npm run test:e2e
 合成畫面位於validation-results/feature-002-phase-7：teacher-desktop.png、teacher-table.png、teacher-narrow.png、student-waiting.png、student-answer.png；不包含真實Google授權或憑證。這些檔案被Git忽略。真實Google及正式重啟證據仍見Phase 6；本階段沒有更改後端、角色投影或資料契約，也沒有再次改寫真實Google教材。
 
 本機服務已啟動時，只需重新整理老師頁即可載入新前端，不必重啟Node或重新授權。人工核對時可用Tab將焦點移到「歷史活動」導覽連結，再按Enter，確認可前往歷史區；不要為核對導覽而結束或另建活動。維護者已完成Phase 7可見UI／鍵盤與文件核對，T084–T093完成，合併main 9602880；接續Phase 8最終整合。
+
+## Phase 8 SQLite Operations
+
+支援Node `>=24.22.3 <25`，本次使用24.22.3及內建node:sqlite，SQLite 3.54.1；其他Node版本不列為已驗證。從儲存庫根目錄啟動，未指定DATABASE_PATH時實際檔案為 `C:/Users/sophi/SW_SpecKit/data/classroom.sqlite`；指定相對路徑亦以啟動時工作目錄解析。要換工作目錄時請設定絕對路徑，不能用記憶體DB、URI或網路共用路徑。單一服務行程管理同一檔案，資料夾需本機可寫。
+
+### 一致性備份
+
+以下是可重現的維護操作，不是本階段已對正式資料庫執行的紀錄。先暫停使用者操作；若同時有其他連線持續寫入，備份可能重新開始、完成時間增加。SQLite backup API會讀取完整已提交快照，包含WAL中的資料；不能只在運作中複製classroom.sqlite。備份含組名及答案，應限制本機檔案存取並排除Git，不傳到AI對話。
+
+在正確Node 24環境、專案根目錄的PowerShell執行此區塊。它使用既有DATABASE_PATH或上述預設值，產生唯一備份檔，驗證完整性與外鍵後才回報成功；不讀取OAuth設定。
+
+```powershell
+@'
+import { DatabaseSync, backup } from 'node:sqlite';
+import { existsSync, mkdirSync } from 'node:fs';
+import { resolve, join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+let source, checked;
+try {
+  const sourcePath = resolve(process.env.DATABASE_PATH || 'data/classroom.sqlite');
+  if (!existsSync(sourcePath)) throw new Error();
+  mkdirSync('backups', { recursive: true });
+  const target = resolve(join('backups', 'classroom-' + randomUUID() + '.sqlite.bak'));
+  if (existsSync(target)) throw new Error();
+  source = new DatabaseSync(sourcePath, { readOnly: true });
+  await backup(source, target);
+  checked = new DatabaseSync(target, { readOnly: true });
+  if (checked.prepare('PRAGMA integrity_check').all().some(row => row.integrity_check !== 'ok') ||
+      checked.prepare('PRAGMA foreign_key_check').all().length) throw new Error();
+  console.log(target);
+} catch {
+  console.error('備份未確認成功，請保留原資料並檢查路徑、權限與檔案。');
+  process.exitCode = 1;
+} finally { checked?.close(); source?.close(); }
+'@ | node --input-type=module
+if ($LASTEXITCODE -ne 0) { throw '備份失敗，不進行恢復。' }
+```
+
+只把exit0且通過查核的輸出路徑記為可用備份。失敗時可能留下不完整檔案，不得選用。此操作不改變活動階段；備份不含記憶體Google授權，日後老師仍需自行重新授權。
+
+### 停服務後恢復
+
+1. 在原執行服務的終端按Ctrl+C，等 `server_stopped` 且Node退出；不得只關網頁。確定沒有其他服務或維護工具連到待恢復DB。
+2. 保留原DB與所有sidecars，不刪除、不把備份直接覆蓋到它。選擇上一步已確認成功的備份。下列指令用互動輸入檔案路徑，不需填任何密碼；建立全新UUID候選檔，避免混入舊WAL／SHM。
+
+```powershell
+$classroomBackupPath = Read-Host '輸入已驗證的本機備份完整路徑'
+$classroomRestorePath = Join-Path (Get-Location) ('data/restored-' + [guid]::NewGuid().ToString() + '.sqlite')
+if (!(Test-Path -LiteralPath $classroomBackupPath -PathType Leaf)) { throw '備份不存在。' }
+if (Test-Path -LiteralPath $classroomRestorePath) { throw '候選檔已存在。' }
+[System.IO.File]::Copy($classroomBackupPath, $classroomRestorePath, $false)
+$env:CLASSROOM_RESTORE_CANDIDATE = $classroomRestorePath
+@'
+import { openDatabase } from './backend/dist/persistence/connection.js';
+let connection;
+try {
+  connection = openDatabase(process.env.CLASSROOM_RESTORE_CANDIDATE);
+  if (connection.database.prepare('PRAGMA integrity_check').all().some(row => row.integrity_check !== 'ok'))
+    throw new Error();
+  console.log('候選資料庫版本、外鍵、活動狀態與完整性查核通過。');
+} catch {
+  console.error('候選資料庫無法安全恢復；保留原資料，不切換服務。');
+  process.exitCode = 1;
+} finally { connection?.close(); }
+'@ | node --input-type=module
+if ($LASTEXITCODE -ne 0) { throw '恢復查核失敗。' }
+$env:DATABASE_PATH = $classroomRestorePath
+npm start
+```
+
+3. 用新服務的health、原學生URL／Cookie及原老師帳號檢查資料；原活動階段、已受理答案和序號應依備份時點恢復。老師重新授權才可看歷史及查核未完成回填；學生續答不需等授權。這是回到備份時點，備份之後的新提交不會憑空存在。
+4. 此環境變數只作用於該終端；以後啟動亦需使用同一已選定絕對路徑。驗證失敗時停新服務、保留候選及原資料，再以原DATABASE_PATH啟動；不要合併兩套WAL／SHM。未知回填先查核，不以手動重新寫入取代復原。
+
+### 升級與回退
+
+先依上節備份並停服務，再更新程式、`npm ci`、完整檢查及build。啟動時openDatabase核對migration版本／checksum、quick_check、FK及活動slot，再listen；不相容、損壞、唯讀或不可寫時明確失敗，不建立空白替代資料。現在只有001-core；未來migration必須版本化、同交易，不能修改已套用checksum。回退程式若不認得新版DB，應用該版本相符的已驗證備份建立新候選並驗證，不手改schema_migrations或刪DB。此階段沒有新增migration、排程自動備份或雲端備份服務。
+
+Phase 8的隔離測試以尚未checkpoint的WAL資料執行backup API，停止兩個HTTP／Socket listeners後恢復至全新臨時DB，逐列比較17表（含組別、提交、收據、結果及job），並檢查integrity/FK。另驗損壞檔拒絕且原bytes不變、可讀但FK破壞的備份拒絕。沒有對正式DB實施恢復；故障及安全測試皆只使用合成值。詳細指令結果與文件審查包見review-notes.md的Phase 8節。
+
+本階段實際Gate：typecheck、lint、format:check、build均exit0；test:unit 54、test:integration 75、test:contract 15、test:e2e 20，共164項通過。六圖checkonly及SVG渲染、8份本版Markdown明確格式檢查、欄位／連結稽核亦通過。T099文件人工核對及T101合併尚待完成，Phase 9仍未開始。

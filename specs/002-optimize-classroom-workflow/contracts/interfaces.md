@@ -1,7 +1,6 @@
-# Interface Contracts: 第二版預定介面
+# Interface Contracts: 第二版介面
 
-本文件為第二版目標契約。Phase 3–4已實作來源、owner隔離及持久學生流程；Phase 5已實作end/results/job同交易、原sheetId自動worker及verify/retry。完整history/settings仍待Phase 6。沿用 Express HTTP、Socket.IO、shared Zod strict schemas。
-已完成範圍與合成測試證據見../review-notes.md；不得把本文件全部契約描述為現有服務已支援。
+Phase 3–6已實作來源、owner隔離、持久學生流程、end/results/job同交易、原sheetId自動worker、verify/retry與history/settings；Phase 7完成UI。沿用 Express HTTP、Socket.IO、shared Zod strict schemas。Phase 8以實際routes／schemas核對本契約，證據見 [review-notes.md](../review-notes.md)。最終整合與人工審查狀態以任務及審查紀錄為準。
 
 ## Transport and Authorization
 
@@ -29,7 +28,7 @@
 | GET /api/activities                       | cursor可選、limit預設20最大100                      | 僅目前owner歷史摘要：id、來源快照名稱、日期、phase、writebackSummary、nextCursor；不列其他帳號                                                                    |
 | GET /api/activities/:id                   | UUID                                                | own teacher snapshot、來源、組別、答案、結果、回填；資料取DB，不要求重讀原表                                                                                      |
 | GET /api/settings                         | 無                                                  | 該帳號已保存的白名單設定，缺少時明確預設值                                                                                                                        |
-| PUT /api/settings                         | requestId、strict設定（defaultGroupCount）          | commit後回已保存設定；不得包含Google credentials或session                                                                                                         |
+| POST /api/settings                        | requestId、strict設定（defaultGroupCount）          | commit後回已保存設定；不得包含Google credentials或session                                                                                                         |
 | POST /api/activities/:id/writeback/verify | requestId、CSRF                                     | 只核對既有job，不新建正常工作；回jobId/currentStatus，後續以狀態更新                                                                                              |
 | POST /api/activities/:id/writeback/retry  | requestId、CSRF                                     | 同owner、明確可重試題目才重新預檢；未知先verify、conflict不盲寫、verified不重寫                                                                                   |
 
@@ -80,6 +79,10 @@ waiting student：group選擇（編號、占用）、自組已確認名稱、pha
 active student：允許題目prompt、item id/label、自組receipt；其他組沒有答案進度／順位。
 ended student：加公開results；教師詳細history仍禁止。
 teacher：完整資料但省匿名digest、Cookie、tokens。完整組名各處共用 formatter，不能顯示只有自訂名稱。
+
+實際wire補充：`teacher:progress`只有activityId、revision、submissions、tentativeResults；組別ordinal/name由同次`activity:snapshot`取得，完整顯示名由formatter組合。`writeback:status`以operations陣列承載工作。`self:receipt`把安全回覆包在receipt；`results:published`把公開結果包在results。`teacher:authorization-changed`在失權時亦可能為空物件，前端一律清空並重新取session，不能依賴此事件一定帶代次。上述表格描述可見業務資料，不表示每個事件都直接包含完整名稱字串。
+
+history list以createdAt DESC、id DESC分頁，cursor綁session／owner／authGeneration／limit、有效五分鐘。detail為sourcePreview欄位加createdAt／startedAt／endedAt／spreadsheetTitle／sheetTitle及snapshot，原資料只從DB還原。settings保存使用POST，defaultGroupCount還受部署MAX_GROUPS上限限制；這與現行前後端及HTTP契約測試一致。
 
 跨boot重連先以原URL及Cookie重新取session/CSRF，再subscribe完整DBsnapshot。
 boot變動不使activityId失效；同場revision不得倒退。關閉舊socket並拒收舊連線／舊authGeneration回覆，

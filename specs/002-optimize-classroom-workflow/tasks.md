@@ -202,13 +202,13 @@ T002設計審查及Phase 1–2文件核對已由維護者完成；後續每Phase
 
 **Independent Test / Checkpoint**: 所有測試／靜態／建置／六圖通過，人工審查和真實驗收有證據，Git無DB或機密產物。
 
-- [ ] T094 確認US5已merge main後建立本Phase指定新分支，記至 specs/002-optimize-classroom-workflow/review-notes.md
-- [ ] T095 [P] 在 tests/integration/persistent-secret-exposure.test.ts 以無效合成敏感值檢查DB／WAL／SHM／備份、response／log／報告，verifyIdToken與OAuth回覆原值不得落盤，且git check-ignore涵蓋所有DB產物
-- [ ] T096 [P] 在 tests/integration/sqlite-backup-restore.test.ts 驗已確認活動的安全備份與停止服務後恢復、foreign-key／integrity檢查及損壞拒絕；備份方法依 research.md R2，不於運作中只複製主DB
-- [ ] T097 在 specs/002-optimize-classroom-workflow/quickstart.md 補齊實際DATABASE_PATH、支援runtime、DB備份恢復／升級操作及各Phase實測指令結果，核對 contracts/interfaces.md 與實作一致；發現流程變更先更新 diagrams/\*.puml 再改程式
-- [ ] T098 執行共用Phase Gate與六圖checkonly／重新渲染，重跑完整新版及未被取代舊案例，將測試數、exit code、2秒同步、長表、真實Google及重啟證據索引記入 specs/002-optimize-classroom-workflow/review-notes.md
-- [ ] T099 在 specs/002-optimize-classroom-workflow/review-notes.md 提供對照程式／設定／實測結果的具體新版文件審查包，取得維護者人工核對結論並修正差異；未回覆不記通過，第一版審查不得代替
-- [ ] T100 在 specs/002-optimize-classroom-workflow/tasks.md 逐項核對完成證據與FR/SC覆蓋、未填範本／文件連結／欄位引用及DB／機密Git排除；未完成保持未勾，不為收斂而虛報
+- [x] T094 確認US5已merge main後建立本Phase指定新分支，記至 specs/002-optimize-classroom-workflow/review-notes.md
+- [x] T095 [P] 在 tests/integration/persistent-secret-exposure.test.ts 以無效合成敏感值檢查DB／WAL／SHM／備份、response／log／報告，verifyIdToken與OAuth回覆原值不得落盤，且git check-ignore涵蓋所有DB產物
+- [x] T096 [P] 在 tests/integration/sqlite-backup-restore.test.ts 驗已確認活動的安全備份與停止服務後恢復、foreign-key／integrity檢查及損壞拒絕；備份方法依 research.md R2，不於運作中只複製主DB
+- [x] T097 在 specs/002-optimize-classroom-workflow/quickstart.md 補齊實際DATABASE_PATH、支援runtime、DB備份恢復／升級操作及各Phase實測指令結果，核對 contracts/interfaces.md 與實作一致；發現流程變更先更新 diagrams/\*.puml 再改程式
+- [x] T098 執行共用Phase Gate與六圖checkonly／重新渲染，重跑完整新版及未被取代舊案例，將測試數、exit code、2秒同步、長表、真實Google及重啟證據索引記入 specs/002-optimize-classroom-workflow/review-notes.md
+- [x] T099 在 specs/002-optimize-classroom-workflow/review-notes.md 提供對照程式／設定／實測結果的具體新版文件審查包，取得維護者人工核對結論並修正差異；未回覆不記通過，第一版審查不得代替
+- [x] T100 在 specs/002-optimize-classroom-workflow/tasks.md 逐項核對完成證據與FR/SC覆蓋、未填範本／文件連結／欄位引用及DB／機密Git排除；未完成保持未勾，不為收斂而虛報
 - [ ] T101 全部門檻通過及審查完成後commit並merge main，在 specs/002-optimize-classroom-workflow/review-notes.md 記最終合併commit與限制；不自動push／部署或修改未授權教材
 
 ## Dependencies and Execution Order

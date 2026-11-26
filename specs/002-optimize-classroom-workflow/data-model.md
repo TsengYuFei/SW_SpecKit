@@ -1,6 +1,6 @@
 # Data Model: SQLite 持久化與活動恢復
 
-預定設計，2026-11-25；尚未建立正式資料庫或 migration。
+設計日期2026-11-25；已於Phase 2建立001-core migration，Phase 3–6接入正式流程。Phase 8對照110欄位／17表，schema未新增或變更；最終審查狀態見 [review-notes.md](review-notes.md)。
 SQLite 使用版本化 migrations、foreign_keys=ON、WAL、synchronous=FULL。
 所有識別及字串使用參數化 SQL；時間為伺服端 UTC epoch milliseconds，畫面依本機時區顯示。
 

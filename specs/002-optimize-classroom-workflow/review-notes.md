@@ -591,3 +591,65 @@ Phase 7補充長表邊界：另先新增桌面1280×720十二題案例，原固�
 Phase 7人工核對結論：維護者於2026-11-25回覆「審核完畢」，確認本階段畫面、鍵盤與文件審閱完成，T091／T092人工門檻通過，接續T093合併。
 
 T093已完成：實作799da6d，合併main 9602880；T084–T093完成，補記後fast-forward回main，未push。
+
+## Phase 8 Execution
+
+Phase 7審核及合併後，從main 7cdac4b建立 `codex/002-phase-8-final`，T094完成。2026-11-26繼續本階段，requirements checklist為16/16、無未勾項，check-prerequisites正確解析002；未設定extension hooks。本階段沒有改產品程式、migration、角色投影、六圖流程或Google資料；使用已審查research R2的SQLite backup API驗證維護操作，沿用lifecycle.puml啟動拒絕損壞、恢復原狀態的設計。
+
+## Phase 8 Implementation and Validation
+
+### T095–T097實際變更
+
+新增 `tests/integration/persistent-secret-exposure.test.ts` 兩項：正常合成授權、建場與學生加入後，將記憶體OAuth原值、teacher Cookie／CSRF、student原Cookie與DB主檔、WAL、SHM、SQLite backup二進位內容作UTF-8／UTF-16LE比對；確認participant只存SHA-256 digest。實際HTTP／Socket公開資料、錯誤與allowlist logger亦比對。透過mock SDK verifyIdToken/getToken拋含無效合成值的錯誤，經正式adapter及OAuth callback仍只回安全錯誤。敏感比對只用boolean斷言，避免失敗報告dump bytes或Cookie。另以git check-ignore確認18種DB／sidecars／備份／secret路徑排除。真實憑證不讀取、不複製、不輸入對話。
+
+安全報告分兩層：測試內生成只含status／掃描數／leaks的安全摘要並掃描；實際Vitest JSON報告為validation-results/feature-002-phase-8/security-backup.json，5項通過、0失敗，另查動態合成標記前綴出現0次。這是合成路徑驗證，沒有把正式DB或歷史憑證輸出作掃描素材，也不宣稱可證明任何任意外部工具皆不洩漏。
+
+新增 `tests/integration/sqlite-backup-restore.test.ts` 三項：reader固定舊WAL快照，確認2組完整答案及ended/results/job已提交，WAL尚有未checkpoint頁；服務listeners仍開啟時以SQLite backup API備份，再停止worker／兩個listeners／DB，把備份複製到全新臨時路徑，核對17表全部rows完全一致及integrity/FK。另測不可讀損壞檔拒絕且bytes不被改寫、可讀但外鍵破壞的備份亦拒絕，正式DB未覆蓋。worker於快照前停止以固定本機工作進度，不把Google網路變動混入逐列比較。
+
+測試先新增再執行；首次3/5通過，兩個失敗是測試錯把results總數當成功題數、把authorized欄寫成connected。修正後又發現測試誤用cookie_digest欄名，依實際browser_token_digest改為驗證SHA-256值。最終5/5通過，不把測試錯誤冒稱產品功能缺口；本階段產品程式不需修改。
+
+quickstart新增實際DATABASE_PATH／Node版本、backup API、先停服務再恢復至新UUID候選檔、版本／完整性／FK檢查及升級回退，避免live主檔copy或舊sidecars混用。兩段Node操作區塊已直接從文件抽取，在隔離合成DB執行exit0，備份後恢復的教師帳號資料一致；未對正式DB恢復。操作驗證腳本在Git排除的validation-results/feature-002-phase-8/verify-doc-commands.mjs，不計入164項測試。
+
+契約核對修正文件漂移：settings實作及既有contract test均使用POST，interfaces.md誤寫PUT，已更正；補上history的實際DTO／cursor綁定，以及teacher:progress、writeback:status、self:receipt與authorization-changed的wire欄位說明。這是讓文件符合已測實作，不變更API或活動設計。spec／plan／data-model／research的過期「尚未實作」狀態亦同步更新，原研究日期及歷次執行證據保留，Phase 9仍明確待辦。
+
+### T098完整Gate
+
+| 實際指令                   | 結果                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| npm run typecheck          | exit0                                                                        |
+| npm run lint               | exit0                                                                        |
+| npm run format:check       | exit0                                                                        |
+| npm run test:unit          | exit0，54項                                                                  |
+| npm run test:integration   | exit0，75項（含本階段新增5項）                                               |
+| npm run test:contract      | exit0，15項                                                                  |
+| npm run test:e2e           | exit0，20項，23.0秒                                                          |
+| npm run build              | exit0，三workspace                                                           |
+| PlantUML -checkonly／-tsvg | exit0，六份非空有效SVG，validation-results/feature-002-phase-8/design-review |
+
+合計164項獨立測試；未將局部重跑、文件操作probes或人工驗收重算為新增測試。使用Node24.22.3／SQLite3.54.1，npm scripts以此runtime及npm CLI執行。E2E包含原始角色分離、兩匿名組、題組、2秒同步、斷線／重啟、來源預覽、結果及回填案例，並包含Phase 7全部UI案例；沒有為最終整合移除原安全斷言。
+
+### T100需求與證據索引
+
+以下為原Phase 1–8核對索引；後續Phase 9 T102–T118需在前置合併後再逐項確認，現在維持未勾，不把本表當作其完成標記。
+
+| 需求／成功條件                        | 實作與主要測試／實測證據                                                                                                                                                                                                           |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FR-001–FR-004、FR-028                 | OAuth／Drive／owner guards；google-identity-drive、google-catalog、catalog-creation、owner-isolation、history-isolation及google-catalog-http；Phase 6 A/B帳號清單、歷史、設定隔離                                                  |
+| FR-005–FR-007、SC-001                 | first-sheet固定index0／原sheetId、preview重讀及原子建場；first-sheet、google-source、catalog-creation、source-preview E2E；Phase 6兩份真實不同題數教材與首張空白拒絕、原sheetId重排回填                                            |
+| FR-008–FR-016、SC-002–SC-004          | strict join、immutable fullName、角色投影、交易排序；student-projections、atomic-group-answer、durable-commands、anonymous-join-privacy及classroom-activity E2E；Phase 6 Chrome／Edge兩組完整題組與單題活動                        |
+| FR-017–FR-022、SC-005、SC-006、SC-008 | lifecycle／durable worker及verify/retry；durable-writeback、writeback-crash、writeback、automatic-writeback-http、automatic-writeback與results-writeback E2E；Phase 6 A兩份教材自動寫入與原分頁／格式可見查核                      |
+| FR-023–FR-027、SC-007                 | repositories／history／啟動恢復；sqlite-connection、persistent-participant、activity-restart、history-settings-http、history-recovery及本階段sqlite-backup-restore；Phase 6三場、兩原學生、真實Node停止重啟後hash／序號／原URL恢復 |
+| FR-029–FR-030、SC-009–SC-010          | ProgressTable／OperationStatus與各頁；teacher-progress-table四組六題40字／十二題長表、workflow-usability八項及全部20項核心／UI E2E；Phase 7合成畫面及維護者鍵盤／文件核對                                                          |
+| FR-031、SC-011                        | allowlist錯誤／log／receipts、記憶體授權、digest與Git排除；secret-exposure、persistent-secret-exposure，正式SDK錯誤捕捉與DB/WAL/SHM/備份二進位合成檢查；本階段report前綴外洩0                                                      |
+
+真實Google／重啟證據定位：本文件「Phase 6 Real Acceptance Progress」及「Phase 6 Core Acceptance and Review Gate」中的三場歷史、分頁重排、成功條件與限制；維護者已在Phase 6回覆「審閱完成」。UI定位：「Phase 7 Implementation and Validation」與validation-results/feature-002-phase-7合成圖，維護者回覆「審核完畢」。本階段完整自動化重新驗證核心至UI，但沒有再次寫真實教材，亦未重做跨裝置／整機重開機（先前已依使用者要求改成本機獨立瀏覽器／實際Node服務重啟）。上述舊人工結論不取代T099。
+
+欄位／文件稽核：validation-results/feature-002-phase-8/audit.mjs對照built coreSchema的PRAGMA table_info與data-model：17表／110欄全部相符，每個canonical table.field均有任務引用；118個task ID連續且唯一，7份來源文件45個相對連結檔案存在，未填範本標記0。Git目前追蹤與歷史異動檔名中DB／sidecars／備份／常見機密檔名命中0，這是檔名稽核，不冒稱歷史內容完整機密鑑識。8份本版Markdown明確Prettier check及git diff --check通過。schema未變更；T001–T093均有既有Phase實作／測試／人審／合併紀錄。T094–T098／T100已完成，共99項勾選；T099／T101仍待本階段人審，T102–T118仍待後續Phase。
+
+### T099本階段文件人工核對包（待維護者）
+
+請核對本節與以下文件及實際結果一致：quickstart的Phase 8備份／新路徑恢復／升級步驟；contracts/interfaces.md的POST settings、history及事件wire補充；spec、plan、data-model、research的狀態；tasks的完成與待辦界線。關鍵限制是測試DB隔離、正式DB未恢復、OAuth仍僅記憶體、備份是當時快照、不同活動共用Google來源仍可能寫同一格，未新增自動排程備份。六圖流程與正式程式未變，沒有新的設計審查事項。
+
+依憲章V「AI產生或修改的文件必須由人工審查」及T099／Common Phase Gate，尚未收到本階段核對結論，不記T099通過、不執行T101合併、不開始Phase 9；既有Phase 7的「審核完畢」只適用Phase 7。
+
+Phase 8人工核對結論：維護者於2026-11-26回覆「審核完畢」，確認本階段文件與實作、設定及測試結果一致；T099通過，接續T101合併。正式DB未恢復，未新增Google寫入。
