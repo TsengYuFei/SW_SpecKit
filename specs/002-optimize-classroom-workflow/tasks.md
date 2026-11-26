@@ -209,7 +209,7 @@ T002設計審查及Phase 1–2文件核對已由維護者完成；後續每Phase
 - [x] T098 執行共用Phase Gate與六圖checkonly／重新渲染，重跑完整新版及未被取代舊案例，將測試數、exit code、2秒同步、長表、真實Google及重啟證據索引記入 specs/002-optimize-classroom-workflow/review-notes.md
 - [x] T099 在 specs/002-optimize-classroom-workflow/review-notes.md 提供對照程式／設定／實測結果的具體新版文件審查包，取得維護者人工核對結論並修正差異；未回覆不記通過，第一版審查不得代替
 - [x] T100 在 specs/002-optimize-classroom-workflow/tasks.md 逐項核對完成證據與FR/SC覆蓋、未填範本／文件連結／欄位引用及DB／機密Git排除；未完成保持未勾，不為收斂而虛報
-- [ ] T101 全部門檻通過及審查完成後commit並merge main，在 specs/002-optimize-classroom-workflow/review-notes.md 記最終合併commit與限制；不自動push／部署或修改未授權教材
+- [x] T101 全部門檻通過及審查完成後commit並merge main，在 specs/002-optimize-classroom-workflow/review-notes.md 記最終合併commit與限制；不自動push／部署或修改未授權教材
 
 ## Dependencies and Execution Order
 

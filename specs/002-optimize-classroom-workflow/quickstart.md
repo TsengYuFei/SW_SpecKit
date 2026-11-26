@@ -1,6 +1,6 @@
 # Quickstart and Validation: 第二版
 
-2026-11-26狀態：Phase 1–7已通過測試、人工核對並合併main；清單建場、持久化、歷史／設定、自動回填及統一UI已實作。Phase 6已完成真實Google與服務重啟驗收。Phase 8進行備份恢復、安全產物與完整回歸，尚待本階段文件人工核對及後續Phase 9收斂核對。
+2026-11-26狀態：Phase 1–7已通過測試、人工核對並合併main；清單建場、持久化、歷史／設定、自動回填及統一UI已實作。Phase 6已完成真實Google與服務重啟驗收。Phase 8備份恢復、安全產物與164項回歸已通過人工核對，合併main e025649；接續Phase 9收斂核對。
 資料與介面細節見 [data-model](data-model.md)、[contracts](contracts/interfaces.md)。
 
 ## Prerequisites
@@ -275,4 +275,4 @@ npm start
 
 Phase 8的隔離測試以尚未checkpoint的WAL資料執行backup API，停止兩個HTTP／Socket listeners後恢復至全新臨時DB，逐列比較17表（含組別、提交、收據、結果及job），並檢查integrity/FK。另驗損壞檔拒絕且原bytes不變、可讀但FK破壞的備份拒絕。沒有對正式DB實施恢復；故障及安全測試皆只使用合成值。詳細指令結果與文件審查包見review-notes.md的Phase 8節。
 
-本階段實際Gate：typecheck、lint、format:check、build均exit0；test:unit 54、test:integration 75、test:contract 15、test:e2e 20，共164項通過。六圖checkonly及SVG渲染、8份本版Markdown明確格式檢查、欄位／連結稽核亦通過。T099文件人工核對及T101合併尚待完成，Phase 9仍未開始。
+本階段實際Gate：typecheck、lint、format:check、build均exit0；test:unit 54、test:integration 75、test:contract 15、test:e2e 20，共164項通過。六圖checkonly及SVG渲染、8份本版Markdown明確格式檢查、欄位／連結稽核亦通過。T099維護者已核對，T101已合併main e025649；接續Phase 9。
