@@ -337,3 +337,61 @@ ActivityPage以單一studentUrl提供顯示文字、anchor href及CopyActivityLi
 維護者明確回覆「Phase 5 文件與介面已核對，內容一致」，T063完成。依T064提交並合併main，實際hash於合併後補記。
 
 Phase 5實作提交6fc2e0b，合併main為522f5a9a9c27083574138625faaa111cfef25251。依T064補記hash，未push或部署。
+
+## Phase 6 Final Validation and Review
+
+T065：Phase 5測試、人審及合併完成，補記hash後從main基準0caaf1ece9862befa960d4184311f05c1eb891aa建立codex/003-phase-6-final。本階段未修改產品程式或設計流程，只補跨功能／並行／精確畫面驗收及同步文件；四張原已審閱PlantUML保持一致並重新檢查及渲染。
+
+### T066–T067 Continuous and Concurrent Acceptance
+
+result-export-workflow.spec.ts第一案例從兩組完整題組作答開始，結束後worker自動回填並讀回確認，只寫一次。接著核對全場／逐題順位、目前CSV、同場歷史CSV bytes一致、複製正確學生URL，再重新整理並開啟同場歷史。這些新增操作前後比較SQLite所有資料表完整rows相同，原回填答案及寫入次數相同。Google adapter為隔離合成來源；沒有CSV教材中介流程。
+
+第二案例精確補驗SC-007：四組、六題且末題有兩個子題，40字自訂組名、多行完整答案、1280×720，Space切視角、選題、聚焦可捲動表格，完整組名及兩子題皆可辨識。實際檢視的畫面為validation-results/feature-003-phase-6/four-groups-six-questions.png。原先各案例分別覆蓋六題及題組，最終核對後另補此組合，不以分散案例冒充指定組合。
+
+result-export-performance.test.ts使用真實臨時HTTP／SQLite／Socket.IO及實際時鐘。標準30組、20題、40資料列、600筆受理／1200答案的完整匯出最終59ms；並行案例在同規模fixture的合法答案增加1800個中文字，以觸發產品encoder合作式讓出：匯出121ms，另一老師活動受理答案並送達教師更新100ms，受理ack發生時生成仍在進行（answerDuringGeneration=true）。另一owner不能下載該歷史；同session兩次後429，另一同owner session可下載。真實HTTP取消傳入生成中，實際得到EXPORT_BUSY並完成finally釋放後可再次生成；沒有mock時間、替換encoder或放寬5秒／2秒門檻。
+
+初次並行測試因預覽與建場必要讀取共兩次，誤寫固定Google read=1而失敗；改為在活動開始後保存Google計數、比較匯出前後不變，保持「新增功能不呼叫Google」的原斷言目的。第二案例最初合成教材錯將題組標籤與答案格合併，修正fixture；下一次因文字定位漏掉實際顯示的「（2）」標籤而失敗，改為精確核對帶標籤的完整題目。錯誤紀錄保留，沒有更動產品來迎合fixture、刪除核心斷言或增加timeout。
+
+### T068 Final Gate Results
+
+| 指令                     | 實際結果               |
+| ------------------------ | ---------------------- |
+| npm run typecheck        | exit0                  |
+| npm run lint             | exit0                  |
+| npm run format:check     | exit0                  |
+| npm run test:unit        | exit0，25檔115項       |
+| npm run test:integration | exit0，21檔96項        |
+| npm run test:contract    | exit0，10檔19項        |
+| npm run test:e2e         | exit0，45項，37.8秒    |
+| npm run build            | exit0，三workspace成功 |
+
+合計275項（Phase 5的272＋1項整合＋2項E2E），未取代的既有案例全部保留。首次完整Gate八指令皆exit0（當時44項E2E）；補精確SC-007後只修改測試及UI fixture，再執行typecheck／lint／format／全部45項E2E／build皆exit0。unit／integration／contract及產品未再改，沿用同Phase有效實測，不重跑未受影響層級。結果在validation-results/feature-003-phase-6/final-results.json、final-_.log及recovery-results.json、recovery-_.log。
+
+四圖-checkonly及-tsvg皆exit0，四份非空有效SVG在同目錄diagrams；九份003 Markdown明確Prettier、77本機連結、74項連續任務、範本殘留與git diff --check另驗。另執行audit-source.ts生成的隔離SQLite核對：17表110欄、data-model 40處資料庫欄位引用正確、26項FR／10項SC均有驗收矩陣引用、需求品質清單16／16。移除spec標題仍殘留的範本操作提示，沒有未填內容。
+
+### T069–T071 Requirement and Model Reconciliation
+
+| 範圍                                  | 核對證據                                                                                                                                                                                                  |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FR-001–FR-009；SC-001–SC-003          | answer-order／csv-export unit、export-read-snapshot integration、result-export HTTP／schema contract；完整題組共用順位，零／全／部分受理及未加入組，整筆非winner提交遺失拒絕，不誤列未作答                |
+| FR-010–FR-014；SC-004–SC-005          | csv-export／export-filename unit、真實下載bytes及Phase 3 T041 Excel人工；BOM／逗號／引號／多行／安全文字／臺灣午夜／完整ID與整理名稱                                                                      |
+| FR-015–FR-017；SC-009                 | result-export／export-read-snapshot／performance integration、export-gate unit及HTTP錯誤contract；1,000,000格／32MiB、Excel邊界、busy／限流／deadline／取消、離線Google仍可下載，無教材中介檔             |
+| FR-018–FR-021；SC-006–SC-007          | answer-order／answer-order-history E2E、精確四組六題含題組案例；兩視角與CSV一致、live history≤2秒、ended唯一同步、長文與鍵盤焦點                                                                          |
+| FR-022–FR-023；SC-008                 | copy-activity-link／copy-link-scope E2E；同一完整URL、三種啟用、真實user activation、pending／成功／拒絕／無能力、手動選取與1秒回饋                                                                       |
+| FR-024–FR-026；SC-003、SC-007、SC-010 | 下載／歷史／複製晚回覆E2E、owner-isolation／secret-exposure／persistent-secret-exposure／result-export-secret-exposure、atomic-group-answer及原worker／重啟回歸；新操作前後所有DB rows／Google writes不變 |
+
+data-model的DB引用已實際對照schema；AnswerOrderInput／OrderedAnswer／QuestionOrder／AnswerOrderView對照shared schemas及projection，Download／Copy／OperationScope對照frontend元件及download，HistoryLive對照原場訂閱與一次重讀狀態。typecheck及contract確保實際使用欄位，既有wire未變；沒有新增DB欄位、永久排名、migration、Google API scope或新Google呼叫。
+
+T069引用Phase 3有效人工Excel證據：Microsoft Office執行檔16.0.20625.20108、zh-TW，維護者從檔案總管直接開啟40列／63欄CSV，確認公式樣式文字未計算、逗號／引號／換行同格。git比對Phase 3實作提交6a2a254至目前，csv.ts及filename.ts無改動，因此不重做未受影響人工驗收。舊式文字匯入精靈的CR／LF拆列限制仍保留，不能推論其他Excel版本或另存重開皆安全。
+
+### T072 Final Review Package and Limits
+
+支援及本次驗證版本為Node24.22.3（引擎>=24.22.3 <25）、TypeScript5.9.3、React19.2.0、Express5.1.0、Socket.IO4.8.1、Vitest4.0.13、Playwright1.56.1的本機Edge channel與node:sqlite。此數據是本機合成驗收實測，非所有硬體的效能保證；容量超限明確拒絕，不截斷。剪貼簿能力受瀏覽器限制，有手動備援；已交給瀏覽器的寫入／下載不能承諾撤回。CSV可能有安全文字前綴，原答案保持不變，轉存／其他程式仍須確認文字處理。
+
+所有新增驗收只用自身臨時資料庫、埠、合成Google及模擬Clipboard，不重啟正式服務、不使用正式資料／憑證或寫Google教材；驗收產物與logs均Git排除，git check-ignore已確認。沒有截圖、trace、DB、Google憑證或可重用cookie新增至Git；秘密檢查測試只比對合成標記，不輸出其值。extensions.yml不存在，before／after_implement沒有hooks。未push、部署或再變更教材。
+
+### T073 Final Maintainer Review Pending
+
+請核對本Phase新增驗收、指定畫面截圖、完整Gate、FR／SC／欄位對照、Excel人工證據沿用與限制，以及quickstart／spec／plan／data-model／contracts／tasks是否與實際結果一致。依T073與憲章V「AI產生或修改的文件必須由人工審查」，Phase 5核對不替代最終審查。目前T001–T072完成，T073及T074未完成；Phase 6尚未commit／merge，沒有最終合併hash。確認後才提交合併main並補hash，核對全部74項及工作樹。
+
+維護者針對上述最終審閱包回覆「沒問題，繼續」，確認內容一致並授權完成合併；T073完成。依T074提交Phase 6並合併main，實際hash與最終狀態於合併後補記。

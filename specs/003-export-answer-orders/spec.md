@@ -1,12 +1,12 @@
 # Feature Specification: 活動結果 CSV 匯出與收件順位呈現
 
-**Feature Branch**: codex/003-phase-5-copy-link（各Phase使用tasks.md所列獨立分支）
+**Feature Branch**: codex/003-phase-6-final（各Phase使用tasks.md所列獨立分支）
 
 **Feature Directory**: specs/003-export-answer-orders
 
 **Created**: 2026-11-27
 
-**Status**: 實作中 — Phase 1–4已測試、人審並合併；Phase 5已建立複製活動連結及手動備援，實測與本階段UI／文件核對門檻見review-notes.md。最終驗收仍待Phase 6，依tasks.md追蹤。
+**Status**: 最終驗收中 — Phase 1–5已測試、人審並合併；Phase 6補齊連續操作、並行匯出／即時收答及指定四組六題含題組畫面驗證。本階段完整結果與最終人工核對／合併門檻見review-notes.md及tasks.md。
 
 **Input**: 老師可在活動結束後，選取自己單一活動下載結果 CSV。每個子題一列，單題的子題欄留空；依各題搶答順位展開各組答案，題組各子題共用順位。未作答組別另列、不給順位，各列欄位數一致，不足留空。使用 UTF-8 BOM、正確處理逗號／換行／引號，檔名為 `搶答結果_活動名稱_活動ID_YYYYMMDD-HHmmss.csv`，採臺灣匯出時間與完整活動 ID。另提供活動連結複製按鈕，老師已受理答案同時保留全場收件順序、增加個別題目收件順位並改善辨識。Guided Notes 繼續直接讀寫 Google Sheets。
 
@@ -17,7 +17,7 @@
 - Q: CSV 檔名中的「活動名稱」應該使用哪個名稱？ → A: 使用建立活動時保存的來源試算表名稱；不另新增活動命名欄位，也不於每次匯出時要求輸入名稱。
 - Q: 如果老師設定了某一組，但一直沒有學生加入，CSV 是否也要將該組列為「未作答」？ → A: 要；所有預設組別均納入，未加入者列為「未作答」、只顯示系統組號，不給順位、不虛構自訂組名。
 
-## User Scenarios & Testing _(mandatory)_
+## User Scenarios & Testing
 
 ### User Story 1 - 匯出自己單一已結束活動的完整作答結果 (Priority: P1)
 
@@ -89,7 +89,7 @@
 - 活動資料缺漏、無法讀取、無權限、匯出過程中斷或超出可支援下載範圍：明確失敗，不靜默少列／少組，不提供被宣稱完整的半份成功結果。
 - 複製連結時無有效活動、剪貼簿失敗、連點、活動或帳號切換：不可複製錯場、空網址或將延遲結果套到新畫面。
 
-## Requirements _(mandatory)_
+## Requirements
 
 ### Functional Requirements
 
@@ -140,7 +140,7 @@
 2,2,水的沸點？,第 1 組-甲組,100°C,第 2 組-乙組,90°C,第 3 組-丙組,未作答
 ```
 
-### Key Entities _(include if feature involves data)_
+### Key Entities
 
 - **活動匯出對象**：唯一活動 ID、活動所屬老師、階段、保存的活動顯示名稱與教材順序；一次下載只能關聯一場。
 - **已受理答案**：組別、題目、完整子題答案及原全場收件順序；只有已確認的首次有效受理參與排序。
@@ -149,7 +149,7 @@
 - **匯出檔案描述**：所選活動、臺灣匯出時間、合法下載檔名、統一欄位配置與每個題目／子題對應的資料列。
 - **活動加入連結**：老師畫面對應活動的完整學生加入網址，以及本次複製操作的成功／失敗回饋；不含老師授權資訊。
 
-## Success Criteria _(mandatory)_
+## Success Criteria
 
 ### Measurable Outcomes
 

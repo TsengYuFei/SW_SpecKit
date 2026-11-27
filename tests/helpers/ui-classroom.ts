@@ -4,7 +4,7 @@ import { executeCommand } from '../../backend/src/activity/lifecycle-reducer';
 import { publishActivity } from '../../backend/src/sockets/activity-handlers';
 import type { GridSheet } from '../../shared/src/schemas/source';
 
-export async function uiClassroom(active = true, questionCount = 6) {
+export async function uiClassroom(active = true, questionCount = 6, includeGroup = false) {
   const server = await catalogServer();
   const grid: GridSheet = {
     sheetId: 17,
@@ -27,6 +27,27 @@ export async function uiClassroom(active = true, questionCount = 6) {
       })),
     ],
   };
+  if (includeGroup) {
+    const row = grid.rows.length - 1;
+    grid.merges = grid.merges.filter(
+      (merge) => !(merge.startRowIndex === row && merge.startColumnIndex === 3),
+    );
+    grid.rows[row]![3] = { userEnteredValue: { stringValue: '（1）' } };
+    grid.rows.push([
+      {},
+      { userEnteredValue: { stringValue: '題組補充子題' } },
+      {},
+      { userEnteredValue: { stringValue: '（2）' } },
+      {},
+    ]);
+    grid.merges.push({
+      sheetId: 17,
+      startRowIndex: row,
+      endRowIndex: row + 2,
+      startColumnIndex: 0,
+      endColumnIndex: 1,
+    });
+  }
   server.gateway.readFirstSheet = async () => ({ spreadsheetTitle: '六題教材', sheet: grid });
   const client = await server.client();
   const preview = (
@@ -63,7 +84,7 @@ export async function uiClassroom(active = true, questionCount = 6) {
     const question = activity.questions[questionIndex]!;
     return run(students[index]!, 'answer:submit', {
       questionId: question.id,
-      answers: { [question.items[0]!.id]: text },
+      answers: Object.fromEntries(question.items.map((item) => [item.id, text])),
     });
   };
   return { server, client, activity, teacher, students, groups, longName, run, answer };
