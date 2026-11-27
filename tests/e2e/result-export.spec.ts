@@ -2,6 +2,95 @@ import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { resultExportFixture } from '../helpers/result-export';
 import { deferred } from '../helpers/google-adapter';
+
+for (const failure of [
+  'malformed',
+  'empty',
+  'parser-exception',
+  'body-exception',
+  'known-code',
+  'unknown-code',
+] as const) {
+  test(`keeps ${failure} export errors safe and never starts a download`, async ({ browser }) => {
+    const c = await resultExportFixture();
+    const context = await browser.newContext();
+    const marker = 'DEMO_X';
+    try {
+      c.server.catalog!.restoreCurrent();
+      const [name, value] = c.client.cookie.split('=');
+      await context.addCookies([{ name: name!, value: value!, url: c.server.url }]);
+      if (failure === 'parser-exception' || failure === 'body-exception') {
+        await context.addInitScript(
+          ({ failure, marker }) => {
+            const original = window.fetch;
+            window.fetch = async (...args) => {
+              const response = await original(...args);
+              if (String(args[0]).endsWith('/export.csv')) {
+                Object.defineProperty(response, failure === 'parser-exception' ? 'json' : 'blob', {
+                  value: async () => {
+                    throw new Error(marker + ' internal parser detail');
+                  },
+                });
+              }
+              return response;
+            };
+          },
+          { failure, marker },
+        );
+      }
+      await context.route('**/export.csv', (route) =>
+        route.fulfill({
+          status: failure === 'body-exception' ? 200 : 503,
+          headers:
+            failure === 'body-exception'
+              ? {
+                  'content-type': 'text/csv; charset=utf-8',
+                  'content-disposition': 'attachment; filename="invalid-demo.csv"',
+                }
+              : { 'content-type': 'application/json' },
+          body:
+            failure === 'malformed'
+              ? marker
+              : failure === 'empty'
+                ? ''
+                : failure === 'body-exception'
+                  ? '\uFEFFx\r\n'
+                  : JSON.stringify({
+                      ok: false,
+                      error: {
+                        code: failure === 'unknown-code' ? 'INVALID_DEMO' : 'EXPORT_BUSY',
+                        message: marker,
+                      },
+                    }),
+        }),
+      );
+      const page = await context.newPage();
+      let downloads = 0;
+      const diagnostics: string[] = [];
+      page.on('download', () => downloads++);
+      page.on('console', (message) => diagnostics.push(message.text()));
+      page.on('pageerror', (error) => diagnostics.push(error.message));
+      await page.goto(c.server.url);
+      const current = page.getByRole('region', { name: '活動控制', exact: true });
+      await current.getByRole('button', { name: '下載本場 CSV', exact: true }).click();
+      await expect(current.getByRole('alert')).toHaveText(
+        failure === 'known-code'
+          ? '匯出暫時忙碌或逾時，請稍後手動重試。'
+          : '無法匯出結果，未開始下載。',
+      );
+      await expect(page.locator('body')).not.toContainText(marker);
+      expect(diagnostics.join('\n')).not.toContain(marker);
+      expect(downloads).toBe(0);
+      await expect(current.getByText('已開始下載', { exact: true })).toHaveCount(0);
+      await expect(
+        current.getByRole('button', { name: '下載本場 CSV', exact: true }),
+      ).toBeEnabled();
+    } finally {
+      await context.close();
+      await c.close();
+    }
+  });
+}
 test('downloads one current and selected history activity with BOM, full filename and honest status', async ({
   browser,
 }) => {

@@ -1,5 +1,9 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { attachmentFilename, downloadResults } from '../../frontend/src/transport/download.js';
+import {
+  attachmentFilename,
+  downloadResults,
+  downloadErrorMessage,
+} from '../../frontend/src/transport/download.js';
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -41,6 +45,20 @@ const response = () =>
         'attachment; filename="fallback.csv"; filename*=UTF-8\'\'%E4%B8%AD%E6%96%87.csv',
     },
   });
+it('never trusts arbitrary exception text or a forged safe error name at the UI boundary', async () => {
+  const arbitrary = new Error('invalid-demo-private');
+  arbitrary.name = 'DownloadFailure';
+  expect(downloadErrorMessage(arbitrary)).toBe('無法匯出結果，未開始下載。');
+  expect(downloadErrorMessage('invalid-demo-private')).toBe('無法匯出結果，未開始下載。');
+  const c = setup(Response.json({ ok: false, error: { code: 'EXPORT_BUSY' } }, { status: 503 }));
+  try {
+    await downloadResults(c.input);
+  } catch (error) {
+    expect(downloadErrorMessage(error)).toBe('匯出暫時忙碌或逾時，請稍後手動重試。');
+    return;
+  }
+  throw new Error('EXPECTED_SAFE_FAILURE');
+});
 it('keeps BOM bytes, chooses filename*, clicks once and cleans its object URL on abort', async () => {
   const c = setup(response());
   await downloadResults(c.input);

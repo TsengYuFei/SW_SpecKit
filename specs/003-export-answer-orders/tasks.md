@@ -6,7 +6,7 @@
 
 **Tests**: spec Assumptions與憲章IV明確要求正常及特殊情境測試，納入TDD、正式隔離SQLite／HTTP／E2E及Excel人工驗收；不是把範本可選測試一律塞入。
 
-**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。六個Phase均已測試、人審及合併main，T001–T074全部完成；實際提交與合併hash見review-notes.md。
+**Organization**: 原六個串行Phase均已測試、人審及合併main，T001–T074完成；收斂檢查追加Phase 7／T075，須完成安全錯誤修正、全Gate、本階段文件核對及合併。實際狀態與hash見review-notes.md。
 
 ## Format and Path Conventions
 
@@ -234,3 +234,7 @@ US1通過及merge後加入US2的雙視角／live history，再加入US3複製；
 ## Notes
 
 設計／AI文件／Excel人工門檻須真實完成，不用自動檢查或「繼續」冒充確認。測試失敗先修正再重跑；設計流程變動先更新PlantUML並審查。此tasks文件僅產生工作清單，不代表已建立分支、提交、合併、部署或通過任一產品驗收。
+
+## Phase 7: Convergence
+
+- [ ] T075 CRITICAL [F1] 修正 frontend/src/transport/download.ts 與 frontend/src/teacher/ExportResultsButton.tsx 的非200錯誤回應處理：目前 response.json() 解析失敗產生的 SyntaxError 會原樣拋出並直接顯示 error.message，合成503 application/json損壞本文探測已確認回應片段外露且缺少可理解的下載失敗提示；先在 tests/e2e/result-export.spec.ts 補非200損壞／空白JSON及非預期解析例外的測試，使用無效合成標記確認本文、原始例外與內部資訊不出現在畫面／診斷，下載次數為0，並保留合法錯誤碼安全訊息、取消及scope防護。再將不可信解析／下載例外正規化為固定且易理解的中文錯誤，不以任意error.message直通UI；從main建立本Phase獨立codex分支，先核對既有PlantUML錯誤路徑，流程若變更先更新圖並審查，完成全Gate、適用四圖／文件檢查及人工文件核對後才合併，將實測與限制同步review-notes.md。per Constitution III、VI；FR-015、FR-026；US1/AC6；T024、T035、T036、T039 (contradicts)

@@ -1,5 +1,13 @@
 import { errorCodeSchema } from '@classroom/shared/schemas/common';
 
+const fallbackMessage = '無法匯出結果，未開始下載。';
+class DownloadFailure extends Error {}
+
+/** Only locally constructed failures may supply text to the UI. */
+export function downloadErrorMessage(error: unknown): string {
+  return error instanceof DownloadFailure ? error.message : fallbackMessage;
+}
+
 export interface OperationScope {
   activityId: string;
   bootId: string;
@@ -22,16 +30,16 @@ const messages: Record<string, string> = {
 };
 export function attachmentFilename(header: string | null) {
   if (!header || !/^attachment\s*;/i.test(header))
-    throw new Error('下載回應格式無效，未開始下載。');
+    throw new DownloadFailure('下載回應格式無效，未開始下載。');
   const extended = /(?:^|;)\s*filename\*\s*=\s*UTF-8''([^;]*)/i.exec(header);
   if (/(?:^|;)\s*filename\*\s*=/i.test(header) && !extended)
-    throw new Error('下載檔名無效，未開始下載。');
+    throw new DownloadFailure('下載檔名無效，未開始下載。');
   const plain = /(?:^|;)\s*filename\s*=\s*"([^"]*)"/i.exec(header);
   let name: string;
   try {
     name = extended ? decodeURIComponent(extended[1]!.trim()) : (plain?.[1] ?? '');
   } catch {
-    throw new Error('下載檔名無效，未開始下載。');
+    throw new DownloadFailure('下載檔名無效，未開始下載。');
   }
   if (
     !name ||
@@ -39,7 +47,7 @@ export function attachmentFilename(header: string | null) {
     /[<>:"/\\|?*]/.test(name) ||
     [...name].some((c) => c.charCodeAt(0) < 32 || c.charCodeAt(0) === 127)
   )
-    throw new Error('下載檔名無效，未開始下載。');
+    throw new DownloadFailure('下載檔名無效，未開始下載。');
   return name;
 }
 export async function downloadResults(input: {
@@ -49,7 +57,7 @@ export async function downloadResults(input: {
   isCurrent: () => boolean;
 }) {
   const check = () => {
-    if (input.signal.aborted || !input.isCurrent()) throw new Error('下載已取消。');
+    if (input.signal.aborted || !input.isCurrent()) throw new DownloadFailure('下載已取消。');
   };
   let url: string | undefined, timer: ReturnType<typeof setTimeout> | undefined;
   const cleanup = () => {
@@ -74,24 +82,24 @@ export async function downloadResults(input: {
     );
     check();
     if (response.status !== 200) {
-      let message = '無法匯出結果，未開始下載。';
+      let message = fallbackMessage;
       if (/^application\/json\b/i.test(response.headers.get('content-type') ?? '')) {
         const value = await response.json();
         check();
         const code = errorCodeSchema.safeParse(value?.ok === false ? value.error?.code : undefined);
         if (code.success) message = messages[code.data] ?? message;
       }
-      throw new Error(message);
+      throw new DownloadFailure(message);
     }
     if (!/^text\/csv\s*;\s*charset=utf-8\s*$/i.test(response.headers.get('content-type') ?? ''))
-      throw new Error('下載回應格式無效，未開始下載。');
+      throw new DownloadFailure('下載回應格式無效，未開始下載。');
     const name = attachmentFilename(response.headers.get('content-disposition'));
     const blob = await response.blob();
     check();
     const bom = new Uint8Array(await blob.slice(0, 3).arrayBuffer());
     check();
     if (bom.length !== 3 || bom[0] !== 239 || bom[1] !== 187 || bom[2] !== 191)
-      throw new Error('下載內容不完整，未開始下載。');
+      throw new DownloadFailure('下載內容不完整，未開始下載。');
     url = URL.createObjectURL(blob);
     check();
     const anchor = document.createElement('a');
@@ -106,8 +114,10 @@ export async function downloadResults(input: {
       anchor.remove();
     }
   } catch (error) {
-    if (error instanceof TypeError) throw new Error('下載連線中斷，未開始下載，請稍後重試。');
-    throw error;
+    if (error instanceof DownloadFailure) throw error;
+    if (error instanceof TypeError)
+      throw new DownloadFailure('下載連線中斷，未開始下載，請稍後重試。');
+    throw new DownloadFailure(fallbackMessage);
   } finally {
     if (started && url) timer = setTimeout(cleanup, 0);
     else cleanup();
