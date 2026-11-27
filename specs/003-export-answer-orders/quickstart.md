@@ -1,6 +1,6 @@
 # Quickstart: 本功能實作後的驗證流程
 
-本文件是驗證指南，不是所有功能已驗收的證明。003 Phase 1／2已合併；Phase 3已建立單場CSV下載、目前／歷史入口與相關驗證，Excel直接開啟已由維護者人工確認，本階段文件人審與合併仍待完成。雙視角與複製功能仍待後續Phase。實際結果及限制見review-notes.md，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準。
+本文件是驗證指南，不是所有功能已驗收的證明。003 Phase 1–3已合併，CSV及Excel直接開啟證據有效；Phase 4雙視角與歷史即時更新已建立，本階段UI／文件核對與合併仍待完成。複製連結及最終驗收待後續Phase。結果與限制見review-notes.md，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準。
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ Phase 1已新增`tests/helpers/result-export.ts`的`resultExportFixture()`與6�
 
 ## End-to-End Scenarios
 
-Phase 2的共同順位與readSnapshot可單獨驗證原四份測試；Phase 3新增CSV／filename／gate／download unit、result-export／performance／secret-exposure integration、HTTP contract及result-export.spec.ts。老師目前或歷史單場活動已結束後可按「下載本場 CSV」，等待／active停用並說明原因；失敗不假下載，畫面只說「已開始下載」而不保證已存磁碟。唯讀匯出不依賴Google或回填狀態。下載helper保留並驗證BOM、200／MIME／attachment，檢查晚回覆scope及清理objectURL。以下CSV情境可執行；雙視角與複製情境仍待後續Phase。
+Phase 2／3測試及CSV入口可持續驗證；老師目前或歷史單場活動已結束後可按「下載本場 CSV」，等待／active停用並說明原因；失敗不假下載，成功只說「已開始下載」。Phase 4兩處老師頁均有「全部收件」／「依題目」，選中視角有勾號與aria-pressed，逐題以有label的選單選題；兩種視角都區別全場序號及本題順位，題組各小題完整展示，未作答另區。表格可聚焦橫向捲動，長文字保留換行；學生資料不擴增。waiting／active歷史訂閱原場，進度表與答案一併更新；ended或非current唯一重讀一次detail後停止訂閱，不輪詢、不建立活動。切帳號／boot取消舊請求。以下CSV及雙視角情境可執行，複製仍待Phase 5。
 
 1. teacher A於目前活動進行中查看「全部收件」及「依題目」，對照上表；送出新的完整答案後，兩個視角及仍active的歷史詳情皆2秒內更新。切題、切視角、長文及鍵盤焦點不得影響排名。
 2. waiting／active匯出按鈕不可用且有原因；直接請求也409。正常結束該合成場後，從目前場下載，再從歷史選同一場下載；兩者內容相同，不必匯出其他活動，回填pending／conflict／failed也可下載。

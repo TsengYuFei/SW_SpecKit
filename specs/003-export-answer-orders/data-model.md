@@ -1,6 +1,6 @@
 # Data Model: 結果匯出與教師收件順位
 
-本文件為設計與實作對照：Phase 2共同順位與readSnapshot已完成，Phase 3已建立ExportSnapshot／ExportRequestScope讀取器、CsvLayout／DownloadArtifact、OperationScope與Download狀態。AnswerOrderPanel、HistoryLive與Copy仍待後續Phase；Phase 3交付門檻依tasks.md追蹤。既有SQLite 17表／110欄不變，不新增migration或永久實體。模型受 [spec.md](spec.md)、[research.md](research.md) 及 [介面契約](contracts/interfaces.md) 約束。
+本文件為設計與實作對照：Phase 2共同順位與readSnapshot、Phase 3 CSV／下載模型已完成；Phase 4已建立AnswerOrderPanel及HistoryLive，Copy仍待Phase 5。本階段交付門檻依tasks.md追蹤。既有SQLite 17表／110欄不變，不新增migration或永久實體。模型受 [spec.md](spec.md)、[research.md](research.md) 及 [介面契約](contracts/interfaces.md) 約束。
 
 ## Existing Persistence Sources
 
@@ -134,3 +134,5 @@ ExportRequestScope為上文後端記憶體scope；OperationScope為UI狀態表�
 | History live     | waiting/active詳情→subscribe原場；收到ended→保存該snapshot並一次重讀detail；舊場非current→一次重讀保存狀態  | 卸載、切帳號取消及拒收舊回覆；不輪詢重試迴圈，不為讀取重建活動                       |
 
 這些狀態均非新增活動階段；原waiting→active→ended與worker狀態機不變。
+
+Phase 4實作中，AnswerOrderPanel.view使用all／question並以selectedQuestionId選題；activity／boot／sessionVersion／authGeneration的外層key變更會重新建立面板。HistoryLive.state使用live／refreshing／saved，分別對應原場訂閱、唯一一次保存資料同步、保存快照；初始ended直接saved不訂閱。useActivity新增的本機errorCode只辨別ACTIVITY_UNAVAILABLE與暫時連線錯誤，不增加Socket欄位；JSON helper可選AbortSignal以取消舊歷史請求。

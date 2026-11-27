@@ -10,10 +10,16 @@ export class HttpError extends Error {
   }
 }
 
-export async function http<T>(path: string, csrfToken?: string, body?: unknown): Promise<T> {
+export async function http<T>(
+  path: string,
+  csrfToken?: string,
+  body?: unknown,
+  options: { signal?: AbortSignal } = {},
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(path, {
+      signal: options.signal,
       method: body === undefined ? 'GET' : 'POST',
       headers: {
         ...(body === undefined ? {} : { 'content-type': 'application/json' }),

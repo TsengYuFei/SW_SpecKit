@@ -243,3 +243,53 @@ Phase 2實作提交db5985b，合併main為0dd838cac8e7d9c058ab9999629bcf94233e3c
 維護者回覆「確認完成繼續」，完成本次Phase 3文件與實作／結果一致性核對。T043完成，據此依T044提交並合併，實際hash於合併後補記。Excel已確認結果不需重做。
 
 Phase 3實作提交6a2a254，合併main為d1cc14d9a88671639b28a765e98d3f114886e841。依T044補記hash，無產品行為變更，未push。
+
+## Phase 4 Implementation and Validation
+
+維護者確認Phase 3文件完成後，從已合併並補記hash的main `bbe79d0aa189c20059fc01c65641aee327a0da0b`建立`codex/003-phase-4-answer-order`。T045–T053完成，T054本階段UI／文件核對及T055提交／合併仍待辦。沒有開始Phase 5，不沿用Phase 3核對替代本階段人審。
+
+### Delivered US2 Scope
+
+- T046／T048：先新增answer-order.spec.ts，再建立共用AnswerOrderPanel。直接使用shared deriveAnswerOrder，不重算排名；預設全部收件，另有aria-pressed一般按鈕切逐題、有label及唯一id的題目select。保留原全場sequence、本題rank、完整組名與完整子題prompt／answer；未作答另區，不給順位。空受理顯示文字，資料錯誤只顯該區固定錯誤，保留進度、結果、匯出等操作。view與selectedQuestionId對應data-model既有欄位。
+- T047／T049：先新增answer-order-history.spec.ts，再建立HistoryLiveAnswers。waiting／active詳情以原useActivity訂閱原場，答案面板及原進度表同步；收到ended先保存snapshot，再唯一重讀detail更新保存資訊；非current訂閱拒絕也只重讀一次後停止。初始ended不訂閱，不輪詢、不建立活動。HistoryLive.state為live／refreshing／saved；卸載或scope變更AbortSignal取消請求、忽略舊回覆，按boot／authGeneration比對snapshot。
+- useActivity只新增前端本機errorCode以辨別ACTIVITY_UNAVAILABLE與暫時網路錯誤，沒有改Socket payload或學生DTO；http helper僅新增可選AbortSignal，所有原呼叫相容。HistoryDetailPage初次讀取亦取消舊請求，scope仍由Phase 3的teacher邊界隔離；student key不擴改。
+- T050–T051：ActivityPage與HistoryDetailPage取代舊散列div，保留ProgressTable、ResultsView、WritebackPanel及單場CSV下載。兩種序號使用明確欄名及不同文字標章，題組子題以分隔呈現；選中視角有可見勾號及aria-pressed，不僅靠顏色。長名／答案可換行，答案pre-wrap保留多行，表格可聚焦橫捲、焦點可見；不將全部答案設為aria-live廣播。
+- T052：student-projections.test.ts及anonymous-join-privacy.spec.ts無需改動，完整原斷言保留。完整回歸發現history-recovery.spec.ts原先期待已移除的「完整組名：已加入」散列文字，改以原ProgressTable具名rowheader及「已加入」狀態定位，保留完整名／重開／設定／帳號隔離／不讀Google全部斷言，不放寬權限或2秒目標。沒有backend、DB schema、Google、成功組或受理規則變更。
+
+### TDD and UI Evidence
+
+初次RED執行因max-failures=2在兩個歷史案例停止：缺少已受理答案面板、非current詳情停留舊active階段均實際失敗，其餘5項未執行不算RED。另單跑canonical全場／逐題案例，因面板／表格不存在而失敗；之後才實作。原紀錄在validation-results/feature-003-phase-4/red.log與panel-red.log。首輪實作後6過1敗，唯一重讀計數誤包含原SourcePage初始化讀取；測試等待教材頁初始化後才開始計數，保留「詳情初讀一次＋結束一次＝2次」斷言，7項通過，不透過改成3次來掩蓋輪詢。
+
+7項新Edge E2E涵蓋：canonical全場1–4與兩題各1–2、題組完整答案／未加入組及同場CSV一致；1280×720四組六題、40 UTF-16完整名及多行長答案、Enter／Space切視角、label選題、可聚焦橫捲與空狀態；缺submissions只顯局部錯誤；waiting／active歷史答案及進度2秒內同步、ended唯一一次重讀；stale非current詳情一次重讀且活動數／current不變；切帳號晚回覆拒收；實際停止／重啟隔離服務、boot改變後拒收舊詳情，重新合成授權才能恢復原帳號歷史。截圖及測試只含合成資料，沒有實際Google或個人瀏覽器profile操作。
+
+實際產生並檢視兩張Panel截圖，文字與子題可讀，兩種序號可辨，已補可見選中勾號：
+
+- validation-results/feature-003-phase-4/answer-order-global.png：四筆交錯全場收件與各題獨立rank。
+- validation-results/feature-003-phase-4/answer-order-question.png：第2題兩組完整子題與未加入第3組未作答，保留全場1／3而本題為1／2。
+
+截圖可由新E2E重建，均Git排除；這是工具視覺檢查，不替代T054維護者核對。鍵盤測試使用真實Edge按鍵與焦點操作；選單另以標籤定位切題驗值，沒有宣稱做過完整輔助科技人工認證。
+
+### Full Phase 4 Gate Results
+
+| 指令                     | 最終結果                         |
+| ------------------------ | -------------------------------- |
+| npm run typecheck        | exit0                            |
+| npm run lint             | exit0                            |
+| npm run format:check     | exit0                            |
+| npm run test:unit        | exit0，25檔／115項               |
+| npm run test:integration | exit0，21檔／95項                |
+| npm run test:contract    | exit0，10檔／19項                |
+| npm run test:e2e         | exit0，33項，31.8秒；含重新build |
+| npm run build            | exit0，三workspace成功           |
+
+合計262項（Phase 3的255＋本Phase 7項）通過。完整Gate的unit／integration／contract記錄於validation-results/feature-003-phase-4/final-_.log；E2E首輪32過1敗為上述舊文字定位失效，修正唯一test檔後重跑typecheck／lint／format／全E2E／build，最終為recovery-_.log與recovery-results.json。產品程式及unit／integration／contract未再變更，不無故重跑未受影響層級。舊失敗紀錄保留，未增加timeout或刪核心斷言。
+
+四張原已審閱PlantUML未改，重新-checkonly／-tsvg皆exit0，四份非空有效SVG在validation-results/feature-003-phase-4/diagrams；003九份Markdown格式與本機連結／任務狀態／範本殘留另驗，git diff --check通過。沒有extensions.yml，before／after_implement無hooks。所有測試用自身臨時DB／埠／合成授權，未重啟正式服務、讀正式憑證或修改Google教材；Phase 3 Excel政策與bytes未變，不重做已有效人工驗收。
+
+### T054 Maintainer Review Pending
+
+請核對兩張可見UI、上述鍵盤／即時／CSV一致性證據，以及本節、quickstart／spec／plan／data-model／contracts／tasks與實作及結果是否一致。T054與憲章V要求本階段人工核對，Phase 3確認不替代本項；未回覆不記通過。
+
+目前T001–T053已勾、T054及以後未勾；本Phase尚未commit或merge，因此無Phase 4合併hash，未push或部署。取得本階段核對後才依T055提交、合併main並補hash，再開始Phase 5複製活動連結。
+
+維護者回覆「確認一致，繼續」，完成Phase 4 UI／鍵盤驗證紀錄及文件的一致性核對。T054完成，據此依T055提交並合併，實際hash於合併後補記。

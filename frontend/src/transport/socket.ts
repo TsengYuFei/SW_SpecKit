@@ -3,6 +3,7 @@ import { io, type Socket } from 'socket.io-client';
 import type { Envelope } from '@classroom/shared/events/envelope';
 import type { ActivitySnapshot } from '@classroom/shared/projections/activity';
 import { newRequestId } from './request-id';
+import type { ErrorCode } from '@classroom/shared/schemas/common';
 
 interface AckSocket {
   connected: boolean;
@@ -51,6 +52,7 @@ export function useActivity(activityId: string, bootId: string) {
   const [snapshot, setSnapshot] = useState<ActivitySnapshot | null>(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState('');
+  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [busy, setBusy] = useState(false);
   const activeCommand = useRef(false);
   const pending = useRef<{
@@ -90,10 +92,14 @@ export function useActivity(activityId: string, bootId: string) {
           requestId: newRequestId(),
         })) as Envelope<ActivitySnapshot>;
         if (disposed || ticket !== epoch) return;
-        if (!response.ok) throw new Error(response.error.message);
+        if (!response.ok) {
+          setErrorCode(response.error.code);
+          throw new Error(response.error.message);
+        }
         apply(response.data);
         setConnected(true);
         setError('');
+        setErrorCode(null);
         if (pending.current && !activeCommand.current) {
           const prior = pending.current;
           const receipt = (await socket
@@ -118,6 +124,7 @@ export function useActivity(activityId: string, bootId: string) {
       if (!disposed && reason === 'io server disconnect') socket.connect();
     });
     socket.on('connect_error', () => {
+      setErrorCode('NETWORK_ERROR');
       setConnected(false);
       setError('連線中斷，請檢查網路；重新連線後會恢復本場活動。');
     });
@@ -188,6 +195,6 @@ export function useActivity(activityId: string, bootId: string) {
     },
     [activityId],
   );
-  return { snapshot, connected, error, busy, command };
+  return { snapshot, connected, error, errorCode, busy, command };
 }
 export type ActivityClient = ReturnType<typeof useActivity>;
