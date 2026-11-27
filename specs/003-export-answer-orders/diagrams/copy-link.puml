@@ -1,0 +1,32 @@
+@startuml
+!pragma layout smetana
+title Feature 003 - Copy Student Link with Honest Feedback
+actor Teacher
+participant "Copy button / same visible URL" as UI
+participant "Browser Clipboard" as Clipboard
+Teacher -> UI : Click / Enter / Space
+UI -> UI : validate URL, capture context + epoch; pending
+alt no supported clipboard capability
+  UI --> Teacher : explicit failure + selectable full URL
+else available
+  UI -> Clipboard : writeText(displayedStudentUrl) immediately
+  opt activity / auth / boot / unmount changes
+    UI -> UI : invalidate epoch and reset pending feedback
+  end
+  alt resolved and original context still valid
+    Clipboard --> UI : success
+    UI --> Teacher : copied confirmation within 1 second
+  else rejected and original context still valid
+    Clipboard --> UI : failure
+    UI --> Teacher : failure + manual copy instruction
+  else old context
+    Clipboard --> UI : late resolve / reject
+    UI -> UI : ignore stale feedback; never write old URL again
+  end
+end
+note over UI,Clipboard
+Never read clipboard, never await network before writeText.
+Do not claim existing browser write can be canceled or undone.
+A copied URL has no OAuth / CSRF / teacher cookie data.
+end note
+@enduml

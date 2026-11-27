@@ -1,0 +1,61 @@
+@startuml
+!pragma layout smetana
+title Feature 003 - Owner Export, Limits and Failure Paths
+actor Teacher
+participant "ExportResultsButton\nBinary helper" as UI
+participant "Teacher export route" as Route
+participant "Session / CSRF / Owner" as Auth
+participant "Resource gate" as Gate
+participant "Result reader" as Reader
+database SQLite
+participant "Pure order + CSV codec" as Codec
+Teacher -> UI : Click single activity export
+UI -> Route : GET /api/activities/:id/export.csv + CSRF
+Route -> Auth : validate session, origin, inputs, generation
+Auth -> SQLite : owner-filtered metadata / ended
+alt invalid identity, non-owner, phase or input
+  Auth --> Route : safe error
+  Route --> UI : JSON, no attachment
+else authorized ended activity
+  Route -> Gate : per-session rate + one generation slot
+  alt rate limited or busy
+    Gate --> Route : 429 RATE_LIMITED / 503 EXPORT_BUSY
+    Route --> UI : JSON + Retry-After
+  else admitted
+    Route -> Reader : bounded synchronous snapshot
+    Reader -> SQLite : BEGIN DEFERRED / preflight SELECT
+    Reader -> SQLite : source + questions + groups + submissions\nanswers + frozen results + next_sequence; verify; COMMIT
+    alt storage, consistency or size failure
+      Reader --> Route : safe error, rollback if needed
+      Route --> UI : JSON, no CSV bytes
+    else complete immutable input
+      Reader --> Route : ExportSnapshot
+      Route -> Codec : derive ranks, layout, safe text, BOM
+      loop bounded chunks, yield / deadline / cancellation
+        Codec -> Auth : ensure original generation and owner
+      end
+      alt revoked, canceled, deadline or any limit
+        Codec --> Route : safe failure
+        Route --> UI : JSON if connected, no attachment
+      else complete bounded bytes
+        Codec --> Route : Buffer + Taipei filename
+        Route -> Auth : final authorization check
+        Route --> UI : 200 CSV attachment, complete body
+        UI -> UI : check scope after blob; validate MIME / filename
+        alt same activity / boot / session / auth generation
+          UI -> UI : objectURL + anchor download, then revoke
+          UI --> Teacher : Download started (not disk-save proof)
+        else old context
+          UI -> UI : discard, no new download or stale feedback
+        end
+      end
+    end
+    Route -> Gate : finally release slot / buffers
+  end
+end
+note over Route,SQLite
+No mutation, receipt, job wake, Google read or write.
+HEAD explicitly returns 405 without invoking generator.
+Headers are not sent until complete validation succeeds.
+end note
+@enduml
