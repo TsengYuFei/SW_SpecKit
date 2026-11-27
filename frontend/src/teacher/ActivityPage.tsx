@@ -6,6 +6,7 @@ import { ProgressTable } from './ProgressTable';
 import { OperationStatus } from '../components/OperationStatus';
 import { ExportResultsButton } from './ExportResultsButton';
 import type { TeacherScope } from '../transport/download';
+import { CopyActivityLinkButton, isStudentLink } from '../components/CopyActivityLinkButton';
 
 export function ActivityPage({
   client,
@@ -19,6 +20,7 @@ export function ActivityPage({
   scope: TeacherScope;
 }) {
   const s = client.snapshot!;
+  const studentUrl = studentOrigin ? `${studentOrigin}/student/${s.activityId}` : '';
   return (
     <section id="activity" aria-label="活動控制" className="activity-panel">
       <div className="section-heading">
@@ -30,12 +32,20 @@ export function ActivityPage({
           {s.phase === 'waiting' ? '等待開始' : s.phase === 'active' ? '搶答進行中' : '搶答已結束'}
         </span>
       </div>
-      <p className="join-link">
-        學生加入連結：
-        <a href={`${studentOrigin}/student/${s.activityId}`} target="_blank" rel="noreferrer">
-          {studentOrigin}/student/{s.activityId}
-        </a>
-      </p>
+      <div className="join-link">
+        <p>
+          學生加入連結：
+          {isStudentLink(studentUrl, s.activityId) && (
+            <a href={studentUrl} target="_blank" rel="noreferrer">
+              {studentUrl}
+            </a>
+          )}
+        </p>
+        <CopyActivityLinkButton
+          studentUrl={studentUrl}
+          scope={{ ...scope, activityId: s.activityId }}
+        />
+      </div>
       <div className="action-row">
         <button
           disabled={!client.connected || client.busy || s.phase !== 'waiting' || !s.sourceReady}
