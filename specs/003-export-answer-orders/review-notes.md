@@ -178,3 +178,5 @@ T008–T016已完成，T017因本階段文件人工核對及合併未完成而�
 目前分支codex/003-phase-2-foundation，尚未commit／merge，故沒有Phase 2合併hash；未push或部署。CSV端點、結果讀取器、CSV／檔名／資源閘門、教師順位UI及複製按鈕仍未交付，不執行或宣稱Excel／下載性能驗收。維護者核對後才合併本Phase、記實際hash並開始Phase 3。
 
 維護者已回覆「Phase 2 文件已核對，內容一致」，T017人工核對完成，據此提交及合併，實際hash於合併後補記。
+
+Phase 2實作提交db5985b，合併main為0dd838cac8e7d9c058ab9999629bcf94233e3c57；本補記不新增產品行為，未push。
