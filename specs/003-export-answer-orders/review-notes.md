@@ -241,3 +241,5 @@ Phase 2實作提交db5985b，合併main為0dd838cac8e7d9c058ab9999629bcf94233e3c
 目前T001–T042完成，T043／T044及後續Phase未勾。分支codex/003-phase-3-csv-export尚未commit或merge，無Phase 3合併hash；未push、部署或重啟正式服務。維護者確認本階段文件後才依T044提交、合併main並記hash，再建立Phase 4新分支。
 
 維護者回覆「確認完成繼續」，完成本次Phase 3文件與實作／結果一致性核對。T043完成，據此依T044提交並合併，實際hash於合併後補記。Excel已確認結果不需重做。
+
+Phase 3實作提交6a2a254，合併main為d1cc14d9a88671639b28a765e98d3f114886e841。依T044補記hash，無產品行為變更，未push。
