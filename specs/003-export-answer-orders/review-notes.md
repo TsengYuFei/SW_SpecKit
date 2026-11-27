@@ -335,3 +335,5 @@ ActivityPage以單一studentUrl提供顯示文字、anchor href及CopyActivityLi
 請核對本節、quickstart及上述兩張介面截圖與實作／測試結果是否一致。T063及憲章V要求本階段UI／AI文件人工核對，Phase 4確認不能替代。現在T001–T062完成，T063／T064及Phase 6保持未勾；本階段尚未commit或merge，無Phase 5合併hash，未push或部署。取得本階段確認後，才依T064提交合併並開始Phase 6最終驗收。
 
 維護者明確回覆「Phase 5 文件與介面已核對，內容一致」，T063完成。依T064提交並合併main，實際hash於合併後補記。
+
+Phase 5實作提交6fc2e0b，合併main為522f5a9a9c27083574138625faaa111cfef25251。依T064補記hash，未push或部署。
