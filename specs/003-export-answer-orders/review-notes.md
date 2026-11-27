@@ -134,3 +134,5 @@ MVP為完成Setup／Foundational及US1，即所屬老師單場ended活動CSV，�
 目前T001–T006已勾，T007與Phase 2以後維持未勾；本Phase尚未提交或合併，沒有merge hash可填。CSV下載／順位UI／複製尚未實作；沒有Excel實測、真實Google測試或新端點性能結論。取得本階段核對後才commit／merge main、補記實際hash並進入Phase 2。
 
 維護者於本次回覆「審核完畢」，確認Phase 1實作後文件與結果一致。T007的人工核對已完成；據此提交並合併，實際hash於合併後補記。
+
+Phase 1實作提交：b6d6f40；合併main：10e4e3b1bba1be132f06ae564046667a452e04da。依T007補記hash，無產品行為變更，未push。
