@@ -1,0 +1,48 @@
+@startuml
+!pragma layout smetana
+title Feature 003 - Additive Read-only Result Features
+skinparam componentStyle rectangle
+actor Teacher
+actor Student
+package "Teacher UI (planned changes)" {
+  component "Current Activity / History Detail" as UI
+  component "AnswerOrderPanel" as Panel
+  component "Binary Download / Context Fence" as Download
+  component "CopyActivityLinkButton" as Copy
+}
+component "Shared Pure Answer Order" as Order
+package "Teacher Listener" {
+  component "Export Route / Owner + CSRF Guard" as Route
+  component "Export Gate / Bounded Generator" as Export
+  component "Synchronous Read Snapshot" as Read
+}
+database "Existing SQLite\n17 tables / no migration" as DB
+component "Existing Socket.IO\nrole projections / owner checks" as Socket
+component "Unchanged Student UI" as StudentUI
+component "Existing Google Source / Worker" as GoogleFlow
+cloud "Google Sheets" as Sheets
+Teacher --> UI
+UI --> Panel
+Panel --> Order
+UI --> Download
+UI --> Copy
+Download --> Route : GET one ended activity
+Route --> Export
+Export --> Read
+Read --> DB : bounded BEGIN DEFERRED / SELECT
+Export --> Order
+Export --> Download : complete BOM CSV or safe JSON error
+Socket --> UI : current + live history teacher snapshot
+Student --> StudentUI
+Socket --> StudentUI : unchanged student projection
+GoogleFlow --> Sheets : existing direct read/write only
+note bottom of Export
+No server-persisted CSV, rank table, receipt, job or source write.
+Never calls Google or installs a different current activity.
+Only one bounded generator; authorize again before response.
+end note
+note right of Copy
+Writes displayed student URL only on user activation.
+Never reads clipboard or includes teacher credentials.
+end note
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+!pragma layout smetana
+title Feature 003 - One Ranking Function for UI and CSV
+actor Teacher
+participant "Current Activity" as Current
+participant "History Detail" as History
+participant "Existing useActivity / Owner Socket" as Live
+participant "Saved detail reader" as Saved
+participant "AnswerOrderPanel" as Panel
+participant "deriveAnswerOrder" as Order
+participant "CSV encoder" as Csv
+Teacher -> Current : View current accepted answers
+Current -> Live : existing subscription
+Live --> Current : complete teacher snapshot
+Current -> Panel : questions, all groups, submissions
+Teacher -> History : Select own history
+History -> Saved : owner-protected detail
+Saved --> History : saved snapshot
+alt waiting / active original activity
+  History -> Live : subscribe original activity, same auth context
+  Live --> History : revisions within 2 seconds
+  opt ended or no longer current
+    History -> Saved : one guarded refresh; no reopen / retry loop
+  end
+else ended history
+  History -> History : use saved immutable answers
+end
+History -> Panel : effective teacher snapshot
+Panel -> Order : validate and derive, no mutations
+Order -> Order : global sequence sort once\nper-question dense rank\nall configured groups minus answered
+Order --> Panel : all + per-question entries / unanswered
+Teacher -> Panel : All receipts / By question + select
+Panel --> Teacher : explicit global sequence vs question rank\nfull group + labeled complete item answers
+Csv -> Order : same validated input
+Order --> Csv : identical ordering for every grouped subrow
+note over Order,Csv
+Question group has ONE submission order for all items.
+Unknown / duplicate / incomplete data is an error, never empty padding.
+Unjoined configured groups are unanswered, ordinal only.
+end note
+note over Live
+Student DTO and visibility unchanged.
+Account / boot changes invalidate old requests and subscriptions.
+end note
+@enduml
