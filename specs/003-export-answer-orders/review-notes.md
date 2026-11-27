@@ -438,3 +438,7 @@ download.ts現在只由模組內DownloadFailure承載本地固定訊息：合法
 請核對本Phase的缺口、修正、先失敗後通過證據、最新282項測試結果與執行中斷說明，以及spec／plan／contracts／quickstart／tasks與實作是否一致。T075明確要求本階段人工文件核對後才合併，憲章V規定「AI產生或修改的文件必須由人工審查」。先前Phase 6核對不替代本項；目前尚未commit／merge，沒有Phase 7實作／合併hash。取得核對後才完成提交合併main、補hash及勾選T075。
 
 維護者回覆「確認無誤」，完成Phase 7文件與實測一致性核對。據此依T075提交並合併main；實際hash與任務完成狀態於合併後補記。
+
+### T075 Final Merge Evidence
+
+Phase 7實作提交6722c67，合併main為8f6fd0ecab717926a3283112cadbc347ef060d4a。維護者核對完成後才合併，T001–T075全部完成。合併後僅同步完成狀態與hash，沒有產品或測試變更；重新檢查九份文件格式、77連結、75項任務／零待辦、四張有效SVG及git diff --check，最後文件提交後確認main工作樹乾淨。前述待審文字保留階段歷史，以本節為最終狀態。未push或部署，既有Excel與瀏覽器限制不變。

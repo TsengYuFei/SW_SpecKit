@@ -1,6 +1,6 @@
 # Quickstart: 本功能實作後的驗證流程
 
-003原六個Phase已合併；收斂檢查追加Phase 7／T075，補齊損壞JSON及非預期下載例外的安全提示，最新結果與人審門檻見review-notes.md。本文件提供可重現的驗證流程，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準；Excel及瀏覽器限制仍適用。
+003原六個Phase及收斂追加Phase 7均已測試、人工核對並合併main，282項測試通過；T075已補齊損壞JSON及非預期下載例外的安全提示，結果與hash見review-notes.md。本文件提供可重現的驗證流程，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準；Excel及瀏覽器限制仍適用。
 
 ## Prerequisites
 
