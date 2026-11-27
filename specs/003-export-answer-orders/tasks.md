@@ -6,7 +6,7 @@
 
 **Tests**: spec Assumptions與憲章IV明確要求正常及特殊情境測試，納入TDD、正式隔離SQLite／HTTP／E2E及Excel人工驗收；不是把範本可選測試一律塞入。
 
-**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1–4已測試、人審及合併；Phase 5複製活動連結已實作，本階段Gate、人審及合併依下列任務追蹤。
+**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1–5已測試、人審及合併；Phase 6最終驗收及文件核對依下列任務追蹤。
 
 ## Format and Path Conventions
 
@@ -156,15 +156,15 @@ npm run build
 
 **Independent Test / Checkpoint**: 全新功能與未被取代既有回歸、四圖及文件檢查全過，真實Excel有結論，零新增業務寫入或洩密，所有門檻與最終人工核對後合併。
 
-- [ ] T065 確認US3已merge main後建立本Phase新分支，於 specs/003-export-answer-orders/review-notes.md 記錄前置。
-- [ ] T066 [P] 在 tests/e2e/result-export-workflow.spec.ts 補連續流程：分組完整作答→結束→目前／歷史單場下載→兩視角比對→複製→重開歷史，於既有worker穩定後比對新操作不改DB／順位／job，保留Google直接流程；既有行為可首次通過，不製造假RED。
-- [ ] T067 [P] 在 tests/integration/result-export-performance.test.ts 補有界匯出與另一active活動同時收件／即時教師更新、不同session資源隔離、取消後可再生成的指定規模驗收；以真實臨時HTTP／SQLite量測，不只測純函數或mock時間。
-- [ ] T068 執行 package.json 全部Gate、四圖checkonly／重新渲染、明確003 Markdown格式與連結檢查，重跑新增及所有未取代舊案例，於 specs/003-export-answer-orders/review-notes.md 記實際數量／exit code，不能只沿用前Phase結果。
-- [ ] T069 核對 specs/003-export-answer-orders/review-notes.md 的US1 Excel版本／build／地區及安全文字實測證據；CSV／文字政策未變可引用該次有效結果，若後續變更影響輸出則按quickstart重做受影響人工驗收，未完成保持待辦。
-- [ ] T070 在 specs/003-export-answer-orders/tasks.md、review-notes.md 逐項核對FR／SC、data-model欄位引用、已受理整筆遺失／未加入組／帳號隔離／特殊字元／容量／限流／deadline／晚回覆等證據；未完成保持未勾，不以任務數充當功能證據。
-- [ ] T071 依實際程式與結果同步 specs/003-export-answer-orders/quickstart.md、contracts/interfaces.md、plan.md、review-notes.md，排除範本與錯誤欄位／連結；若流程改變先同步diagrams/\*.puml並重新人工設計審查，再修實作。
-- [ ] T072 在 specs/003-export-answer-orders/review-notes.md 組成最終審查包，列支援版本、剩餘限制、實際效能／Excel／完整測試與無機密產物證據，明確無新DB表或Google副作用。
-- [ ] T073 取得維護者對 specs/003-export-answer-orders/review-notes.md 最終AI文件與實測一致性的人工核對；不以先前Phase人審或「繼續」代替實際確認。
+- [x] T065 確認US3已merge main後建立本Phase新分支，於 specs/003-export-answer-orders/review-notes.md 記錄前置。
+- [x] T066 [P] 在 tests/e2e/result-export-workflow.spec.ts 補連續流程：分組完整作答→結束→目前／歷史單場下載→兩視角比對→複製→重開歷史，於既有worker穩定後比對新操作不改DB／順位／job，保留Google直接流程；既有行為可首次通過，不製造假RED。
+- [x] T067 [P] 在 tests/integration/result-export-performance.test.ts 補有界匯出與另一active活動同時收件／即時教師更新、不同session資源隔離、取消後可再生成的指定規模驗收；以真實臨時HTTP／SQLite量測，不只測純函數或mock時間。
+- [x] T068 執行 package.json 全部Gate、四圖checkonly／重新渲染、明確003 Markdown格式與連結檢查，重跑新增及所有未取代舊案例，於 specs/003-export-answer-orders/review-notes.md 記實際數量／exit code，不能只沿用前Phase結果。
+- [x] T069 核對 specs/003-export-answer-orders/review-notes.md 的US1 Excel版本／build／地區及安全文字實測證據；CSV／文字政策未變可引用該次有效結果，若後續變更影響輸出則按quickstart重做受影響人工驗收，未完成保持待辦。
+- [x] T070 在 specs/003-export-answer-orders/tasks.md、review-notes.md 逐項核對FR／SC、data-model欄位引用、已受理整筆遺失／未加入組／帳號隔離／特殊字元／容量／限流／deadline／晚回覆等證據；未完成保持未勾，不以任務數充當功能證據。
+- [x] T071 依實際程式與結果同步 specs/003-export-answer-orders/quickstart.md、contracts/interfaces.md、plan.md、review-notes.md，排除範本與錯誤欄位／連結；若流程改變先同步diagrams/\*.puml並重新人工設計審查，再修實作。
+- [x] T072 在 specs/003-export-answer-orders/review-notes.md 組成最終審查包，列支援版本、剩餘限制、實際效能／Excel／完整測試與無機密產物證據，明確無新DB表或Google副作用。
+- [x] T073 取得維護者對 specs/003-export-answer-orders/review-notes.md 最終AI文件與實測一致性的人工核對；不以先前Phase人審或「繼續」代替實際確認。
 - [ ] T074 所有門檻完成後commit／merge main，於 specs/003-export-answer-orders/review-notes.md 記最終實作／合併hash與限制，核對tasks全數完成、工作樹狀態；不自動push、部署或另改Google教材。
 
 ## Dependencies and Execution Order
