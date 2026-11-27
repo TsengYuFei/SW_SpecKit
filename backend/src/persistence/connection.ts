@@ -56,6 +56,7 @@ export function openDatabase(filePath: string, options: { readOnly?: boolean } =
     throw error instanceof AppError ? error : normalizeError(error);
   }
   let inTransaction = false;
+  let inReadSnapshot = false;
   let closed = false;
   let hooks: (() => void)[] = [];
   const log = createLogger();
@@ -72,8 +73,50 @@ export function openDatabase(filePath: string, options: { readOnly?: boolean } =
       if (!inTransaction) throw new AppError('INTERNAL_ERROR');
       hooks.push(action);
     },
+    readSnapshot<T>(action: () => T): T {
+      if (closed || inTransaction || inReadSnapshot) throw new AppError('INTERNAL_ERROR');
+      const queryOnly = database.prepare('PRAGMA query_only').get()!.query_only;
+      let began = false;
+      inReadSnapshot = true;
+      try {
+        database.exec('PRAGMA query_only=ON');
+        database.exec('BEGIN DEFERRED');
+        began = true;
+        const result = action();
+        if (result instanceof Promise) {
+          // Reject asynchronous callbacks, while consuming a rejection without logging its payload.
+          void result.catch(() => undefined);
+          throw new AppError('INTERNAL_ERROR');
+        }
+        if (
+          result !== null &&
+          (typeof result === 'object' || typeof result === 'function') &&
+          'then' in result &&
+          typeof result.then === 'function'
+        )
+          throw new AppError('INTERNAL_ERROR');
+        database.exec('COMMIT');
+        began = false;
+        return result;
+      } catch (error) {
+        if (began) {
+          try {
+            database.exec('ROLLBACK');
+          } catch {
+            /* Preserve the original safe failure. */
+          }
+        }
+        throw normalizeError(error);
+      } finally {
+        try {
+          database.exec(queryOnly === 1 ? 'PRAGMA query_only=ON' : 'PRAGMA query_only=OFF');
+        } finally {
+          inReadSnapshot = false;
+        }
+      }
+    },
     transaction<T>(action: () => T): T {
-      if (inTransaction) throw new AppError('INTERNAL_ERROR');
+      if (inTransaction || inReadSnapshot) throw new AppError('INTERNAL_ERROR');
       try {
         database.exec('BEGIN IMMEDIATE');
         inTransaction = true;
@@ -106,7 +149,7 @@ export function openDatabase(filePath: string, options: { readOnly?: boolean } =
     },
     close() {
       if (closed) return;
-      if (inTransaction) throw new AppError('STORAGE_UNAVAILABLE');
+      if (inTransaction || inReadSnapshot) throw new AppError('STORAGE_UNAVAILABLE');
       try {
         database.exec('PRAGMA wal_checkpoint(TRUNCATE)');
       } finally {

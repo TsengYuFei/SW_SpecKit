@@ -1,6 +1,6 @@
 # Quickstart: 本功能實作後的驗證流程
 
-本文件是驗證指南，不是功能已存在的證明。003已完成Phase 1的T001–T006設計核對、基線與隔離fixture；CSV端點、順位介面、複製功能、人工Excel與匯出性能驗收仍待後續Phase，不沿用002結果宣稱003功能通過。具體欄位與數字只以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準。
+本文件是驗證指南，不是所有功能已存在的證明。003 Phase 1已測試、人審及合併；Phase 2已建立共同純順位、輸入schema、同步唯讀快照與安全錯誤碼，驗證及合併門檻見review-notes.md。CSV端點、順位介面、複製功能、人工Excel與匯出性能驗收仍待後續Phase。具體欄位與數字只以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準。
 
 ## Prerequisites
 
@@ -47,6 +47,8 @@ Phase 1已新增`tests/helpers/result-export.ts`的`resultExportFixture()`與6�
 預期第1題順位為乙、甲，第2題為甲、乙；答案正誤不影響排名。全場仍顯1–4。第3組每題皆未作答，只顯系統組號。Amax=2、Umax=1，CSV一列表頭＋三資料列、每列9欄；第1題子題空，題組兩列共用甲／乙順位。欄內引號或換行的額外案例另用獨立fixture，不以逗號split當CSV驗證器。
 
 ## End-to-End Scenarios
+
+Phase 2可單獨驗證`tests/unit/answer-order.test.ts`、`tests/unit/result-export-errors.test.ts`、`tests/integration/export-read-snapshot.test.ts`與`tests/contract/result-export-schema.test.ts`。`deriveAnswerOrder`共用原sequence導出全場／各題順位；`parseAnswerOrderInput`顯式選取既有teacher欄位，不將缺少submissions當作空陣列，也不trim已保存答案。`connection.readSnapshot`為同步唯讀交易，禁止寫入／巢狀／Promise或thenable／afterCommit，還原query_only及交易旗標。新增EXPORT_BUSY／EXPORT_TOO_LARGE僅錯誤契約已就緒，尚無可操作的匯出端點。以下端到端新功能仍待後續實作。
 
 1. teacher A於目前活動進行中查看「全部收件」及「依題目」，對照上表；送出新的完整答案後，兩個視角及仍active的歷史詳情皆2秒內更新。切題、切視角、長文及鍵盤焦點不得影響排名。
 2. waiting／active匯出按鈕不可用且有原因；直接請求也409。正常結束該合成場後，從目前場下載，再從歷史選同一場下載；兩者內容相同，不必匯出其他活動，回填pending／conflict／failed也可下載。

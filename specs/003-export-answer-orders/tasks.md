@@ -6,7 +6,7 @@
 
 **Tests**: spec Assumptions與憲章IV明確要求正常及特殊情境測試，納入TDD、正式隔離SQLite／HTTP／E2E及Excel人工驗收；不是把範本可選測試一律塞入。
 
-**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。初始清單全部未勾；現依實際完成結果追蹤，T007仍須本階段文件人工核對及合併。
+**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1已測試、人審及合併；Phase 2依實際結果追蹤，T017仍須本階段文件人工核對及合併。
 
 ## Format and Path Conventions
 
@@ -63,16 +63,16 @@ npm run build
 
 **Independent Test / Checkpoint**: 同一teacher資料導出一致全場／逐題順序；空／缺漏／重複資料可辨，query_only與交易旗標於成功及失敗後恢復，學生DTO不變。
 
-- [ ] T008 確認Phase 1已測試、人審及merge main，建立本Phase新分支，記 specs/003-export-answer-orders/review-notes.md。
-- [ ] T009 [P] 先在 tests/unit/answer-order.test.ts 驗交錯sequence／同timestamp、single／完整題組、零受理／未加入組、重複group-question／sequence／缺item拒絕、1..N連續、完整名與輸入不突變，記錄新功能缺少的RED。
-- [ ] T010 [P] 先在 tests/integration/export-read-snapshot.test.ts 驗真實臨時SQLite的readSnapshot一致讀取、寫入／巢狀／Promise／afterCommit拒絕、callback拋錯及query_only原值／讀寫旗標恢復，不讓測試變成正式DB操作。
-- [ ] T011 [P] 先在 tests/unit/result-export-errors.test.ts 驗EXPORT_BUSY／EXPORT_TOO_LARGE的安全HTTP／retryable映射及無效合成值不進錯誤／logger，保留原錯誤契約。
-- [ ] T012 [P] 先在 tests/contract/result-export-schema.test.ts 驗實際teacher snapshot可映成所需輸入、未加入空名及額外既有metadata的顯式pick，student缺submissions不當作零受理，無新student／Socket欄位。
-- [ ] T013 在 shared/src/schemas/result-export.ts 定義並顯式pick純順位輸入、重用既有名稱／答案規則；依 [data-model.md](data-model.md#field-citation-index) `AnswerOrderInput.questions`、`AnswerOrderInput.questions[].id`、`AnswerOrderInput.questions[].displayNumber`、`AnswerOrderInput.questions[].kind`、`AnswerOrderInput.questions[].items`、`AnswerOrderInput.questions[].items[].id`、`AnswerOrderInput.questions[].items[].label`、`AnswerOrderInput.questions[].items[].prompt`、`AnswerOrderInput.groups`、`AnswerOrderInput.groups[].id`、`AnswerOrderInput.groups[].ordinal`、`AnswerOrderInput.groups[].name`、`AnswerOrderInput.groups[].occupied`、`AnswerOrderInput.submissions`、`AnswerOrderInput.submissions[].id`、`AnswerOrderInput.submissions[].groupId`、`AnswerOrderInput.submissions[].questionId`、`AnswerOrderInput.submissions[].sequence`、`AnswerOrderInput.submissions[].answers` 的canonical定義，不得把既有id誤改為新的wire欄位。
-- [ ] T014 在 shared/src/projections/answer-order.ts 實作唯一純deriveAnswerOrder及型別化失敗、重用group-name formatter；依 [data-model.md](data-model.md#field-citation-index) `OrderedAnswer.submissionId`、`OrderedAnswer.questionId`、`OrderedAnswer.groupId`、`OrderedAnswer.fullGroupName`、`OrderedAnswer.globalSequence`、`OrderedAnswer.questionRank`、`OrderedAnswer.items`、`OrderedAnswer.items[].itemId`、`OrderedAnswer.items[].label`、`OrderedAnswer.items[].prompt`、`OrderedAnswer.items[].answer`、`QuestionOrder.questionId`、`QuestionOrder.displayNumber`、`QuestionOrder.kind`、`QuestionOrder.items`、`QuestionOrder.entries`、`QuestionOrder.unansweredGroups`、`QuestionOrder.unansweredGroups[].groupId`、`QuestionOrder.unansweredGroups[].ordinal`、`QuestionOrder.unansweredGroups[].fullGroupName`、`AnswerOrderView.all`、`AnswerOrderView.questions` 的canonical定義；型別若需由result-export.ts匯出同步處理，無新持久排名。
-- [ ] T015 在 backend/src/persistence/connection.ts 實作data-model.md ExportSnapshot章的同步readSnapshot：保存並暫設query_only、BEGIN DEFERRED、COMMIT／ROLLBACK與finally恢復，與既有寫交易互斥；不await、不改寫原BEGIN IMMEDIATE語意，使對應測試通過。
-- [ ] T016 在 shared/src/schemas/common.ts、backend/src/security/safe-errors.ts 加入契約兩種匯出安全錯誤碼與allowlist映射，沿用logger事件白名單；不得把payload／headers／內部例外帶出。
-- [ ] T017 將基礎驗證及測試結果同步 specs/003-export-answer-orders/review-notes.md、quickstart.md，完整Gate與四圖通過且維護者核對本階段AI文件後commit／merge main，記實際hash。
+- [x] T008 確認Phase 1已測試、人審及merge main，建立本Phase新分支，記 specs/003-export-answer-orders/review-notes.md。
+- [x] T009 [P] 先在 tests/unit/answer-order.test.ts 驗交錯sequence／同timestamp、single／完整題組、零受理／未加入組、重複group-question／sequence／缺item拒絕、1..N連續、完整名與輸入不突變，記錄新功能缺少的RED。
+- [x] T010 [P] 先在 tests/integration/export-read-snapshot.test.ts 驗真實臨時SQLite的readSnapshot一致讀取、寫入／巢狀／Promise／afterCommit拒絕、callback拋錯及query_only原值／讀寫旗標恢復，不讓測試變成正式DB操作。
+- [x] T011 [P] 先在 tests/unit/result-export-errors.test.ts 驗EXPORT_BUSY／EXPORT_TOO_LARGE的安全HTTP／retryable映射及無效合成值不進錯誤／logger，保留原錯誤契約。
+- [x] T012 [P] 先在 tests/contract/result-export-schema.test.ts 驗實際teacher snapshot可映成所需輸入、未加入空名及額外既有metadata的顯式pick，student缺submissions不當作零受理，無新student／Socket欄位。
+- [x] T013 在 shared/src/schemas/result-export.ts 定義並顯式pick純順位輸入、重用既有名稱／答案規則；依 [data-model.md](data-model.md#field-citation-index) `AnswerOrderInput.questions`、`AnswerOrderInput.questions[].id`、`AnswerOrderInput.questions[].displayNumber`、`AnswerOrderInput.questions[].kind`、`AnswerOrderInput.questions[].items`、`AnswerOrderInput.questions[].items[].id`、`AnswerOrderInput.questions[].items[].label`、`AnswerOrderInput.questions[].items[].prompt`、`AnswerOrderInput.groups`、`AnswerOrderInput.groups[].id`、`AnswerOrderInput.groups[].ordinal`、`AnswerOrderInput.groups[].name`、`AnswerOrderInput.groups[].occupied`、`AnswerOrderInput.submissions`、`AnswerOrderInput.submissions[].id`、`AnswerOrderInput.submissions[].groupId`、`AnswerOrderInput.submissions[].questionId`、`AnswerOrderInput.submissions[].sequence`、`AnswerOrderInput.submissions[].answers` 的canonical定義，不得把既有id誤改為新的wire欄位。
+- [x] T014 在 shared/src/projections/answer-order.ts 實作唯一純deriveAnswerOrder及型別化失敗、重用group-name formatter；依 [data-model.md](data-model.md#field-citation-index) `OrderedAnswer.submissionId`、`OrderedAnswer.questionId`、`OrderedAnswer.groupId`、`OrderedAnswer.fullGroupName`、`OrderedAnswer.globalSequence`、`OrderedAnswer.questionRank`、`OrderedAnswer.items`、`OrderedAnswer.items[].itemId`、`OrderedAnswer.items[].label`、`OrderedAnswer.items[].prompt`、`OrderedAnswer.items[].answer`、`QuestionOrder.questionId`、`QuestionOrder.displayNumber`、`QuestionOrder.kind`、`QuestionOrder.items`、`QuestionOrder.entries`、`QuestionOrder.unansweredGroups`、`QuestionOrder.unansweredGroups[].groupId`、`QuestionOrder.unansweredGroups[].ordinal`、`QuestionOrder.unansweredGroups[].fullGroupName`、`AnswerOrderView.all`、`AnswerOrderView.questions` 的canonical定義；型別若需由result-export.ts匯出同步處理，無新持久排名。
+- [x] T015 在 backend/src/persistence/connection.ts 實作data-model.md ExportSnapshot章的同步readSnapshot：保存並暫設query_only、BEGIN DEFERRED、COMMIT／ROLLBACK與finally恢復，與既有寫交易互斥；不await、不改寫原BEGIN IMMEDIATE語意，使對應測試通過。
+- [x] T016 在 shared/src/schemas/common.ts、backend/src/security/safe-errors.ts 加入契約兩種匯出安全錯誤碼與allowlist映射，沿用logger事件白名單；不得把payload／headers／內部例外帶出。
+- [x] T017 將基礎驗證及測試結果同步 specs/003-export-answer-orders/review-notes.md、quickstart.md，完整Gate與四圖通過且維護者核對本階段AI文件後commit／merge main，記實際hash。
 
 ## Phase 3: User Story 1 — 單場已結束活動CSV下載 (P1 / MVP)
 

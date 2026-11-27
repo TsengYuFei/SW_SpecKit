@@ -1,6 +1,6 @@
 # Data Model: 結果匯出與教師收件順位
 
-本文件為預定設計，尚未實作。既有SQLite 17表／110欄不變，不新增migration或永久實體。模型同時受 [spec.md](spec.md)、[research.md](research.md) 及 [介面契約](contracts/interfaces.md) 約束。
+本文件為設計與實作對照：Phase 2已建立AnswerOrderInput、OrderedAnswer、QuestionOrder、AnswerOrderView及同步readSnapshot；ExportSnapshot讀取器、CSV／下載／UI狀態仍待後續Phase。既有SQLite 17表／110欄不變，不新增migration或永久實體。模型同時受 [spec.md](spec.md)、[research.md](research.md) 及 [介面契約](contracts/interfaces.md) 約束。
 
 ## Existing Persistence Sources
 

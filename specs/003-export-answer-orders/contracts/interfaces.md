@@ -1,6 +1,6 @@
 # Interface Contracts: CSV 匯出與教師順位／複製介面
 
-預定契約，尚未實作。需求與模型以 [spec.md](../spec.md)、[data-model.md](../data-model.md) 為準；數值上限集中參照 [research R4](../research.md#r4-有界匯出與完整性)。既有HTTP JSON及Socket命令／投影不做破壞性變更。
+Phase 2已建立Shared Answer Order Contract對應的純函式／輸入schema，以及EXPORT_BUSY／EXPORT_TOO_LARGE安全錯誤映射；下載端點、CSV、資源閘門與教師新UI仍為預定契約。需求與模型以 [spec.md](../spec.md)、[data-model.md](../data-model.md) 為準；數值上限集中參照 [research R4](../research.md#r4-有界匯出與完整性)。既有HTTP JSON及Socket命令／投影不做破壞性變更。
 
 ## Teacher HTTP Download
 
