@@ -293,3 +293,5 @@ Phase 3實作提交6a2a254，合併main為d1cc14d9a88671639b28a765e98d3f114886e8
 目前T001–T053已勾、T054及以後未勾；本Phase尚未commit或merge，因此無Phase 4合併hash，未push或部署。取得本階段核對後才依T055提交、合併main並補hash，再開始Phase 5複製活動連結。
 
 維護者回覆「確認一致，繼續」，完成Phase 4 UI／鍵盤驗證紀錄及文件的一致性核對。T054完成，據此依T055提交並合併，實際hash於合併後補記。
+
+Phase 4實作提交ca784c9，合併main為5e19c4df64900caf06bd599249c217b198b9c0e4。依T055補記hash，無產品行為變更，未push。
