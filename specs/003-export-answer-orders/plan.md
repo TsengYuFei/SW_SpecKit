@@ -1,10 +1,10 @@
 # Implementation Plan: 活動結果 CSV 匯出與收件順位呈現
 
-**Branch**: main（Phase 6由codex/003-phase-6-final依T074合併） | **Date**: 2026-11-27 | **Spec**: [spec.md](spec.md)
+**Branch**: codex/003-phase-7-safe-download-errors（依收斂任務T075建立） | **Date**: 2026-11-27 | **Spec**: [spec.md](spec.md)
 
 **Input**: 003功能規格及兩項釐清：檔名活動名稱取建場保存的試算表名稱，未加入的預設組別仍列未作答、只顯示系統組號。
 
-**Status**: 六個Phase均已測試、人工核對並合併main。275項測試及最終連續操作、並行收答、取消回收、精確四組六題含題組驗收通過，CSV及Excel有效證據保留。結果、hash與限制見 [review-notes.md](review-notes.md)。
+**Status**: 原六個Phase已完成並合併；Phase 7依T075補齊既有安全錯誤路徑，下載模組正規化非預期例外，UI只採用模組內安全訊息，沒有新wire或流程。全Gate與本階段文件核對依 [review-notes.md](review-notes.md) 追蹤，CSV及Excel有效證據保留。
 
 ## Summary
 

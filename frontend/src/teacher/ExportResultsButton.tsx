@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { downloadResults, type TeacherScope } from '../transport/download';
+import { downloadErrorMessage, downloadResults, type TeacherScope } from '../transport/download';
 export function ExportResultsButton({
   activityId,
   phase,
@@ -55,7 +55,7 @@ export function ExportResultsButton({
     } catch (error) {
       if (valid()) {
         setState('error');
-        setMessage(error instanceof Error ? error.message : '無法匯出結果，未開始下載。');
+        setMessage(downloadErrorMessage(error));
       }
     }
   }

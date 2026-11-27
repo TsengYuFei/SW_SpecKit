@@ -90,6 +90,10 @@ CSV encoder與AnswerOrderPanel共用此函數，保證同一input的all、per-qu
 - 使用者啟用後立即writeText，不先await fetch、不讀clipboard。pending停用連點；resolve確認才顯示「已複製活動連結」，失敗／能力缺少顯示role=alert並提供可選網址及手動複製提示。
 - feedback於已知結果後1秒內出現，成功用role=status，不只色彩。URL、帳號、boot或元件epoch變更忽略舊promise，不能將舊結果套新場；不宣稱能取消瀏覽器已接收的clipboard寫入。
 
+### Download Error Boundary
+
+Phase 7補齊既有錯誤契約：download.ts僅以模組內DownloadFailure承載固定中文訊息，downloadErrorMessage只接受此型別，其他任意Error（即使name相同）或字串均使用固定失敗提示。合法JSON錯誤仍只取allowlist code，不取message；非200損壞／空白JSON、解析或body讀取的非預期例外，不傳遞原始本文／exception text／cause。ExportResultsButton不直接顯示任意error.message，保留原scope取消、無下載成功提示及可再次手動操作；不新增診斷日誌、HTTP或Socket欄位。
+
 ## Compatibility and Acceptance
 
 無新migration、Google scopes、Google API呼叫、學生route或Socket資料；舊活動及恢復規則保留。CSV只是結果下載，不能輸入成Guided Notes或改變end自動回填。此契約正常、拒絕、資料損壞、大小邊界、晚回覆及Excel人工驗收均須列入後續tasks與[quickstart](../quickstart.md)，不得以研究文件或前版168項結果替代。

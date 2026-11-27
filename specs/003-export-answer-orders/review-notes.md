@@ -399,3 +399,42 @@ T069引用Phase 3有效人工Excel證據：Microsoft Office執行檔16.0.20625.2
 ### T074 Final Merge Evidence
 
 Phase 6實作與驗收提交為fcdd310，合併main為9a30eae152a9395c90cd91b58ce6dd793ad7a7e8。T001–T074全數完成，六個Phase各自使用新分支並於測試及人工核對後依序合併。合併後只同步完成狀態與hash，未修改產品或測試；重新檢查九份文件格式、77連結、74項任務／零待辦、四圖及欄位對照。工作樹於最後文件提交後核對，未push或部署。前述待審段落保留各階段歷史狀態，以本節最終證據為準；既有Excel及瀏覽器限制不變。
+
+## Phase 7 Convergence Fix and Validation
+
+T075來自converge F1：非200且宣告application/json的損壞回應，使response.json()拋出包含本文片段的SyntaxError，原按鈕將error.message直接顯示。從main基準916dacbc55118cbb15b6ecf95c30bec2602e91af建立codex/003-phase-7-safe-download-errors，保留已追加任務及原有成果。requirements品質清單16／16，沒有未完成清單項目；既有ignore已涵蓋臨時DB、build、測試產物及機密，不另新增依賴。
+
+實作前核對原已審閱export-sequence.puml的safe error及JSON失敗路徑、architecture的safe JSON error邊界。此次只落實既有錯誤契約，沒有改互動、wire、API、活動狀態或資料流程，四圖不須改動；重新checkonly／tsvg皆exit0，四份非空有效SVG在validation-results/feature-003-phase-7/diagrams。
+
+### T075 Test-First and Error Boundary
+
+先新增6項E2E：非200損壞JSON、空白JSON、response.json()非預期例外、成功CSV回應的body讀取例外、合法EXPORT_BUSY及未知錯誤碼。實作前4項失敗、2項既有行為通過（40.5秒）；不是將合法錯誤碼案例造假為RED。新增單元邊界案例也先失敗，因downloadErrorMessage尚不存在，其餘16項當次未執行、不計為失敗。
+
+download.ts現在只由模組內DownloadFailure承載本地固定訊息：合法JSON只取allowlist code，維持原有安全提示；損壞JSON及非預期例外轉固定中文「無法匯出結果，未開始下載。」；TypeError維持固定連線失敗提示，沒有帶入原始exception或cause。ExportResultsButton透過downloadErrorMessage顯示訊息，任意Error或字串，即使偽造DownloadFailure的name，也不被當成安全訊息。原scope、epoch、AbortSignal及objectURL清理保持有效，不增加logger。
+
+修正後新增6項E2E皆通過（12.6秒），實際驗證畫面與browser console／pageerror不含無效合成標記、下載事件為0、不顯示已開始下載且按鈕恢復；合法EXPORT_BUSY維持原中文訊息。下載單元測試17項全過，含新增的任意錯誤與偽造name防護，合法模組錯誤仍可取得指定提示。紀錄red.log、red-unit.log、target-e2e.log保留在本Phase validation-results子目錄；僅使用自身臨時DB／埠／合成Google，不讀正式資料、憑證或瀏覽器profile。
+
+### Phase 7 Full Gate Results
+
+| 指令                     | 實際結果               |
+| ------------------------ | ---------------------- |
+| npm run typecheck        | exit0                  |
+| npm run lint             | exit0                  |
+| npm run format:check     | exit0                  |
+| npm run test:unit        | exit0，25檔116項       |
+| npm run test:integration | exit0，21檔96項        |
+| npm run test:contract    | exit0，10檔19項        |
+| npm run test:e2e         | exit0，51項，41.2秒    |
+| npm run build            | exit0，三workspace成功 |
+
+合計282項（原275＋1項unit＋6項E2E），所有未取代既有案例保留。首次完整執行的前六指令均exit0，之後驗證行程在E2E內的frontend建置途中中斷，沒有該段完成結果，不計為通過；保留final-test-e2e.log，重新執行全部E2E及build皆exit0，結果在validation-results/feature-003-phase-7/recovery-results.json、recovery-_.log。前六指令證據在同目錄final-results.json、final-_.log，產品與測試未在兩次執行間改動。未把行程中斷稱作產品測試失敗，也未沿用前Phase測試數冒充本Phase。
+
+本Phase原正常匯出、BOM／檔名、兩視角、Clipboard、重啟與帳號隔離、scope取消、Google直接讀寫／自動回填回歸均通過。原指定規模標準匯出42ms，並行匯出101ms、另一場收答及教師更新84ms，沒有新增效能限制或DB／Google副作用。CSV編碼／安全文字／檔名未修改，沿用原有效Excel人工證據及舊式匯入精靈CR／LF限制，無須重做不受影響人工開檔。
+
+九份003 Markdown明確Prettier、77本機連結、75項連續任務、四張有效SVG、範本殘留0及git diff --check另驗。T001–T074完成，T075仍包含本階段人工文件核對與合併，故保持未勾，不能只因程式測試通過就提前完成。沒有新增套件、DB表、migration、HTTP／Socket欄位、Google呼叫、診斷log或真實憑證；所有驗收產物仍Git排除，未主動停止或重啟正式服務、修改Google教材、push或部署。extensions.yml不存在，沒有before／after_implement hooks。
+
+### T075 Maintainer Review Pending
+
+請核對本Phase的缺口、修正、先失敗後通過證據、最新282項測試結果與執行中斷說明，以及spec／plan／contracts／quickstart／tasks與實作是否一致。T075明確要求本階段人工文件核對後才合併，憲章V規定「AI產生或修改的文件必須由人工審查」。先前Phase 6核對不替代本項；目前尚未commit／merge，沒有Phase 7實作／合併hash。取得核對後才完成提交合併main、補hash及勾選T075。
+
+維護者回覆「確認無誤」，完成Phase 7文件與實測一致性核對。據此依T075提交並合併main；實際hash與任務完成狀態於合併後補記。

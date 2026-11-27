@@ -1,6 +1,6 @@
 # Quickstart: 本功能實作後的驗證流程
 
-003六個Phase已完成測試、人工核對並合併main，275項測試通過；CSV及Excel直接開啟、連續操作、並行收答及指定畫面驗證證據見review-notes.md。本文件提供可重現的驗證流程，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準；Excel及瀏覽器限制仍適用。
+003原六個Phase已合併；收斂檢查追加Phase 7／T075，補齊損壞JSON及非預期下載例外的安全提示，最新結果與人審門檻見review-notes.md。本文件提供可重現的驗證流程，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準；Excel及瀏覽器限制仍適用。
 
 ## Prerequisites
 
@@ -79,6 +79,8 @@ Phase 2／3測試及CSV入口可持續驗證；老師目前或歷史單場活動
 超限精確案例至少包含16,383欄可接受／16,385欄拒絕的layout邊界、總列含表頭、cell32,767／32,768 UTF-16、253／254 LF，以及prefix／quoting後大小跨界；需與其他更小資源界線隔離測試，不能因早先限制擋住就冒稱測到Excel邊界。只用合成字串，不使用真實公式外連或可執行命令。
 
 Phase 6另以`e2e/result-export-workflow.spec.ts`驗證完整題組作答→結束自動回填並讀回確認→目前與歷史CSV bytes一致→雙視角→複製→重新開啟歷史，全SQLite資料表及回填寫入次數前後一致；第二案例精確使用四組、六題（含兩子題題組）、40字組名、多行答案及1280×720鍵盤操作，對應SC-007與SC-010。`integration/result-export-performance.test.ts`使用真實臨時HTTP／SQLite與Socket.IO，驗30組／20題／40列匯出生成期間另一老師的活動收答及即時更新，另驗不同session限流隔離、取消生成實際回報EXPORT_BUSY後slot可再用。僅fixture長答案擴充以觸發真實合作式讓出，不mock時間或產品encoder；實際量測見review-notes。
+
+Phase 7在`e2e/result-export.spec.ts`補6種安全錯誤：非200損壞JSON、空白JSON、解析例外、成功回應body讀取例外、合法錯誤碼及未知錯誤碼。使用無效合成標記確認畫面／browser diagnostics不反映本文或原始例外、下載次數為0、不顯示開始下載且按鈕恢復；合法EXPORT_BUSY保留可理解的原提示。`unit/download.test.ts`另驗偽造錯誤name與任意字串不被UI安全邊界信任。這些情境不需要真實憑證或Excel，CSV bytes與安全文字政策未變。
 
 ## Excel Manual Acceptance
 

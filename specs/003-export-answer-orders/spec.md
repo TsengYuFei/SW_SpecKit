@@ -1,12 +1,12 @@
 # Feature Specification: 活動結果 CSV 匯出與收件順位呈現
 
-**Feature Branch**: main（六個Phase使用獨立分支，均已合併；見tasks.md及review-notes.md）
+**Feature Branch**: codex/003-phase-7-safe-download-errors（原六個Phase已合併，收斂修正另建分支）
 
 **Feature Directory**: specs/003-export-answer-orders
 
 **Created**: 2026-11-27
 
-**Status**: 已完成 — 六個Phase均已測試、人工核對並合併main，275項測試通過，T001–T074完成。實際結果、合併hash與使用限制見review-notes.md。
+**Status**: 收斂修正中 — 原六個Phase已合併，T001–T074完成；Phase 7／T075修正下載錯誤本文經解析例外顯示的缺口。最新驗證與人工核對門檻見review-notes.md。
 
 **Input**: 老師可在活動結束後，選取自己單一活動下載結果 CSV。每個子題一列，單題的子題欄留空；依各題搶答順位展開各組答案，題組各子題共用順位。未作答組別另列、不給順位，各列欄位數一致，不足留空。使用 UTF-8 BOM、正確處理逗號／換行／引號，檔名為 `搶答結果_活動名稱_活動ID_YYYYMMDD-HHmmss.csv`，採臺灣匯出時間與完整活動 ID。另提供活動連結複製按鈕，老師已受理答案同時保留全場收件順序、增加個別題目收件順位並改善辨識。Guided Notes 繼續直接讀寫 Google Sheets。
 
