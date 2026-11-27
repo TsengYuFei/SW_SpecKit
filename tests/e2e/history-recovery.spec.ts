@@ -34,11 +34,13 @@ test('restores saved settings and history after reload and page reopening, clear
       .getByRole('region', { name: '歷史活動', exact: true })
       .getByRole('button', { name: /查看 教材一/ })
       .click();
-    await expect(
-      page
-        .getByRole('region', { name: '歷史活動詳情' })
-        .getByText('第1組-帳號A專用：已加入', { exact: true }),
-    ).toBeVisible();
+    const joinedGroup = page
+      .getByRole('region', { name: '歷史活動詳情' })
+      .getByRole('table', { name: '各組作答狀況', exact: true })
+      .getByRole('row')
+      .filter({ has: page.getByRole('rowheader', { name: '第1組-帳號A專用', exact: true }) });
+    await expect(joinedGroup).toBeVisible();
+    await expect(joinedGroup).toContainText('已加入');
     await c.client.connect('owner-b');
     await expect(page.getByText('目前沒有已保存活動。', { exact: true })).toBeVisible();
     await expect(page.getByText(/第1組-帳號A專用/)).toHaveCount(0);

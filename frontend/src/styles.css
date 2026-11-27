@@ -639,3 +639,134 @@ summary {
       border-color 0.15s ease;
   }
 }
+
+.answer-order-panel {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: #fff;
+}
+.answer-order-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: end;
+  margin: 0.8rem 0;
+}
+.answer-order-controls [role='group'] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.answer-order-controls button {
+  margin: 0;
+}
+.answer-order-controls button[aria-pressed='true'] {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.answer-order-controls button[aria-pressed='false'] {
+  background: white;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.answer-order-select {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 10rem;
+}
+.answer-order-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 0.45rem;
+}
+.answer-order-scroll:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.answer-order-table {
+  width: 100%;
+  min-width: 54rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.answer-order-table caption {
+  padding: 0.75rem;
+  font-weight: 700;
+  text-align: left;
+  background: #f5f8fb;
+}
+.answer-order-table th,
+.answer-order-table td {
+  padding: 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.answer-order-table thead {
+  background: #edf2f7;
+}
+.answer-order-table th:nth-child(1) {
+  width: 8rem;
+}
+.answer-order-table th:nth-child(2) {
+  width: 5rem;
+}
+.answer-order-table th:nth-child(3) {
+  width: 9rem;
+}
+.answer-order-table th:nth-child(4) {
+  width: 12rem;
+}
+.receipt-sequence,
+.question-rank {
+  display: inline-block;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.3rem;
+  font-weight: 700;
+}
+.receipt-sequence {
+  background: #eaf3ff;
+  color: #254d7b;
+}
+.question-rank {
+  background: #fff4d8;
+  color: #6c4f0b;
+}
+.receipt-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.receipt-items li + li {
+  margin-top: 0.8rem;
+  padding-top: 0.65rem;
+  border-top: 1px dashed var(--line);
+}
+.receipt-prompt {
+  margin: 0 0 0.35rem;
+  color: var(--muted);
+}
+.receipt-answer {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.unanswered-groups ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+}
+.unanswered-groups li {
+  max-width: 100%;
+  padding: 0.4rem 0.65rem;
+  background: #f2f4f7;
+  border-radius: 0.35rem;
+  overflow-wrap: anywhere;
+}

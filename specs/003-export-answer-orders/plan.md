@@ -1,10 +1,10 @@
 # Implementation Plan: 活動結果 CSV 匯出與收件順位呈現
 
-**Branch**: codex/003-phase-3-csv-export（Phase 2已合併main後依T018建立） | **Date**: 2026-11-27 | **Spec**: [spec.md](spec.md)
+**Branch**: codex/003-phase-4-answer-order（Phase 3已合併main後依T045建立） | **Date**: 2026-11-27 | **Spec**: [spec.md](spec.md)
 
 **Input**: 003功能規格及兩項釐清：檔名活動名稱取建場保存的試算表名稱，未加入的預設組別仍列未作答、只顯示系統組號。
 
-**Status**: Phase 1／2已測試、人審並合併。Phase 3已建立一致唯讀結果讀取器、CSV／檔名／資源閘門、teacher端點與目前／歷史下載入口；255項測試、靜態檢查、建置與四圖通過，Excel直接開啟已人工確認，尚待本階段文件核對及合併。教師雙視角與複製功能仍待後續Phase。結果與限制見 [review-notes.md](review-notes.md)。
+**Status**: Phase 1–3已測試、人審並合併，CSV及Excel證據保留。Phase 4共用雙視角Panel與歷史原場訂閱／一次重讀已完成，262項測試、靜態檢查、建置及四圖通過，尚待本階段UI／文件核對及合併；複製功能仍待Phase 5。結果與限制見 [review-notes.md](review-notes.md)。
 
 ## Summary
 
@@ -95,6 +95,8 @@ frontend/src/
 ├── components/Classroom.tsx             # 改：傳非機密下載／複製context
 ├── components/CopyActivityLinkButton.tsx # 新：立即write、成功／備援
 ├── transport/download.ts                # 新：binary／abort／scope／URL清理
+├── transport/http.ts                    # 改：JSON helper可選AbortSignal，舊呼叫相容
+├── transport/socket.ts                  # 改：本機client errorCode辨別非current，wire不變
 ├── teacher/ExportResultsButton.tsx      # 新：單場控制與安全文字提示
 ├── teacher/AnswerOrderPanel.tsx         # 新：全部／逐題共用元件
 ├── teacher/HistoryLiveAnswers.tsx       # 新：原活動訂閱與一次detail刷新

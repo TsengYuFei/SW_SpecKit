@@ -6,7 +6,7 @@
 
 **Tests**: spec Assumptions與憲章IV明確要求正常及特殊情境測試，納入TDD、正式隔離SQLite／HTTP／E2E及Excel人工驗收；不是把範本可選測試一律塞入。
 
-**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1／2已測試、人審及合併；Phase 3的T018–T042已完成，T043本階段文件人工核對及T044合併仍待辦。
+**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1–3已測試、人審及合併；Phase 4的T045–T053已完成，T054本階段UI／文件核對及T055合併仍待辦。
 
 ## Format and Path Conventions
 
@@ -118,17 +118,17 @@ npm run build
 
 **Independent Test / Checkpoint**: 交錯四筆結果可直接辨識全場1–4與兩題各1–2；active history及目前頁兩視角2秒內更新，40字／長文與鍵盤可讀，ended與CSV一致且學生無新增資料。
 
-- [ ] T045 [US2] 確認US1已測試／人審並merge main後建立本Phase新分支，記 specs/003-export-answer-orders/review-notes.md。
-- [ ] T046 [P] [US2] 先在 tests/e2e/answer-order.spec.ts 定義全部／逐題兩視角、題目select、交錯排名／完整題組／未加入組／空狀態、40字／特殊字／長文／鍵盤與同場CSV排序一致的RED案例。
-- [ ] T047 [P] [US2] 先在 tests/e2e/answer-order-history.spec.ts 定義waiting／active原場歷史live、ended一次刷新、非current一次重讀不循環、切帳號／boot晚回覆與2秒更新案例，使用隔離真實活動流程。
-- [ ] T048 [US2] 在 frontend/src/teacher/AnswerOrderPanel.tsx 實作兩個aria-pressed一般button、帶label題目select、全部／逐題內容與錯誤／空狀態；依 [data-model.md](data-model.md#field-citation-index) `AnswerOrderPanel.view`、`AnswerOrderPanel.selectedQuestionId`，使用已驗證的AnswerOrderView，不另算排名。
-- [ ] T049 [US2] 在 frontend/src/teacher/HistoryLiveAnswers.tsx 實作既有useActivity原場訂閱、ended／非current一次detail刷新及取消護欄；依 [data-model.md](data-model.md#field-citation-index) `HistoryLive.state`，不輪詢、不重建活動、不將舊scope資料顯為新帳號。
-- [ ] T050 [US2] 在 frontend/src/teacher/ActivityPage.tsx、frontend/src/teacher/HistoryDetailPage.tsx 整合共用Panel與live wrapper，取代舊div／按組散列答案，保留ProgressTable／ResultsView／writeback與US1下載；資料錯誤只顯該區錯誤，不使整頁render失敗。
-- [ ] T051 [US2] 在 frontend/src/styles.css 完成題號、全場序號、本題順位、完整組名與子題答案的可讀排版、長文換行及可聚焦橫捲；所有差異有文字、鍵盤焦點可見，不加自動讀出全部答案的廣播。
-- [ ] T052 [US2] 重跑並必要時僅調整 tests/contract/student-projections.test.ts、tests/e2e/anonymous-join-privacy.spec.ts 的畫面定位，保留全部權限／隱題／受理／完整名／2秒斷言，新增教師UI不得擴student projection或改成功組。
-- [ ] T053 [US2] 執行完整Gate與四圖，將目前／歷史／CSV一致性、鍵盤及可讀性證據與實際測試數記 specs/003-export-answer-orders/review-notes.md，更新quickstart.md的已實作範圍。
-- [ ] T054 [US2] 請維護者核對本階段可見UI／鍵盤及 specs/003-export-answer-orders/review-notes.md、quickstart.md 與實作／結果一致；未回覆不填通過，US1核對不替代本項。
-- [ ] T055 [US2] 本Phase全門檻通過後commit／merge main，於 specs/003-export-answer-orders/review-notes.md 記合併hash及限制，不提前開始US3。
+- [x] T045 [US2] 確認US1已測試／人審並merge main後建立本Phase新分支，記 specs/003-export-answer-orders/review-notes.md。
+- [x] T046 [P] [US2] 先在 tests/e2e/answer-order.spec.ts 定義全部／逐題兩視角、題目select、交錯排名／完整題組／未加入組／空狀態、40字／特殊字／長文／鍵盤與同場CSV排序一致的RED案例。
+- [x] T047 [P] [US2] 先在 tests/e2e/answer-order-history.spec.ts 定義waiting／active原場歷史live、ended一次刷新、非current一次重讀不循環、切帳號／boot晚回覆與2秒更新案例，使用隔離真實活動流程。
+- [x] T048 [US2] 在 frontend/src/teacher/AnswerOrderPanel.tsx 實作兩個aria-pressed一般button、帶label題目select、全部／逐題內容與錯誤／空狀態；依 [data-model.md](data-model.md#field-citation-index) `AnswerOrderPanel.view`、`AnswerOrderPanel.selectedQuestionId`，使用已驗證的AnswerOrderView，不另算排名。
+- [x] T049 [US2] 在 frontend/src/teacher/HistoryLiveAnswers.tsx 實作既有useActivity原場訂閱、ended／非current一次detail刷新及取消護欄；依 [data-model.md](data-model.md#field-citation-index) `HistoryLive.state`，不輪詢、不重建活動、不將舊scope資料顯為新帳號。
+- [x] T050 [US2] 在 frontend/src/teacher/ActivityPage.tsx、frontend/src/teacher/HistoryDetailPage.tsx 整合共用Panel與live wrapper，取代舊div／按組散列答案，保留ProgressTable／ResultsView／writeback與US1下載；資料錯誤只顯該區錯誤，不使整頁render失敗。
+- [x] T051 [US2] 在 frontend/src/styles.css 完成題號、全場序號、本題順位、完整組名與子題答案的可讀排版、長文換行及可聚焦橫捲；所有差異有文字、鍵盤焦點可見，不加自動讀出全部答案的廣播。
+- [x] T052 [US2] 重跑並必要時僅調整 tests/contract/student-projections.test.ts、tests/e2e/anonymous-join-privacy.spec.ts 的畫面定位，保留全部權限／隱題／受理／完整名／2秒斷言，新增教師UI不得擴student projection或改成功組。
+- [x] T053 [US2] 執行完整Gate與四圖，將目前／歷史／CSV一致性、鍵盤及可讀性證據與實際測試數記 specs/003-export-answer-orders/review-notes.md，更新quickstart.md的已實作範圍。
+- [x] T054 [US2] 請維護者核對本階段可見UI／鍵盤及 specs/003-export-answer-orders/review-notes.md、quickstart.md 與實作／結果一致；未回覆不填通過，US1核對不替代本項。
+- [x] T055 [US2] 本Phase全門檻通過後commit／merge main，於 specs/003-export-answer-orders/review-notes.md 記合併hash及限制，不提前開始US3。
 
 ## Phase 5: User Story 3 — 複製活動連結 (P2)
 

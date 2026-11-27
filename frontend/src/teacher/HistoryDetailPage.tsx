@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { ActivitySnapshot } from '@classroom/shared/projections/activity';
 import { historyDetailSchema, type HistoryDetail } from '@classroom/shared/schemas/history';
-import { fullGroupName } from '@classroom/shared/formatters/group-name';
+import { HistoryLiveAnswers } from './HistoryLiveAnswers';
 import { ResultsView } from '../components/ResultsView';
 import { WritebackPanel } from './WritebackPanel';
 import { http } from '../transport/http';
@@ -21,11 +22,23 @@ export function HistoryDetailPage({
 }) {
   const [detail, setDetail] = useState<HistoryDetail | null>(null),
     [error, setError] = useState('');
+  const updateSnapshot = useCallback((snapshot: ActivitySnapshot) => {
+    setDetail((current) =>
+      current &&
+      current.activityId === snapshot.activityId &&
+      current.snapshot.bootId === snapshot.bootId &&
+      current.snapshot.authGeneration === snapshot.authGeneration &&
+      snapshot.revision >= current.snapshot.revision
+        ? { ...current, phase: snapshot.phase, snapshot }
+        : current,
+    );
+  }, []);
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
     setDetail(null);
     setError('');
-    void http('/api/activities/' + activityId)
+    void http('/api/activities/' + activityId, undefined, undefined, { signal: controller.signal })
       .then((value) => {
         if (active) setDetail(historyDetailSchema.parse(value));
       })
@@ -34,8 +47,9 @@ export function HistoryDetailPage({
       });
     return () => {
       active = false;
+      controller.abort();
     };
-  }, [activityId]);
+  }, [activityId, scope.bootId, scope.sessionVersion, scope.authGeneration]);
   return (
     <section aria-label="歷史活動詳情">
       <h3>活動紀錄</h3>
@@ -66,30 +80,18 @@ export function HistoryDetailPage({
             scope={scope}
           />
           <ProgressTable snapshot={detail.snapshot} />
-          <h4>組別與已受理答案</h4>
-          {detail.snapshot.groups.map((group) => (
-            <div key={group.id}>
-              <p>
-                {fullGroupName(group)}：{group.occupied ? '已加入' : '未加入'}
-              </p>
-              {detail.snapshot.submissions
-                ?.filter((answer) => answer.groupId === group.id)
-                .map((answer) => (
-                  <div key={answer.id}>
-                    第{' '}
-                    {
-                      detail.snapshot.questions.find(
-                        (question) => question.id === answer.questionId,
-                      )?.displayNumber
-                    }{' '}
-                    題，收件序號 {answer.sequence}
-                    {Object.entries(answer.answers).map(([id, value]) => (
-                      <p key={id}>{value}</p>
-                    ))}
-                  </div>
-                ))}
-            </div>
-          ))}
+          <HistoryLiveAnswers
+            key={JSON.stringify([
+              activityId,
+              scope.bootId,
+              scope.sessionVersion,
+              scope.authGeneration,
+            ])}
+            detail={detail}
+            scope={scope}
+            onDetail={setDetail}
+            onSnapshot={updateSnapshot}
+          />
           <details>
             <summary>當時題目與填空位置</summary>
             {detail.source?.questions.map((question) => (

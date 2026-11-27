@@ -1,4 +1,4 @@
-import { fullGroupName } from '@classroom/shared/formatters/group-name';
+import { AnswerOrderPanel } from './AnswerOrderPanel';
 import type { ActivityClient } from '../transport/socket';
 import { ResultsView } from '../components/ResultsView';
 import { WritebackPanel } from './WritebackPanel';
@@ -89,19 +89,7 @@ export function ActivityPage({
         <OperationStatus>尚無答案，等待各組提交完整作答。</OperationStatus>
       )}
       <ProgressTable snapshot={s} />
-      <details className="answer-log">
-        <summary>全組已受理答案</summary>
-        {s.submissions?.map((item) => (
-          <div key={item.id}>
-            {fullGroupName(s.groups.find((g) => g.id === item.groupId)!)}，題目{' '}
-            {s.questions.find((q) => q.id === item.questionId)?.displayNumber}，收件序號{' '}
-            {item.sequence}
-            {Object.entries(item.answers).map(([id, value]) => (
-              <p key={id}>{value}</p>
-            ))}
-          </div>
-        ))}
-      </details>
+      <AnswerOrderPanel snapshot={s} />
       {s.phase === 'ended' && (
         <>
           <ResultsView snapshot={s} />
