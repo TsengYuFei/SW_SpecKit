@@ -1,6 +1,6 @@
 # Data Model: 結果匯出與教師收件順位
 
-本文件為設計與實作對照：Phase 2共同順位與readSnapshot、Phase 3 CSV／下載模型、Phase 4 AnswerOrderPanel及HistoryLive、Phase 5 Copy狀態與scope防護均已完成並合併。Phase 6最終驗收門檻依tasks.md追蹤。既有SQLite 17表／110欄不變，不新增migration或永久實體。模型受 [spec.md](spec.md)、[research.md](research.md) 及 [介面契約](contracts/interfaces.md) 約束。
+本文件為設計與實作對照：共同順位與readSnapshot、CSV／下載模型、AnswerOrderPanel及HistoryLive、Copy狀態與scope防護均已完成，Phase 6最終驗收及人工核對通過，六個Phase已合併main。既有SQLite 17表／110欄不變，不新增migration或永久實體。模型受 [spec.md](spec.md)、[research.md](research.md) 及 [介面契約](contracts/interfaces.md) 約束。
 
 ## Existing Persistence Sources
 

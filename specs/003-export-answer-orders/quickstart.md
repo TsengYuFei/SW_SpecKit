@@ -1,6 +1,6 @@
 # Quickstart: 本功能實作後的驗證流程
 
-本文件是驗證指南，不是所有功能已驗收的證明。003 Phase 1–5已合併，CSV及Excel直接開啟證據有效；Phase 6完成連續操作、並行收答及指定畫面驗證，最終UI／文件核對與合併仍待完成。結果與限制見review-notes.md，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準。
+003六個Phase已完成測試、人工核對並合併main，275項測試通過；CSV及Excel直接開啟、連續操作、並行收答及指定畫面驗證證據見review-notes.md。本文件提供可重現的驗證流程，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準；Excel及瀏覽器限制仍適用。
 
 ## Prerequisites
 

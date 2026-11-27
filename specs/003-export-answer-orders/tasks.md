@@ -6,7 +6,7 @@
 
 **Tests**: spec Assumptions與憲章IV明確要求正常及特殊情境測試，納入TDD、正式隔離SQLite／HTTP／E2E及Excel人工驗收；不是把範本可選測試一律塞入。
 
-**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1–5已測試、人審及合併；Phase 6最終驗收及文件核對依下列任務追蹤。
+**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。六個Phase均已測試、人審及合併main，T001–T074全部完成；實際提交與合併hash見review-notes.md。
 
 ## Format and Path Conventions
 
@@ -165,7 +165,7 @@ npm run build
 - [x] T071 依實際程式與結果同步 specs/003-export-answer-orders/quickstart.md、contracts/interfaces.md、plan.md、review-notes.md，排除範本與錯誤欄位／連結；若流程改變先同步diagrams/\*.puml並重新人工設計審查，再修實作。
 - [x] T072 在 specs/003-export-answer-orders/review-notes.md 組成最終審查包，列支援版本、剩餘限制、實際效能／Excel／完整測試與無機密產物證據，明確無新DB表或Google副作用。
 - [x] T073 取得維護者對 specs/003-export-answer-orders/review-notes.md 最終AI文件與實測一致性的人工核對；不以先前Phase人審或「繼續」代替實際確認。
-- [ ] T074 所有門檻完成後commit／merge main，於 specs/003-export-answer-orders/review-notes.md 記最終實作／合併hash與限制，核對tasks全數完成、工作樹狀態；不自動push、部署或另改Google教材。
+- [x] T074 所有門檻完成後commit／merge main，於 specs/003-export-answer-orders/review-notes.md 記最終實作／合併hash與限制，核對tasks全數完成、工作樹狀態；不自動push、部署或另改Google教材。
 
 ## Dependencies and Execution Order
 

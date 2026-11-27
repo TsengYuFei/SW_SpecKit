@@ -1,10 +1,10 @@
 # Implementation Plan: 活動結果 CSV 匯出與收件順位呈現
 
-**Branch**: codex/003-phase-6-final（Phase 5已合併main後依T065建立） | **Date**: 2026-11-27 | **Spec**: [spec.md](spec.md)
+**Branch**: main（Phase 6由codex/003-phase-6-final依T074合併） | **Date**: 2026-11-27 | **Spec**: [spec.md](spec.md)
 
 **Input**: 003功能規格及兩項釐清：檔名活動名稱取建場保存的試算表名稱，未加入的預設組別仍列未作答、只顯示系統組號。
 
-**Status**: Phase 1–5已測試、人審並合併，CSV及Excel證據保留。Phase 6補上跨功能連續操作、另一帳號活動的並行收答、取消回收及精確四組六題含題組驗收，尚待最終AI文件人工核對及合併。結果與限制見 [review-notes.md](review-notes.md)。
+**Status**: 六個Phase均已測試、人工核對並合併main。275項測試及最終連續操作、並行收答、取消回收、精確四組六題含題組驗收通過，CSV及Excel有效證據保留。結果、hash與限制見 [review-notes.md](review-notes.md)。
 
 ## Summary
 

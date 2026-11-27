@@ -395,3 +395,7 @@ T069引用Phase 3有效人工Excel證據：Microsoft Office執行檔16.0.20625.2
 請核對本Phase新增驗收、指定畫面截圖、完整Gate、FR／SC／欄位對照、Excel人工證據沿用與限制，以及quickstart／spec／plan／data-model／contracts／tasks是否與實際結果一致。依T073與憲章V「AI產生或修改的文件必須由人工審查」，Phase 5核對不替代最終審查。目前T001–T072完成，T073及T074未完成；Phase 6尚未commit／merge，沒有最終合併hash。確認後才提交合併main並補hash，核對全部74項及工作樹。
 
 維護者針對上述最終審閱包回覆「沒問題，繼續」，確認內容一致並授權完成合併；T073完成。依T074提交Phase 6並合併main，實際hash與最終狀態於合併後補記。
+
+### T074 Final Merge Evidence
+
+Phase 6實作與驗收提交為fcdd310，合併main為9a30eae152a9395c90cd91b58ce6dd793ad7a7e8。T001–T074全數完成，六個Phase各自使用新分支並於測試及人工核對後依序合併。合併後只同步完成狀態與hash，未修改產品或測試；重新檢查九份文件格式、77連結、74項任務／零待辦、四圖及欄位對照。工作樹於最後文件提交後核對，未push或部署。前述待審段落保留各階段歷史狀態，以本節最終證據為準；既有Excel及瀏覽器限制不變。
