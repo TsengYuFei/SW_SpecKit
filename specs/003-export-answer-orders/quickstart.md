@@ -1,6 +1,6 @@
 # Quickstart: 本功能實作後的驗證流程
 
-本文件是驗證指南，不是所有功能已驗收的證明。003 Phase 1–3已合併，CSV及Excel直接開啟證據有效；Phase 4雙視角與歷史即時更新已建立，本階段UI／文件核對與合併仍待完成。複製連結及最終驗收待後續Phase。結果與限制見review-notes.md，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準。
+本文件是驗證指南，不是所有功能已驗收的證明。003 Phase 1–4已合併，CSV及Excel直接開啟證據有效；Phase 5已建立複製連結及手動備援，本階段UI／文件核對與合併仍待完成，最終驗收待Phase 6。結果與限制見review-notes.md，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準。
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ Phase 1已新增`tests/helpers/result-export.ts`的`resultExportFixture()`與6�
 
 ## End-to-End Scenarios
 
-Phase 2／3測試及CSV入口可持續驗證；老師目前或歷史單場活動已結束後可按「下載本場 CSV」，等待／active停用並說明原因；失敗不假下載，成功只說「已開始下載」。Phase 4兩處老師頁均有「全部收件」／「依題目」，選中視角有勾號與aria-pressed，逐題以有label的選單選題；兩種視角都區別全場序號及本題順位，題組各小題完整展示，未作答另區。表格可聚焦橫向捲動，長文字保留換行；學生資料不擴增。waiting／active歷史訂閱原場，進度表與答案一併更新；ended或非current唯一重讀一次detail後停止訂閱，不輪詢、不建立活動。切帳號／boot取消舊請求。以下CSV及雙視角情境可執行，複製仍待Phase 5。
+Phase 2／3測試及CSV入口可持續驗證；老師目前或歷史單場活動已結束後可按「下載本場 CSV」，等待／active停用並說明原因；失敗不假下載，成功只說「已開始下載」。Phase 4兩處老師頁均有「全部收件」／「依題目」，選中視角有勾號與aria-pressed，逐題以有label的選單選題；兩種視角都區別全場序號及本題順位，題組各小題完整展示，未作答另區。表格可聚焦橫向捲動，長文字保留換行；學生資料不擴增。waiting／active歷史訂閱原場，進度表與答案一併更新；ended或非current唯一重讀一次detail後停止訂閱，不輪詢、不建立活動。切帳號／boot取消舊請求。Phase 5目前活動連結旁提供「複製活動連結」：pending停用、resolve才成功；失敗顯示可選取的唯讀網址與手動操作提示，無有效連結停用並說明。以下CSV、雙視角與複製情境均可執行。
 
 1. teacher A於目前活動進行中查看「全部收件」及「依題目」，對照上表；送出新的完整答案後，兩個視角及仍active的歷史詳情皆2秒內更新。切題、切視角、長文及鍵盤焦點不得影響排名。
 2. waiting／active匯出按鈕不可用且有原因；直接請求也409。正常結束該合成場後，從目前場下載，再從歷史選同一場下載；兩者內容相同，不必匯出其他活動，回填pending／conflict／failed也可下載。
@@ -56,7 +56,7 @@ Phase 2／3測試及CSV入口可持續驗證；老師目前或歷史單場活動
 4. 將Google adapter讀／寫設為會失敗，仍能匯出合法本機ended歷史；確認沒有呼叫Google、增加job／receipt、改current slot或phase／revision。另測重啟後原老師重新授權可下載同場，學生URL與身分規則不變。損壞fixture須先刪非winner的submission_answers再刪其submission，保留winner及next_sequence：應拒絕STORAGE_CORRUPT，不得列成未作答；亦驗組別ordinal缺號或超出group_count。
 5. 以學生、無session、無Google授權、老師B、無效UUID、非空query／body、缺CSRF、錯Origin測拒絕；HEAD405且不生成。所有失敗不得帶CSV attachment或觸發anchor，其他owner與不存在同404。
 6. 增加30組／20題／40資料列正常規模，記下載生成耗時≤5秒；另測尺寸超限、同時生成、5秒窗限流、失敗／取消釋放slot、deadline與切帳號，對照契約安全錯誤，不截斷資料。
-7. 在老師目前場用滑鼠及鍵盤複製顯示URL，確認同一完整studentOrigin、port及UUID；模擬writeText resolve／reject／不存在能力，成功或已知失敗後1秒內回饋。自動化只能在隔離測試context檢查剪貼簿，產品元件不讀clipboard。
+7. 在老師目前場用滑鼠及鍵盤複製顯示URL，確認同一完整studentOrigin、port及UUID；模擬writeText resolve／reject／不存在能力，成功或已知失敗後1秒內回饋。自動化以隔離context的模擬writeText及可控制promise檢查參數，不讀寫使用者實際剪貼簿；產品亦不讀clipboard。
 8. 下載fetch／body或clipboard promise延遲時切活動、帳號、boot或卸載，舊結果不能觸發新下載／新回饋；blob URL必須清理。已送進瀏覽器的下載／剪貼簿操作不宣稱可撤回。
 
 ## Validation Matrix

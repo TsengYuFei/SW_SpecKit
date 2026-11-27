@@ -1,6 +1,6 @@
 # Interface Contracts: CSV 匯出與教師順位／複製介面
 
-Phase 2／3共同順位與CSV下載已完成；Phase 4已建立AnswerOrderPanel／HistoryLiveAnswers並保留原下載／進度／結果／回填，交付門檻依tasks.md追蹤。CopyActivityLinkButton仍為預定契約。需求以 [spec.md](../spec.md)、[data-model.md](../data-model.md) 為準；數值上限集中參照 [research R4](../research.md#r4-有界匯出與完整性)。既有HTTP JSON及Socket wire不變。
+Phase 2／3共同順位與CSV下載、Phase 4 AnswerOrderPanel／HistoryLiveAnswers已完成並合併；Phase 5已實作CopyActivityLinkButton，保留原下載／進度／結果／回填，交付門檻依tasks.md追蹤。需求以 [spec.md](../spec.md)、[data-model.md](../data-model.md) 為準；數值上限集中參照 [research R4](../research.md#r4-有界匯出與完整性)。既有HTTP JSON及Socket wire不變。
 
 ## Teacher HTTP Download
 

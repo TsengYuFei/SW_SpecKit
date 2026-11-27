@@ -6,7 +6,7 @@
 
 **Tests**: spec Assumptions與憲章IV明確要求正常及特殊情境測試，納入TDD、正式隔離SQLite／HTTP／E2E及Excel人工驗收；不是把範本可選測試一律塞入。
 
-**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1–3已測試、人審及合併；Phase 4的T045–T053已完成，T054本階段UI／文件核對及T055合併仍待辦。
+**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1–4已測試、人審及合併；Phase 5複製活動連結已實作，本階段Gate、人審及合併依下列任務追蹤。
 
 ## Format and Path Conventions
 
@@ -138,15 +138,15 @@ npm run build
 
 **Independent Test / Checkpoint**: click／Enter／Space得到正確host／port／完整UUID；resolve才成功、reject／無能力可手動複製，切活動／帳號後舊promise不回饋，產品不讀clipboard。
 
-- [ ] T056 [US3] 確認US2已merge main後建立本Phase新分支，記 specs/003-export-answer-orders/review-notes.md。
-- [ ] T057 [P] [US3] 先在 tests/e2e/copy-activity-link.spec.ts 定義精確顯示URL、click／Enter／Space、resolve／reject／無能力、pending停用與手動可選網址，驗已知結果後1秒回饋及產品只write不read。
-- [ ] T058 [P] [US3] 先在 tests/e2e/copy-link-scope.spec.ts 定義URL／帳號／boot／卸載與延遲promise、連點／無連結案例，舊結果不得套新scope或再次寫舊URL，不宣稱撤回已送瀏覽器的寫入。
-- [ ] T059 [US3] 在 frontend/src/components/CopyActivityLinkButton.tsx 實作立即writeText、能力判斷、pending／resolve／reject及epoch防護；依 [data-model.md](data-model.md#field-citation-index) `Copy.state`、`Copy.studentUrl` 及OperationScope原定義，保持原字串、無網路等待與clipboard讀取。
-- [ ] T060 [US3] 在 frontend/src/teacher/ActivityPage.tsx 將anchor與複製按鈕共用同一完整studentUrl，傳當場非機密scope，無有效連結停用並明示原因；不新增分享API、權杖、QR或代發訊息。
-- [ ] T061 [US3] 在 frontend/src/styles.css 完成長URL換行／可選取、按鈕與role=status／alert提示的鍵盤焦點及可讀性，避免僅用顏色回饋，不影響兩種答案視角。
-- [ ] T062 [US3] 執行全Gate與四圖，記正確複製／備援／晚promise及原下載／順位回歸於 specs/003-export-answer-orders/review-notes.md，更新quickstart.md，不以使用者真實剪貼簿作自動化fixture。
-- [ ] T063 [US3] 取得維護者對 specs/003-export-answer-orders/review-notes.md、quickstart.md 本階段介面與結果的人工核對，未確認不記通過。
-- [ ] T064 [US3] 本Phase驗證與人審完成後commit／merge main，於 specs/003-export-answer-orders/review-notes.md 補hash，不push或部署。
+- [x] T056 [US3] 確認US2已merge main後建立本Phase新分支，記 specs/003-export-answer-orders/review-notes.md。
+- [x] T057 [P] [US3] 先在 tests/e2e/copy-activity-link.spec.ts 定義精確顯示URL、click／Enter／Space、resolve／reject／無能力、pending停用與手動可選網址，驗已知結果後1秒回饋及產品只write不read。
+- [x] T058 [P] [US3] 先在 tests/e2e/copy-link-scope.spec.ts 定義URL／帳號／boot／卸載與延遲promise、連點／無連結案例，舊結果不得套新scope或再次寫舊URL，不宣稱撤回已送瀏覽器的寫入。
+- [x] T059 [US3] 在 frontend/src/components/CopyActivityLinkButton.tsx 實作立即writeText、能力判斷、pending／resolve／reject及epoch防護；依 [data-model.md](data-model.md#field-citation-index) `Copy.state`、`Copy.studentUrl` 及OperationScope原定義，保持原字串、無網路等待與clipboard讀取。
+- [x] T060 [US3] 在 frontend/src/teacher/ActivityPage.tsx 將anchor與複製按鈕共用同一完整studentUrl，傳當場非機密scope，無有效連結停用並明示原因；不新增分享API、權杖、QR或代發訊息。
+- [x] T061 [US3] 在 frontend/src/styles.css 完成長URL換行／可選取、按鈕與role=status／alert提示的鍵盤焦點及可讀性，避免僅用顏色回饋，不影響兩種答案視角。
+- [x] T062 [US3] 執行全Gate與四圖，記正確複製／備援／晚promise及原下載／順位回歸於 specs/003-export-answer-orders/review-notes.md，更新quickstart.md，不以使用者真實剪貼簿作自動化fixture。
+- [x] T063 [US3] 取得維護者對 specs/003-export-answer-orders/review-notes.md、quickstart.md 本階段介面與結果的人工核對，未確認不記通過。
+- [x] T064 [US3] 本Phase驗證與人審完成後commit／merge main，於 specs/003-export-answer-orders/review-notes.md 補hash，不push或部署。
 
 ## Phase 6: Polish and Cross-Cutting — 最終驗收
 

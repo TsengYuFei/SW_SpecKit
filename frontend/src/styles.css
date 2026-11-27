@@ -181,6 +181,21 @@ section section {
   background: #f7fafc;
   font-size: 0.86rem;
 }
+.join-link a {
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.copy-activity-link p {
+  margin-block: 0.5rem;
+}
+.copy-activity-link input {
+  font-family: monospace;
+  user-select: text;
+}
+.copy-activity-link [role='alert'] {
+  color: #982b23;
+  font-weight: 600;
+}
 .action-row {
   display: flex;
   gap: 0.35rem;

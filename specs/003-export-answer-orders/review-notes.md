@@ -295,3 +295,43 @@ Phase 3實作提交6a2a254，合併main為d1cc14d9a88671639b28a765e98d3f114886e8
 維護者回覆「確認一致，繼續」，完成Phase 4 UI／鍵盤驗證紀錄及文件的一致性核對。T054完成，據此依T055提交並合併，實際hash於合併後補記。
 
 Phase 4實作提交ca784c9，合併main為5e19c4df64900caf06bd599249c217b198b9c0e4。依T055補記hash，無產品行為變更，未push。
+
+## Phase 5 Implementation and Validation
+
+T056：Phase 4已通過測試及維護者核對並合併main，補記hash後基準為677449fbd035902e124ef7b60951d7462f2fdcb6。本階段建立codex/003-phase-5-copy-link分支，僅處理US3複製活動連結。沿用已人工審查的copy-link.puml；不更動Google流程或資料庫。T057／T058先建立兩份E2E及隔離剪貼簿fixture，先執行RED再寫產品元件。
+
+### Copy UI and Scope Evidence
+
+ActivityPage以單一studentUrl提供顯示文字、anchor href及CopyActivityLinkButton；只允許HTTP／HTTPS、對應當場的student路徑且無userinfo／query／fragment，沒有有效連結時停用並說明。使用者click、Enter或Space直接呼叫writeText，沒有先等待網路。pending停用且以ref防同步連點；resolve後才顯示role=status「已複製活動連結」，拒絕或能力缺少顯示固定role=alert及可選取的唯讀網址，不顯示底層exception。URL可換行、焦點可辨識，回饋不只靠顏色。
+
+兩份新增E2E共10項：copy-activity-link.spec.ts驗精確URL、三種啟用方式、使用者activation、pending、resolve／reject／能力缺少、手動完整選取、已知結果後1秒內回饋與零read；copy-link-scope.spec.ts以真實元件隔離host驗URL／活動、帳號authGeneration、bootId、sessionVersion、卸載及無連結。舊promise完成不解鎖新pending或顯示新成功，不再次主動寫入舊URL；不宣稱撤回已交給瀏覽器的寫入。所有剪貼簿呼叫都是context注入的模擬物件，沒有讀寫使用者實際剪貼簿或使用正式瀏覽器profile。
+
+先跑兩份新增測試，10項均RED：4項因按鈕不存在，6項因尚無元件導致隔離host bundle失敗；紀錄red.log保留。完成實作後10項皆通過（10.8秒），再執行完整Gate，沒有刪斷言或放寬時間門檻。
+
+已實際檢視兩張合成資料截圖：
+
+- 成功及鍵盤焦點：validation-results/feature-003-phase-5/copy-resolve.png
+- 失敗及已完整選取的手動網址：validation-results/feature-003-phase-5/copy-reject.png
+
+### Phase 5 Gate Results
+
+| 指令                     | 實際結果               |
+| ------------------------ | ---------------------- |
+| npm run typecheck        | exit0                  |
+| npm run lint             | exit0                  |
+| npm run format:check     | exit0                  |
+| npm run test:unit        | exit0，25檔115項       |
+| npm run test:integration | exit0，21檔95項        |
+| npm run test:contract    | exit0，10檔19項        |
+| npm run test:e2e         | exit0，43項，36.1秒    |
+| npm run build            | exit0，三workspace成功 |
+
+合計272項（Phase 4的262＋10項新增E2E）通過，涵蓋原CSV下載、雙視角、歷史更新、授權隔離、學生隱私與自動回填回歸。完整結果在validation-results/feature-003-phase-5/final-results.json及final-\*.log。四張已審閱PlantUML未修改，重新-checkonly及-tsvg皆exit0，四份非空有效SVG位於同目錄diagrams。003九份Markdown另做明確格式、連結、任務及範本檢查，git diff --check通過。
+
+本階段只新增UI／測試與同步文件，沒有新API、Socket欄位、資料表、migration、Google scope或Google呼叫；未停止正式服務、修改Google教材或讀取正式資料與憑證。Phase 3 Excel已有效的人工作業及限制繼續適用，CSV bytes／安全文字政策未變。extensions.yml仍不存在，沒有before／after_implement hooks。
+
+### T063 Maintainer Review Pending
+
+請核對本節、quickstart及上述兩張介面截圖與實作／測試結果是否一致。T063及憲章V要求本階段UI／AI文件人工核對，Phase 4確認不能替代。現在T001–T062完成，T063／T064及Phase 6保持未勾；本階段尚未commit或merge，無Phase 5合併hash，未push或部署。取得本階段確認後，才依T064提交合併並開始Phase 6最終驗收。
+
+維護者明確回覆「Phase 5 文件與介面已核對，內容一致」，T063完成。依T064提交並合併main，實際hash於合併後補記。
