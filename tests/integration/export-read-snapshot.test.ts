@@ -1,6 +1,9 @@
 import { DatabaseSync } from 'node:sqlite';
 import { expect, it } from 'vitest';
 import { createPersistenceFixture } from '../helpers/persistence.js';
+import { resultExportFixture } from '../helpers/result-export.js';
+import { readExportSnapshot } from '../../backend/src/persistence/result-export-reader.js';
+import { durableSourceFingerprint } from '../../backend/src/persistence/activity-repository.js';
 
 it('reads one WAL snapshot while another connection commits, then sees the newer committed value', () => {
   const p = createPersistenceFixture();
@@ -22,6 +25,77 @@ it('reads one WAL snapshot while another connection commits, then sees the newer
   } finally {
     other.close();
     p.close();
+  }
+});
+
+it.each(['missing-answer', 'missing-nonwinner', 'missing-result'] as const)(
+  'rejects corrupt export snapshot: %s',
+  async (fault) => {
+    const c = await resultExportFixture();
+    try {
+      const id = c.histories[0]!;
+      c.injectFault(id, fault);
+      expect(() =>
+        readExportSnapshot(c.server.persistence, id, 'test-owner-a', Date.now()),
+      ).toThrowError(expect.objectContaining({ code: 'STORAGE_CORRUPT' }));
+    } finally {
+      await c.close();
+    }
+  },
+);
+
+it.each(['fingerprint', 'normalized-question', 'title', 'source', 'ordinal'] as const)(
+  'rejects source/normalized inconsistency: %s',
+  async (fault) => {
+    const c = await resultExportFixture();
+    try {
+      const id = c.histories[0]!,
+        db = c.server.persistence.connection.database;
+      c.server.persistence.connection.transaction(() => {
+        if (fault === 'fingerprint')
+          db.prepare("UPDATE activities SET source_fingerprint='invalid-demo' WHERE id=?").run(id);
+        if (fault === 'normalized-question')
+          db.prepare("UPDATE question_items SET prompt='合成外部更動' WHERE activity_id=?").run(id);
+        if (fault === 'title')
+          db.prepare("UPDATE activities SET spreadsheet_title='合成改名' WHERE id=?").run(id);
+        if (fault === 'source')
+          db.prepare("UPDATE activities SET source_snapshot_json='{}' WHERE id=?").run(id);
+        if (fault === 'ordinal')
+          db.prepare('UPDATE activity_groups SET ordinal=4 WHERE activity_id=? AND ordinal=3').run(
+            id,
+          );
+      });
+      expect(() =>
+        readExportSnapshot(c.server.persistence, id, 'test-owner-a', Date.now()),
+      ).toThrowError(expect.objectContaining({ code: 'STORAGE_CORRUPT' }));
+    } finally {
+      await c.close();
+    }
+  },
+);
+
+it('treats an unparseable saved sheet as corrupt storage even with a matching fingerprint', async () => {
+  const c = await resultExportFixture();
+  try {
+    const id = c.histories[0]!,
+      db = c.server.persistence.connection.database;
+    const source = JSON.parse(
+      String(
+        db.prepare('SELECT source_snapshot_json FROM activities WHERE id=?').get(id)!
+          .source_snapshot_json,
+      ),
+    );
+    source.sheet.rows = [];
+    c.server.persistence.connection.transaction(() =>
+      db
+        .prepare('UPDATE activities SET source_snapshot_json=?,source_fingerprint=? WHERE id=?')
+        .run(JSON.stringify(source), durableSourceFingerprint(source), id),
+    );
+    expect(() =>
+      readExportSnapshot(c.server.persistence, id, 'test-owner-a', Date.now()),
+    ).toThrowError(expect.objectContaining({ code: 'STORAGE_CORRUPT' }));
+  } finally {
+    await c.close();
   }
 });
 

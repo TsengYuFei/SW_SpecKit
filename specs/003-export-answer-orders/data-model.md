@@ -1,6 +1,6 @@
 # Data Model: 結果匯出與教師收件順位
 
-本文件為設計與實作對照：Phase 2已建立AnswerOrderInput、OrderedAnswer、QuestionOrder、AnswerOrderView及同步readSnapshot；ExportSnapshot讀取器、CSV／下載／UI狀態仍待後續Phase。既有SQLite 17表／110欄不變，不新增migration或永久實體。模型同時受 [spec.md](spec.md)、[research.md](research.md) 及 [介面契約](contracts/interfaces.md) 約束。
+本文件為設計與實作對照：Phase 2共同順位與readSnapshot已完成，Phase 3已建立ExportSnapshot／ExportRequestScope讀取器、CsvLayout／DownloadArtifact、OperationScope與Download狀態。AnswerOrderPanel、HistoryLive與Copy仍待後續Phase；Phase 3交付門檻依tasks.md追蹤。既有SQLite 17表／110欄不變，不新增migration或永久實體。模型受 [spec.md](spec.md)、[research.md](research.md) 及 [介面契約](contracts/interfaces.md) 約束。
 
 ## Existing Persistence Sources
 

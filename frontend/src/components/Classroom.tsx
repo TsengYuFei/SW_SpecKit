@@ -6,6 +6,7 @@ import { AnswerPage } from '../student/AnswerPage';
 import { useEffect } from 'react';
 import type { Phase } from '@classroom/shared/schemas/common';
 import { ResultsPage } from '../student/ResultsPage';
+import type { TeacherScope } from '../transport/download';
 
 export function Classroom({
   activityId,
@@ -15,6 +16,7 @@ export function Classroom({
   onPhase,
   csrfToken,
   onWritebackPending,
+  scope,
 }: {
   activityId: string;
   bootId: string;
@@ -23,6 +25,7 @@ export function Classroom({
   onPhase?: (phase: Phase) => void;
   csrfToken?: string;
   onWritebackPending?: (pending: boolean) => void;
+  scope?: TeacherScope;
 }) {
   const client = useActivity(activityId, bootId);
   const phase = client.snapshot?.phase;
@@ -40,7 +43,12 @@ export function Classroom({
       <ConnectionStatus connected={client.connected} error={client.error} />
       {client.snapshot &&
         (role === 'teacher' ? (
-          <ActivityPage client={client} studentOrigin={studentOrigin} csrfToken={csrfToken ?? ''} />
+          <ActivityPage
+            client={client}
+            studentOrigin={studentOrigin}
+            csrfToken={csrfToken ?? ''}
+            scope={scope ?? { bootId, sessionVersion: 0, authGeneration: 0 }}
+          />
         ) : (
           <>
             <GroupPage client={client} />

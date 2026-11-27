@@ -4,7 +4,8 @@ import type { z } from 'zod';
 import { HistoryDetailPage } from './HistoryDetailPage';
 import { OperationStatus } from '../components/OperationStatus';
 import { http } from '../transport/http';
-export function HistoryPage({ csrfToken }: { csrfToken: string }) {
+import type { TeacherScope } from '../transport/download';
+export function HistoryPage({ csrfToken, scope }: { csrfToken: string; scope: TeacherScope }) {
   const alive = useRef(true);
   useEffect(() => {
     alive.current = true;
@@ -69,6 +70,7 @@ export function HistoryPage({ csrfToken }: { csrfToken: string }) {
           activityId={selected}
           csrfToken={csrfToken}
           onBack={() => setSelected(null)}
+          scope={scope}
         />
       ) : (
         <>

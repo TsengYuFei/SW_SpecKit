@@ -22,6 +22,8 @@ import { publishActivity } from './sockets/activity-handlers.js';
 import { createHistoryService } from './activity/history-service.js';
 import { historyRoutes } from './http/history-routes.js';
 import { settingsRoutes } from './http/settings-routes.js';
+import { createResultExportService } from './activity/result-export-service.js';
+import { resultExportRoutes } from './http/result-export-routes.js';
 
 export function createSourceModule(
   config: Config,
@@ -45,6 +47,7 @@ export function createSourceModule(
     : undefined;
   catalog?.restoreCurrent();
   const history = persistence ? createHistoryService(persistence, store, oauth) : undefined;
+  const resultExport = persistence ? createResultExportService(persistence, oauth) : undefined;
   const worker = persistence
     ? createWritebackWorker(persistence, gateway, (owner) => oauth.forOwner(owner), {
         changed: (id) => {
@@ -101,6 +104,7 @@ export function createSourceModule(
     durableWriteback,
     catalog,
     history,
+    resultExport,
     authorizeTeacher: catalog
       ? (session: import('./security/sessions.js').BrowserSession, id?: string) =>
           catalog.authorize(session.sessionId, id)
@@ -108,6 +112,7 @@ export function createSourceModule(
     registerRoutes(app: Express, ctx: RouteContext) {
       googleRoutes(app, ctx, oauth, Boolean(catalog));
       if (catalog) {
+        if (resultExport) resultExportRoutes(app, ctx, resultExport);
         if (history) historyRoutes(app, ctx, history);
         if (persistence)
           settingsRoutes(app, ctx, persistence, (session, id) =>

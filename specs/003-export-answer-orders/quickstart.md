@@ -1,6 +1,6 @@
 # Quickstart: 本功能實作後的驗證流程
 
-本文件是驗證指南，不是所有功能已存在的證明。003 Phase 1已測試、人審及合併；Phase 2已建立共同純順位、輸入schema、同步唯讀快照與安全錯誤碼，驗證及合併門檻見review-notes.md。CSV端點、順位介面、複製功能、人工Excel與匯出性能驗收仍待後續Phase。具體欄位與數字只以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準。
+本文件是驗證指南，不是所有功能已驗收的證明。003 Phase 1／2已合併；Phase 3已建立單場CSV下載、目前／歷史入口與相關驗證，Excel直接開啟已由維護者人工確認，本階段文件人審與合併仍待完成。雙視角與複製功能仍待後續Phase。實際結果及限制見review-notes.md，具體欄位與數字以 [data-model](data-model.md)、[contracts](contracts/interfaces.md)、[research R4](research.md#r4-有界匯出與完整性) 為準。
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@
 
 ## Install, Check and Run
 
-以下既有指令在實作完成後，以新增測試納入相應目錄再執行；先確認node --version是已支援版本。
+以下既有指令已可包含目前完成的新增測試；先確認node --version是已支援版本。安裝依賴只在環境需要時執行，不為驗收重裝已有依賴。
 
 ```powershell
 npm ci
@@ -48,7 +48,7 @@ Phase 1已新增`tests/helpers/result-export.ts`的`resultExportFixture()`與6�
 
 ## End-to-End Scenarios
 
-Phase 2可單獨驗證`tests/unit/answer-order.test.ts`、`tests/unit/result-export-errors.test.ts`、`tests/integration/export-read-snapshot.test.ts`與`tests/contract/result-export-schema.test.ts`。`deriveAnswerOrder`共用原sequence導出全場／各題順位；`parseAnswerOrderInput`顯式選取既有teacher欄位，不將缺少submissions當作空陣列，也不trim已保存答案。`connection.readSnapshot`為同步唯讀交易，禁止寫入／巢狀／Promise或thenable／afterCommit，還原query_only及交易旗標。新增EXPORT_BUSY／EXPORT_TOO_LARGE僅錯誤契約已就緒，尚無可操作的匯出端點。以下端到端新功能仍待後續實作。
+Phase 2的共同順位與readSnapshot可單獨驗證原四份測試；Phase 3新增CSV／filename／gate／download unit、result-export／performance／secret-exposure integration、HTTP contract及result-export.spec.ts。老師目前或歷史單場活動已結束後可按「下載本場 CSV」，等待／active停用並說明原因；失敗不假下載，畫面只說「已開始下載」而不保證已存磁碟。唯讀匯出不依賴Google或回填狀態。下載helper保留並驗證BOM、200／MIME／attachment，檢查晚回覆scope及清理objectURL。以下CSV情境可執行；雙視角與複製情境仍待後續Phase。
 
 1. teacher A於目前活動進行中查看「全部收件」及「依題目」，對照上表；送出新的完整答案後，兩個視角及仍active的歷史詳情皆2秒內更新。切題、切視角、長文及鍵盤焦點不得影響排名。
 2. waiting／active匯出按鈕不可用且有原因；直接請求也409。正常結束該合成場後，從目前場下載，再從歷史選同一場下載；兩者內容相同，不必匯出其他活動，回填pending／conflict／failed也可下載。
@@ -61,7 +61,7 @@ Phase 2可單獨驗證`tests/unit/answer-order.test.ts`、`tests/unit/result-exp
 
 ## Validation Matrix
 
-| 層級／建議測試檔（待建立）               | 正常與特殊範圍                                                                                                                           | 覆蓋                                                                |
+| 層級／測試檔（完成狀態依tasks.md）       | 正常與特殊範圍                                                                                                                           | 覆蓋                                                                |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | unit/answer-order.test.ts                | 交錯sequence、同timestamp、題組、所有預設組、空受理、完整集合／重複／缺漏拒絕、不突變輸入、與固定winner一致                              | FR-003–FR-009、FR-019–FR-020；SC-001–SC-003、SC-006                 |
 | unit/csv-export.test.ts                  | BOM僅一次、全欄quoting／CRLF、逗號／引號／多行／emoji、Amax與Umax來自不同題、零rank或零未答欄、excel-tab-v1與LF／cell邊界                | FR-007–FR-011、FR-014–FR-015；SC-001–SC-004                         |
@@ -80,13 +80,15 @@ Phase 2可單獨驗證`tests/unit/answer-order.test.ts`、`tests/unit/result-exp
 
 ## Excel Manual Acceptance
 
-後續實作新增規劃中的 `tests/manual/export-results-fixture.mjs`，以隔離合成服務真正呼叫teacher下載端點產生檔案，只保存無效示範資料，不需真實Google憑證。下列命令在該helper完成後才可執行，目前不是已存在或已執行的功能：
+已建立 `tests/manual/export-results-fixture.mjs`，以隔離合成服務真正呼叫teacher下載端點產生檔案，只保存合成教材與無效示範授權，不需真實Google憑證。以下命令已實際執行：
 
 ```powershell
 node tests/manual/export-results-fixture.mjs --output validation-results/feature-003-acceptance
 ```
 
 helper輸出scope限定於Git排除的validation-results目錄，報告只含合成檔名、列／欄數及檢查結論，不能保存cookie／CSRF／OAuth值或trace。不得覆寫正式DB、讀取原瀏覽器或操作Google。
+
+每次產生獨立run子目錄，normal為3資料列／9欄，safe-text為40資料列／63欄；manifest記安全文字於E2:E15。請用檔案總管直接開啟CSV，若詢問程式選Excel「僅一次」，不要改預設程式或安全設定。此次桌面Excel的舊式文字匯入精靈雖可用UTF-8／逗號／一般格式顯示一般檔，但含CR／LF的安全文字案例觀察到拆列，該路徑不記通過。維護者已實際直接開啟新合成檔並確認文字未計算、特殊內容及40資料列／63欄正確。Excel執行檔版本16.0.20625.20108、Windows使用者文化設定zh-TW；不推論所有Excel版本或另存後重開皆安全。檔案與人工結論見review-notes.md的Phase 3紀錄。
 
 1. 以實際Excel開啟一般檔，記錄版本／build／地區；確認中文、H₂O、emoji、多行及引號／逗號都在正確格，各欄表頭與答案／未作答正確。須讀CSV解析結果與Excel可見內容互相核對。
 2. 以獨立安全文字檔測`=1+1`、`+1+1`、`-1+1`、`@SUM(1,1)`、全形字首及前置空白／TAB／CR／LF，確認沒有公式計算，必要時在公式列檢查文字內容；不使用外部網址、DDE或系統命令。

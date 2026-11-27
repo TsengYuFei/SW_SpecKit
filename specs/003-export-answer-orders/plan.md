@@ -1,10 +1,10 @@
 # Implementation Plan: 活動結果 CSV 匯出與收件順位呈現
 
-**Branch**: codex/003-phase-2-foundation（Phase 1已合併main後依T008建立） | **Date**: 2026-11-27 | **Spec**: [spec.md](spec.md)
+**Branch**: codex/003-phase-3-csv-export（Phase 2已合併main後依T018建立） | **Date**: 2026-11-27 | **Spec**: [spec.md](spec.md)
 
 **Input**: 003功能規格及兩項釐清：檔名活動名稱取建場保存的試算表名稱，未加入的預設組別仍列未作答、只顯示系統組號。
 
-**Status**: Phase 1已測試、人審並合併。Phase 2已建立共同純順位、輸入schema、同步唯讀快照及安全錯誤碼，T017需完整Gate及本階段文件人審後合併。CSV端點、教師新UI與複製功能仍待後續Phase。實際驗證結果見 [review-notes.md](review-notes.md)，不以前版測試代替新功能驗收。
+**Status**: Phase 1／2已測試、人審並合併。Phase 3已建立一致唯讀結果讀取器、CSV／檔名／資源閘門、teacher端點與目前／歷史下載入口；255項測試、靜態檢查、建置與四圖通過，Excel直接開啟已人工確認，尚待本階段文件核對及合併。教師雙視角與複製功能仍待後續Phase。結果與限制見 [review-notes.md](review-notes.md)。
 
 ## Summary
 
