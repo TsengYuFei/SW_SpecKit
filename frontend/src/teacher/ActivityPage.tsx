@@ -4,15 +4,19 @@ import { ResultsView } from '../components/ResultsView';
 import { WritebackPanel } from './WritebackPanel';
 import { ProgressTable } from './ProgressTable';
 import { OperationStatus } from '../components/OperationStatus';
+import { ExportResultsButton } from './ExportResultsButton';
+import type { TeacherScope } from '../transport/download';
 
 export function ActivityPage({
   client,
   studentOrigin,
   csrfToken,
+  scope,
 }: {
   client: ActivityClient;
   studentOrigin: string;
   csrfToken: string;
+  scope: TeacherScope;
 }) {
   const s = client.snapshot!;
   return (
@@ -104,6 +108,12 @@ export function ActivityPage({
           <WritebackPanel snapshot={s} csrfToken={csrfToken} connected={client.connected} />
         </>
       )}
+      <ExportResultsButton
+        activityId={s.activityId}
+        phase={s.phase}
+        csrfToken={csrfToken}
+        scope={scope}
+      />
     </section>
   );
 }

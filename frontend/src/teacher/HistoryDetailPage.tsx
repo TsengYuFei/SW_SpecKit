@@ -6,14 +6,18 @@ import { WritebackPanel } from './WritebackPanel';
 import { http } from '../transport/http';
 import { ProgressTable } from './ProgressTable';
 import { OperationStatus } from '../components/OperationStatus';
+import { ExportResultsButton } from './ExportResultsButton';
+import type { TeacherScope } from '../transport/download';
 export function HistoryDetailPage({
   activityId,
   csrfToken,
   onBack,
+  scope,
 }: {
   activityId: string;
   csrfToken: string;
   onBack: () => void;
+  scope: TeacherScope;
 }) {
   const [detail, setDetail] = useState<HistoryDetail | null>(null),
     [error, setError] = useState('');
@@ -55,6 +59,12 @@ export function HistoryDetailPage({
                 : '已結束'}
           </p>
           <p>以下為本機保存的教材與答案，查看不會重新讀取或回填Google。</p>
+          <ExportResultsButton
+            activityId={activityId}
+            phase={detail.phase}
+            csrfToken={csrfToken}
+            scope={scope}
+          />
           <ProgressTable snapshot={detail.snapshot} />
           <h4>組別與已受理答案</h4>
           {detail.snapshot.groups.map((group) => (

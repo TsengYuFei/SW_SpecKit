@@ -154,7 +154,11 @@ export function App() {
       )}
       {activityId && bootId && (
         <Classroom
-          key={activityId}
+          key={
+            role === 'teacher'
+              ? `${activityId}:${bootId}:${sessionVersion}:${authGeneration}`
+              : activityId
+          }
           activityId={activityId}
           bootId={bootId}
           role={role ?? ''}
@@ -162,6 +166,7 @@ export function App() {
           onPhase={setPhase}
           csrfToken={teacher?.csrfToken}
           onWritebackPending={setWritebackPending}
+          scope={{ bootId, sessionVersion, authGeneration }}
         />
       )}
       {teacher && (
@@ -179,7 +184,10 @@ export function App() {
           className="saved-workspace"
           key={`saved-${bootId}-${sessionVersion}-${authGeneration}`}
         >
-          <HistoryPage csrfToken={teacher.csrfToken} />
+          <HistoryPage
+            csrfToken={teacher.csrfToken}
+            scope={{ bootId, sessionVersion, authGeneration }}
+          />
           <SettingsPage
             csrfToken={teacher.csrfToken}
             onSaved={() => setSettingsVersion((value) => value + 1)}

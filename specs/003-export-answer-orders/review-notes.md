@@ -180,3 +180,64 @@ T008–T016已完成，T017因本階段文件人工核對及合併未完成而�
 維護者已回覆「Phase 2 文件已核對，內容一致」，T017人工核對完成，據此提交及合併，實際hash於合併後補記。
 
 Phase 2實作提交db5985b，合併main為0dd838cac8e7d9c058ab9999629bcf94233e3c57；本補記不新增產品行為，未push。
+
+## Phase 3 Implementation and Validation
+
+分支`codex/003-phase-3-csv-export`從Phase 2已合併並補記證據的main `9b90cf1386f772da6fcda814b9407dd07d910081`建立。T018–T042已完成；T043的本階段文件人工核對及T044提交／合併尚未完成，未提前進入Phase 4。
+
+### Delivered US1 Scope
+
+- backend/export/limits.ts集中原設計數值；csv.ts以共同AnswerOrderView輸出單題／子題各一列、獨立Amax與Umax、全部預設組別未作答、固定列寬，UTF-8 BOM僅一次、全欄quoting／雙引號跳脫／CRLF。excel-tab-v1保護所有可變欄位；超出Excel列／欄／格字數／LF與本機格數／input／output上限即拒絕，不截答案或拆檔。
+- filename.ts使用建場保存名稱、完整UUID與當次臺灣時間；禁字／C0／DEL替換、尾端空白點移除、空名fallback、240 UTF-8 bytes與UTF-16雙預算且不破code point。提供ASCII fallback及RFC8187 filename\*，不把原文字直接插入header。
+- persistence/result-export-reader.ts以owner限定metadata先預檢原始bytes，再於readSnapshot讀取並核對來源fingerprint／解析結果／正規化題目、所有組別、全部受理與子題答案、next_sequence及固定winner。依T027／T028所列40個來源欄位及既有target／baseline／merge輔助資料核對，不讀participant digest或回填job作匯出前提；不使用會installActivity的歷史恢復路徑。缺資料、整筆非winner遺失、來源結構或固定結果矛盾皆安全拒絕。
+- result-export-service.ts與export-gate.ts實作每session 5秒2次、全行程1個生成slot、busy不排隊且不計次、期限／取消／授權代次檢查及finally釋放。編碼至多4096格或4ms讓出事件迴圈；10秒為協作deadline，不假稱能中斷同步SQL。沒有DB遷移、下載job／receipt／持久CSV cache或Google呼叫。
+- teacher-only GET /api/activities/:id/export.csv強制session、GET明確CSRF、UUID、空query／body、Google授權、owner及ended；既有Host／Origin guard保留。HEAD先註冊405／Allow:GET，不生成內容。完整bytes驗證及送出前scope重驗後才設attachment並end，無ETag／304；失敗回安全JSON，不誤附CSV。回填pending／conflict／failed不阻下載。
+- frontend binary helper驗200、MIME、attachment、UTF-8檔名及BOM，使用blob保留原bytes，處理fetch／body失敗、AbortSignal、晚回覆與objectURL清理。ExportResultsButton接到目前活動及單一歷史詳情；waiting／active停用並說明原因，成功只說「已開始下載」，固定顯示安全文字說明。App的teacher Classroom key及HistoryPage傳遞boot／sessionVersion／authGeneration護欄；student key及projection不變，CSRF不入key或URL。
+
+尚未新增US2的全場／逐題Panel、active history live wrapper或US3複製按鈕，原進度表、結果與自動回填仍保留。正式服務未由本次操作重啟，測試只用隔離服務。
+
+### TDD and Validation Evidence
+
+先新增unit／HTTP／integration／E2E，再實作。初始受限環境的HTTP失敗不當成有效RED；重跑允許loopback後，缺CSV／filename／gate／reader的suite收集失敗、缺端點回404及缺下載按鈕的E2E失敗皆有實際紀錄。其後新能力測試通過；新安全／性能回歸首次通過者不偽造RED。
+
+驗證包含：精確canonical整份CSV bytes、中文／emoji／逗號／引號／多行與危險字首、零受理、不同題獨立最大欄、16383／16385欄、含表頭Excel列邊界、32767／32768 UTF-16、253／254 LF、前綴／轉義後bytes邊界；臺灣跨午夜、禁字／長emoji／RFC8187；頻率／busy／取消／期限／釋放；所有owner／phase／Host-Origin-CSRF／無授權／student／query-body／HEAD拒絕、422／429／503、條件請求仍200且無ETag、送出前授權變更；同場／多歷史、真實DB重開、全表rows不變、Google離線且calls0、job／receipt不增加、來源與全部答案損壞拒絕。
+
+前端unit及Edge E2E驗目前／歷史下載BOM及完整檔名、等待／active不可下載、200 JSON／HTML／wrong MIME／body失敗不下載、過期scope不觸發anchor或顯示舊成功、objectURL撤銷及安全檔名。另補截短body缺BOM與無效filename\*拒絕。持久來源結構無法解析但fingerprint仍匹配的案例先RED，再修為STORAGE_CORRUPT，避免誤回來源匯入的MAPPING_AMBIGUOUS。
+
+本階段曾修正測試問題並保留紀錄：檔名中的星號先按Windows禁字替換，所以測試不得期待原星號編碼；新增重啟案例最初誤放在另一test callback內，改為頂層後通過；第二個瀏覽器下載需等待path完成再關context，否則Edge下個context建立會失敗。最終回歸另抓到既有results-writeback.spec的背景重試／手動查核競爭：合成待確認job的next_attempt_at設NULL以固定該案例前置，保留全部原斷言及產品自動重試規則；原案例單獨重跑通過，再重跑整套E2E。沒有用增加timeout或刪斷言掩蓋失敗。
+
+### T041 Desktop Excel Acceptance
+
+- 工具實際啟動本機桌面Excel並檢視一般CSV；執行檔ProductName為Microsoft Office，ProductVersion／FileVersion為16.0.20625.20108，Windows使用者文化設定Get-Culture為zh-TW，Excel介面繁中。未更改地區、預設應用程式或安全／隱私設定。
+- `node tests/manual/export-results-fixture.mjs --output validation-results/feature-003-acceptance`實際經臨時teacher端點產檔，兩次輸出皆成功。最新合成檔在Git排除的`validation-results/feature-003-acceptance/run-BQojl7/`：normal為活動`2adf90f2-2366-4794-b1c5-8e1249dfeb6c`，3資料列／9欄；safe-text為活動`9efe15f3-91f7-41f7-9fcd-fe8439dc138e`，40資料列／63欄，14個安全文字案例列在manifest的E2:E15。檔名包含完整ID及臺灣113216／113217時間，檔頭BOM已核對；bundle僅用於合成工具並在輸出後刪除，不記認證headers或原值。
+- 一般檔實際可讀中文、H₂O／100°C、完整組名、單題空子題、題組共順位及未作答。舊式「匯入字串精靈」以UTF-8／逗號／一般格式處理安全文字檔時，CR／LF案例觀察到拆列；該路徑不列通過，保留為操作限制。
+- 維護者依要求從檔案總管直接開啟最新safe-text CSV，明確回覆「已直接開啟，文字未計算且列欄正確」，確認E2:E15公式樣式未計算、逗號／引號／換行留同格，40資料列／63欄正確，T041據此完成。不以工具檢視或解析器冒充人工確認，也不推論其他Excel版本、另存重開或其他試算表程式皆安全。
+
+### T042 Performance
+
+真實臨時HTTP／SQLite驗30組、20題、40資料列、600筆受理／1200個答案，完整下載含最後一組最後一子題，未截斷。指定測試首輪46ms、最終整合Gate實測95ms，均≤5000ms；中止後slot可再次使用。純fixture建立耗時不作下載性能證據；匯出與另一active活動同時收件／即時更新的最終並行情境仍待T067。
+
+### Full Phase 3 Gate Results
+
+| 指令                     | 最終結果                         |
+| ------------------------ | -------------------------------- |
+| npm run typecheck        | exit0                            |
+| npm run lint             | exit0                            |
+| npm run format:check     | exit0                            |
+| npm run test:unit        | exit0，25檔／115項               |
+| npm run test:integration | exit0，21檔／95項                |
+| npm run test:contract    | exit0，10檔／19項                |
+| npm run test:e2e         | exit0，26項，35.9秒；含重新build |
+| npm run build            | exit0，三workspace成功           |
+
+合計255項通過（Phase 2為199項，本Phase新增56項）。最終單元／整合證據為validation-results/feature-003-phase-3/verified-_.log；最後只修改舊E2E的合成排程前置及補充GET body／條件請求契約斷言後，重跑typecheck、lint、format、全contract、全E2E與build，結果為recovery-_.log／recovery-results.json。產品程式與unit／integration測試未再修改，故不無故重跑未受影響的層級。先前252項通過、後續E2E競爭失敗與修正結果均保留，不拿修改前結果冒充最終通過。
+
+四張未改的PlantUML重新-checkonly／-tsvg皆exit0，四份非空有效SVG在validation-results/feature-003-phase-3/diagrams。003九份Markdown另以Prettier明確檢查；check-documents.mjs核對9文件／77連結／74項任務／完成42項／待辦32項／4有效SVG／範本殘留0；git diff --check通過。所有驗收產物、日誌、合成CSV與工具均Git排除，沒有正式憑證／DB／Google教材或個人檔案變更。
+
+### T043 Maintainer Review Pending
+
+請核對本Phase交付範圍、程式／四份主要設計文件、quickstart／tasks狀態、上述完整測試與Excel結果／限制是否一致。T041的直接開啟人工驗收已完成，不要求重做；本次仍需依憲章V「AI產生或修改的文件必須由人工審查」及T043核對實作後文件，Phase 2核對不替代本項。
+
+目前T001–T042完成，T043／T044及後續Phase未勾。分支codex/003-phase-3-csv-export尚未commit或merge，無Phase 3合併hash；未push、部署或重啟正式服務。維護者確認本階段文件後才依T044提交、合併main並記hash，再建立Phase 4新分支。
+
+維護者回覆「確認完成繼續」，完成本次Phase 3文件與實作／結果一致性核對。T043完成，據此依T044提交並合併，實際hash於合併後補記。Excel已確認結果不需重做。

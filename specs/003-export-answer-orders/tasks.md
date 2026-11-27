@@ -6,7 +6,7 @@
 
 **Tests**: spec Assumptions與憲章IV明確要求正常及特殊情境測試，納入TDD、正式隔離SQLite／HTTP／E2E及Excel人工驗收；不是把範本可選測試一律塞入。
 
-**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1已測試、人審及合併；Phase 2依實際結果追蹤，T017仍須本階段文件人工核對及合併。
+**Organization**: 六個串行Phase：Setup、Foundational、US1(P1)、US2(P1)、US3(P2)、Final。Phase 1／2已測試、人審及合併；Phase 3的T018–T042已完成，T043本階段文件人工核對及T044合併仍待辦。
 
 ## Format and Path Conventions
 
@@ -82,33 +82,33 @@ npm run build
 
 **Independent Test / Checkpoint**: canonical fixture的3資料列／9欄及交錯兩題順位正確；未加入組未作答、完整UUID／Taipei檔名、Excel文字與特殊字元可用；非owner／未ended／錯誤無下載，原DB與Google工作不變。
 
-- [ ] T018 [US1] 確認Phase 2已merge main後建立本Phase新分支，在 specs/003-export-answer-orders/review-notes.md 記錄前置與分支。
-- [ ] T019 [P] [US1] 先在 tests/unit/csv-export.test.ts 驗一次BOM、全欄quoting／CRLF、逗號／引號／多行／emoji、單題空子題、題組共rank、獨立Amax／Umax、零受理、excel-tab-v1及各尺寸邊界；隔離較早限制以實際測到指定邊界。
-- [ ] T020 [P] [US1] 先在 tests/unit/export-filename.test.ts 驗建場快照名、雲端改名不影響、空／禁字／CRLF／長emoji、240雙預算不破code point、完整UUID、Taipei跨日及RFC8187單引號／括號編碼。
-- [ ] T021 [P] [US1] 先在 tests/unit/export-gate.test.ts 用控制時鐘驗research R4頻率、單生成、busy不排隊、拿slot才計次、期限／取消／失敗釋放、過期清理及Retry-After，不依賴真實等待。
-- [ ] T022 [P] [US1] 先在 tests/integration/result-export.test.ts 定義真實隔離DB的owner current／history ended下載、各回填狀態／Google不可用、重複匯出與全部rows／slot／revision／job不變，以及重啟後原帳號可取得同場。
-- [ ] T023 [P] [US1] 先在 tests/contract/result-export-http.test.ts 驗GET binary與HEAD405、teacher／student／no session／no OAuth／B、CSRF／Host／Origin／UUID／非空query-body、phase、429／422／503錯誤JSON且無attachment、送出前authGeneration變更。
-- [ ] T024 [P] [US1] 先在 tests/e2e/result-export.spec.ts 定義目前／單一歷史下載與檔名／BOM、按鈕不可用原因、JSON／HTML／wrong MIME／body失敗不下載、scope取消、objectURL清理、僅開始下載不誤稱存磁碟。
-- [ ] T025 [P] [US1] 在 tests/integration/export-read-snapshot.test.ts 加入export reader缺源／fingerprint／正規化題目／答案／frozen結果拒絕；尤其先刪非winner答案再刪submission但保留counter／winner，必須拒絕，不得補為未作答。
-- [ ] T026 [US1] 在 backend/src/export/limits.ts 集中research.md R4的Excel與本機唯一數值常數及有界尺寸檢查；不散落複製常數、不透過截答案／省組／拆檔通過上限。
-- [ ] T027 [US1] 在 backend/src/persistence/result-export-reader.ts 完成owner限定metadata／ended／raw bytes先預檢及來源fingerprint／正規化題目對照；依 [data-model.md](data-model.md#field-citation-index) `activities.id`、`activities.owner_account_id`、`activities.phase`、`activities.revision`、`activities.group_count`、`activities.next_sequence`、`activities.spreadsheet_title`、`activities.source_snapshot_json`、`activities.source_fingerprint`、`questions.activity_id`、`questions.question_id`、`questions.display_number`、`questions.kind`、`questions.ordinal`、`question_items.activity_id`、`question_items.question_id`、`question_items.item_id`、`question_items.ordinal`、`question_items.label`、`question_items.prompt` 的canonical定義，先限制再解析快照，不重讀Google。
-- [ ] T028 [US1] 在 backend/src/persistence/result-export-reader.ts 的同一readSnapshot收集全部組別、受理、子題答案及固定結果並嚴格驗集合／計數；依 [data-model.md](data-model.md#field-citation-index) `activity_groups.activity_id`、`activity_groups.id`、`activity_groups.ordinal`、`activity_groups.participant_id`、`activity_groups.name`、`submissions.activity_id`、`submissions.id`、`submissions.group_id`、`submissions.question_id`、`submissions.request_id`、`submissions.received_at`、`submissions.sequence`、`submission_answers.activity_id`、`submission_answers.submission_id`、`submission_answers.question_id`、`submission_answers.item_id`、`submission_answers.answer`、`results.activity_id`、`results.question_id`、`results.winner_submission_id` 的canonical定義，不讀participant digest或job作匯出前提。
-- [ ] T029 [US1] 在 backend/src/persistence/result-export-reader.ts、backend/src/activity/result-export-service.ts 組合一致導出資料與記憶體核權scope；依 [data-model.md](data-model.md#field-citation-index) `ExportSnapshot.activityId`、`ExportSnapshot.activityName`、`ExportSnapshot.phase`、`ExportSnapshot.revision`、`ExportSnapshot.groupCount`、`ExportSnapshot.order`、`ExportSnapshot.exportedAt`、`ExportSnapshot.nextSequence`、`ExportRequestScope.ownerAccountId`、`ExportRequestScope.session`、`ExportRequestScope.authGeneration` 的canonical定義，含nextSequence／frozen winner完整性，不installActivity、建receipt或wake worker。
-- [ ] T030 [US1] 在 backend/src/export/csv.ts 實作固定layout、有界逐格安全文字／quoting／BOM生成；依 [data-model.md](data-model.md#field-citation-index) `CsvLayout.dataRowCount`、`CsvLayout.aMax`、`CsvLayout.uMax`、`CsvLayout.columnCount`、`CsvLayout.headers`、`CsvLayout.cellText`、`CsvLayout.row` 的canonical定義及 [data-model.md](data-model.md#field-citation-index) `DownloadArtifact.bytes`、`DownloadArtifact.contentType`，在prefix／轉義後檢查，不先送半份body。
-- [ ] T031 [US1] 在 backend/src/export/filename.ts 實作來源快照名、Taipei時間、雙預算basename與ASCII／filename\*；依 [data-model.md](data-model.md#field-citation-index) `DownloadArtifact.filename`，保留完整UUID及副檔名，不使用payload作header。
-- [ ] T032 [US1] 在 backend/src/export/export-gate.ts 實作research R4及contracts的獨立session頻率／全域slot／協作deadline／中斷清理，不共用mutation budget、不保存下載job或認證值。
-- [ ] T033 [US1] 在 backend/src/activity/result-export-service.ts 接上reader、純順位、limits、gate、codec及filename，按契約chunk讓出事件迴圈並重驗原owner／generation／取消；完成前不回bytes，失敗finally釋放所有暫存。
-- [ ] T034 [US1] 在 backend/src/http/result-export-routes.ts、backend/src/source-module.ts 只註冊teacher GET與先於GET的HEAD405，接入既有Host／Origin／session及GET明確CSRF、空輸入／owner／phase，完整驗證後200 CSV或安全JSON，不產ETag／304。
-- [ ] T035 [US1] 在 frontend/src/transport/download.ts 實作專用binary fetch、CSRF／AbortSignal、JSON錯誤與MIME／attachment解析、blob保BOM、objectURL生命週期及觸發前scope檢查；依 [data-model.md](data-model.md#field-citation-index) `OperationScope.activityId`、`OperationScope.bootId`、`OperationScope.sessionVersion`、`OperationScope.authGeneration`、`OperationScope.epoch` 的canonical定義，不重用固定JSON的http()解碼CSV。
-- [ ] T036 [US1] 在 frontend/src/teacher/ExportResultsButton.tsx 實作單場狀態、ended限制、loading停用與固定安全文字提示；依 [data-model.md](data-model.md#field-citation-index) `Download.state`，錯誤不誤報下載或存磁碟成功。
-- [ ] T037 [US1] 在 frontend/src/teacher/ActivityPage.tsx、frontend/src/teacher/HistoryDetailPage.tsx 接入各自活動的ExportResultsButton與完整scope，回填pending／conflict／failed不阻下載，不提供全活動批次操作；保留原畫面與回填控制。
-- [ ] T038 [US1] 在 frontend/src/App.tsx、frontend/src/components/Classroom.tsx 傳遞及隔離非機密teacher scope；變更teacher key或等效取消機制以涵蓋boot／sessionVersion／authGeneration，學生key與原匿名恢復不擴改，不將CSRF或Cookie放key。
-- [ ] T039 [US1] 在 tests/integration/result-export-secret-exposure.test.ts 以無效合成值驗CSV／header／filename／JSON error／logger／報告無OAuth、CSRF、Cookie或digest，且Google calls與receipt／job新增0；只讀取測試自身臨時資料。
-- [ ] T040 [US1] 在 tests/manual/export-results-fixture.mjs 建立quickstart規劃的合成檔案助手，真正經隔離teacher下載端點產一般／安全文字檔，只輸出允許的validation-results子路徑，不輸出授權headers或原值、不覆蓋正式DB。
-- [ ] T041 [US1] 依 specs/003-export-answer-orders/quickstart.md 的Excel章，以前項合成檔實際開啟，記版本／build／地區、中文／欄位／多行／安全文字及檔名結論於review-notes.md；沒有Excel或未人工確認時保持本項未勾，不能以parser或來源文件冒充。
-- [ ] T042 [US1] 在 tests/integration/result-export-performance.test.ts 先驗指定規模下載時間與取消／busy資源釋放，記實際結果至 specs/003-export-answer-orders/review-notes.md，不透過截斷內容或跳過大小檢查達標。
-- [ ] T043 [US1] 執行全部Gate、四圖及MVP獨立驗收，核對現有Google直接讀寫／學生隱私／歷史回歸；更新 specs/003-export-answer-orders/quickstart.md、review-notes.md，取得本階段文件與Excel結果人工核對。
-- [ ] T044 [US1] 僅前述技術與人工門檻全通過後commit／merge main，將實作及合併hash補入 specs/003-export-answer-orders/review-notes.md；不push、部署或為測試修改真實教材。
+- [x] T018 [US1] 確認Phase 2已merge main後建立本Phase新分支，在 specs/003-export-answer-orders/review-notes.md 記錄前置與分支。
+- [x] T019 [P] [US1] 先在 tests/unit/csv-export.test.ts 驗一次BOM、全欄quoting／CRLF、逗號／引號／多行／emoji、單題空子題、題組共rank、獨立Amax／Umax、零受理、excel-tab-v1及各尺寸邊界；隔離較早限制以實際測到指定邊界。
+- [x] T020 [P] [US1] 先在 tests/unit/export-filename.test.ts 驗建場快照名、雲端改名不影響、空／禁字／CRLF／長emoji、240雙預算不破code point、完整UUID、Taipei跨日及RFC8187單引號／括號編碼。
+- [x] T021 [P] [US1] 先在 tests/unit/export-gate.test.ts 用控制時鐘驗research R4頻率、單生成、busy不排隊、拿slot才計次、期限／取消／失敗釋放、過期清理及Retry-After，不依賴真實等待。
+- [x] T022 [P] [US1] 先在 tests/integration/result-export.test.ts 定義真實隔離DB的owner current／history ended下載、各回填狀態／Google不可用、重複匯出與全部rows／slot／revision／job不變，以及重啟後原帳號可取得同場。
+- [x] T023 [P] [US1] 先在 tests/contract/result-export-http.test.ts 驗GET binary與HEAD405、teacher／student／no session／no OAuth／B、CSRF／Host／Origin／UUID／非空query-body、phase、429／422／503錯誤JSON且無attachment、送出前authGeneration變更。
+- [x] T024 [P] [US1] 先在 tests/e2e/result-export.spec.ts 定義目前／單一歷史下載與檔名／BOM、按鈕不可用原因、JSON／HTML／wrong MIME／body失敗不下載、scope取消、objectURL清理、僅開始下載不誤稱存磁碟。
+- [x] T025 [P] [US1] 在 tests/integration/export-read-snapshot.test.ts 加入export reader缺源／fingerprint／正規化題目／答案／frozen結果拒絕；尤其先刪非winner答案再刪submission但保留counter／winner，必須拒絕，不得補為未作答。
+- [x] T026 [US1] 在 backend/src/export/limits.ts 集中research.md R4的Excel與本機唯一數值常數及有界尺寸檢查；不散落複製常數、不透過截答案／省組／拆檔通過上限。
+- [x] T027 [US1] 在 backend/src/persistence/result-export-reader.ts 完成owner限定metadata／ended／raw bytes先預檢及來源fingerprint／正規化題目對照；依 [data-model.md](data-model.md#field-citation-index) `activities.id`、`activities.owner_account_id`、`activities.phase`、`activities.revision`、`activities.group_count`、`activities.next_sequence`、`activities.spreadsheet_title`、`activities.source_snapshot_json`、`activities.source_fingerprint`、`questions.activity_id`、`questions.question_id`、`questions.display_number`、`questions.kind`、`questions.ordinal`、`question_items.activity_id`、`question_items.question_id`、`question_items.item_id`、`question_items.ordinal`、`question_items.label`、`question_items.prompt` 的canonical定義，先限制再解析快照，不重讀Google。
+- [x] T028 [US1] 在 backend/src/persistence/result-export-reader.ts 的同一readSnapshot收集全部組別、受理、子題答案及固定結果並嚴格驗集合／計數；依 [data-model.md](data-model.md#field-citation-index) `activity_groups.activity_id`、`activity_groups.id`、`activity_groups.ordinal`、`activity_groups.participant_id`、`activity_groups.name`、`submissions.activity_id`、`submissions.id`、`submissions.group_id`、`submissions.question_id`、`submissions.request_id`、`submissions.received_at`、`submissions.sequence`、`submission_answers.activity_id`、`submission_answers.submission_id`、`submission_answers.question_id`、`submission_answers.item_id`、`submission_answers.answer`、`results.activity_id`、`results.question_id`、`results.winner_submission_id` 的canonical定義，不讀participant digest或job作匯出前提。
+- [x] T029 [US1] 在 backend/src/persistence/result-export-reader.ts、backend/src/activity/result-export-service.ts 組合一致導出資料與記憶體核權scope；依 [data-model.md](data-model.md#field-citation-index) `ExportSnapshot.activityId`、`ExportSnapshot.activityName`、`ExportSnapshot.phase`、`ExportSnapshot.revision`、`ExportSnapshot.groupCount`、`ExportSnapshot.order`、`ExportSnapshot.exportedAt`、`ExportSnapshot.nextSequence`、`ExportRequestScope.ownerAccountId`、`ExportRequestScope.session`、`ExportRequestScope.authGeneration` 的canonical定義，含nextSequence／frozen winner完整性，不installActivity、建receipt或wake worker。
+- [x] T030 [US1] 在 backend/src/export/csv.ts 實作固定layout、有界逐格安全文字／quoting／BOM生成；依 [data-model.md](data-model.md#field-citation-index) `CsvLayout.dataRowCount`、`CsvLayout.aMax`、`CsvLayout.uMax`、`CsvLayout.columnCount`、`CsvLayout.headers`、`CsvLayout.cellText`、`CsvLayout.row` 的canonical定義及 [data-model.md](data-model.md#field-citation-index) `DownloadArtifact.bytes`、`DownloadArtifact.contentType`，在prefix／轉義後檢查，不先送半份body。
+- [x] T031 [US1] 在 backend/src/export/filename.ts 實作來源快照名、Taipei時間、雙預算basename與ASCII／filename\*；依 [data-model.md](data-model.md#field-citation-index) `DownloadArtifact.filename`，保留完整UUID及副檔名，不使用payload作header。
+- [x] T032 [US1] 在 backend/src/export/export-gate.ts 實作research R4及contracts的獨立session頻率／全域slot／協作deadline／中斷清理，不共用mutation budget、不保存下載job或認證值。
+- [x] T033 [US1] 在 backend/src/activity/result-export-service.ts 接上reader、純順位、limits、gate、codec及filename，按契約chunk讓出事件迴圈並重驗原owner／generation／取消；完成前不回bytes，失敗finally釋放所有暫存。
+- [x] T034 [US1] 在 backend/src/http/result-export-routes.ts、backend/src/source-module.ts 只註冊teacher GET與先於GET的HEAD405，接入既有Host／Origin／session及GET明確CSRF、空輸入／owner／phase，完整驗證後200 CSV或安全JSON，不產ETag／304。
+- [x] T035 [US1] 在 frontend/src/transport/download.ts 實作專用binary fetch、CSRF／AbortSignal、JSON錯誤與MIME／attachment解析、blob保BOM、objectURL生命週期及觸發前scope檢查；依 [data-model.md](data-model.md#field-citation-index) `OperationScope.activityId`、`OperationScope.bootId`、`OperationScope.sessionVersion`、`OperationScope.authGeneration`、`OperationScope.epoch` 的canonical定義，不重用固定JSON的http()解碼CSV。
+- [x] T036 [US1] 在 frontend/src/teacher/ExportResultsButton.tsx 實作單場狀態、ended限制、loading停用與固定安全文字提示；依 [data-model.md](data-model.md#field-citation-index) `Download.state`，錯誤不誤報下載或存磁碟成功。
+- [x] T037 [US1] 在 frontend/src/teacher/ActivityPage.tsx、frontend/src/teacher/HistoryDetailPage.tsx 接入各自活動的ExportResultsButton與完整scope，回填pending／conflict／failed不阻下載，不提供全活動批次操作；保留原畫面與回填控制。
+- [x] T038 [US1] 在 frontend/src/App.tsx、frontend/src/components/Classroom.tsx 傳遞及隔離非機密teacher scope；變更teacher key或等效取消機制以涵蓋boot／sessionVersion／authGeneration，學生key與原匿名恢復不擴改，不將CSRF或Cookie放key。
+- [x] T039 [US1] 在 tests/integration/result-export-secret-exposure.test.ts 以無效合成值驗CSV／header／filename／JSON error／logger／報告無OAuth、CSRF、Cookie或digest，且Google calls與receipt／job新增0；只讀取測試自身臨時資料。
+- [x] T040 [US1] 在 tests/manual/export-results-fixture.mjs 建立quickstart規劃的合成檔案助手，真正經隔離teacher下載端點產一般／安全文字檔，只輸出允許的validation-results子路徑，不輸出授權headers或原值、不覆蓋正式DB。
+- [x] T041 [US1] 依 specs/003-export-answer-orders/quickstart.md 的Excel章，以前項合成檔實際開啟，記版本／build／地區、中文／欄位／多行／安全文字及檔名結論於review-notes.md；沒有Excel或未人工確認時保持本項未勾，不能以parser或來源文件冒充。
+- [x] T042 [US1] 在 tests/integration/result-export-performance.test.ts 先驗指定規模下載時間與取消／busy資源釋放，記實際結果至 specs/003-export-answer-orders/review-notes.md，不透過截斷內容或跳過大小檢查達標。
+- [x] T043 [US1] 執行全部Gate、四圖及MVP獨立驗收，核對現有Google直接讀寫／學生隱私／歷史回歸；更新 specs/003-export-answer-orders/quickstart.md、review-notes.md，取得本階段文件與Excel結果人工核對。
+- [x] T044 [US1] 僅前述技術與人工門檻全通過後commit／merge main，將實作及合併hash補入 specs/003-export-answer-orders/review-notes.md；不push、部署或為測試修改真實教材。
 
 ## Phase 4: User Story 2 — 全場與逐題順位介面 (P1)
 

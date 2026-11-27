@@ -15,6 +15,13 @@ test('publishes the same results and safely verifies pending automatic writeback
   };
   c.end();
   await c.server.worker!.drain();
+  // This case exercises manual verification: keep the synthetic pending state stable
+  // instead of racing the automatic retry timer when the gateway is restored below.
+  c.server.persistence.connection.transaction(() =>
+    c.server.persistence.connection.database
+      .prepare('UPDATE writeback_question_states SET next_attempt_at=NULL WHERE activity_id=?')
+      .run(c.activity.id),
+  );
   const context = await browser.newContext(),
     studentContext = await browser.newContext();
   const cookie = c.client.cookie.split('=');
