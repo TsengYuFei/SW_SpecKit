@@ -136,3 +136,45 @@ MVP為完成Setup／Foundational及US1，即所屬老師單場ended活動CSV，�
 維護者於本次回覆「審核完畢」，確認Phase 1實作後文件與結果一致。T007的人工核對已完成；據此提交並合併，實際hash於合併後補記。
 
 Phase 1實作提交：b6d6f40；合併main：10e4e3b1bba1be132f06ae564046667a452e04da。依T007補記hash，無產品行為變更，未push。
+
+## Phase 2 Implementation and Validation
+
+Phase 1維護者核對及合併完成後，於main的hash紀錄提交`e82cbf26ab8ac30fce0e1791dd1c12269a13a52f`建立`codex/003-phase-2-foundation`，T008完成。本階段依原四張已審閱設計實作，未改流程／設計圖、沒有migration／新資料表／Google呼叫或學生wire欄位。
+
+### Completed Scope: T008–T016
+
+- T009／T013／T014：先建立純順位測試，再實作shared/src/schemas/result-export.ts與shared/src/projections/answer-order.ts。顯式pick既有teacher資料，接受合法requestId／receivedAt等metadata但不帶入輸入模型；缺少submissions不是零受理。canonical輸入19欄、OrderedAnswer 11欄、QuestionOrder 9欄、AnswerOrderView 2欄皆依data-model索引實作。共同sequence必須恰為1..N，各題連續rank，完整題組共一rank；未加入組依ordinal列未作答、使用既有完整組名formatter，不複製名稱規則、不突變輸入。關聯／唯一性／完整答案集合錯誤一律拋固定訊息AnswerOrderError，不附原始資料。組名重用原groupNameSchema並拒絕被trim才合法的保存值；答案沿用既有長度常數與非空規則，驗證時不trim保存文字。
+- T010／T015：先建立真實SQLite測試，再於connection新增同步readSnapshot。保存query_only、暫設ON、BEGIN DEFERRED／COMMIT，拋錯ROLLBACK並finally恢復query_only／讀旗標；與既有BEGIN IMMEDIATE寫交易互斥。拒絕直接寫入、巢狀讀／寫、afterCommit、requireTransaction、關閉連線、Promise與thenable。對原生rejected Promise先掛安全catch再拒絕，避免未處理拒絕；不await，不記錄例外payload。既有寫交易的提交與afterCommit語意保留。
+- T011／T016：先驗兩種尚缺的錯誤碼，再加入shared common與safe-errors allowlist。EXPORT_BUSY為503／retryable=true；EXPORT_TOO_LARGE為422／retryable=false；固定訊息說明未產生檔案，不含原始資料。既有logger從shared碼白名單辨識新碼，仍只記event／code／durationMs，不新增敏感輸出。
+- T012：新增真實隔離teacher history snapshot契約測試，確認顯式pick能接受既有額外metadata、第三組未加入空名、teacher輸入無突變，且active student無submissions時拒絕輸入、不誤當零受理。不新增HTTP或Socket欄位。
+
+### TDD and Review Evidence
+
+四份測試檔先行執行：2個suite因缺schema／projection而收集失敗，另外4個已執行案例因缺readSnapshot與錯誤碼失敗，整體exit1；記錄為validation-results/feature-003-phase-2/red.log。實作後首輪4檔／20項exit0，之後補5個重複／多餘資料拒絕案例與rejected Promise邊界，納入最終完整Gate。沒有把收集失敗冒稱所有尚未載入的案例已逐項失敗。
+
+純順位共20項，涵蓋同timestamp及倒退時間仍按sequence、題組、零受理、未加入組、全名40 UTF-16、保存空白／換行不變、重複submission／sequence／group-question／group／ordinal／question／item、缺或多item／未知關聯／空或超長答案拒絕。唯讀快照2項含真實第二SQLite連線WAL提交，交易內兩次讀值維持舊值、結束後才見新值；各失敗後讀／寫可繼續，query_only原值為0及1皆還原。安全錯誤2項、teacher／student契約1項。程式對照審查確認新順位尚未接到產品介面，既有學生投影與首答選擇不變；結果讀取器與next_sequence／frozen winner完整性檢查仍屬Phase 3，未冒稱已完成。
+
+### Full Phase 2 Gate Results
+
+| 指令                     | 最終結果                         |
+| ------------------------ | -------------------------------- |
+| npm run typecheck        | exit0                            |
+| npm run lint             | exit0                            |
+| npm run format:check     | exit0                            |
+| npm run test:unit        | exit0，21檔／83項                |
+| npm run test:integration | exit0，18檔／79項                |
+| npm run test:contract    | exit0，9檔／17項                 |
+| npm run test:e2e         | exit0，20項，25.2秒；含重新build |
+| npm run build            | exit0，三workspace成功           |
+
+合計199項（Phase 1的174項＋本階段25項）通過。第一次完整Gate已全過；其後補上rejected Promise安全catch及對應失敗情境，再重新執行上述全部Gate，以validation-results/feature-003-phase-2/verified-\*.log與verified-results.json為最終證據，不沿用修改前結果。所有測試用臨時DB、合成授權與隔離loopback；未讀正式憑證、DB或瀏覽器profile，不停止正式服務，不存認證原值。
+
+四張未改的PlantUML重新-checkonly／-tsvg皆exit0，四份非空有效SVG在validation-results/feature-003-phase-2/diagrams。003九份Markdown明確Prettier檢查通過；check-documents.mjs核對九文件／77個連結／74項任務／完成16項／待辦58項／四有效SVG／範本殘留0；git diff --check通過。這些工具與產物均Git排除。
+
+### T017 Maintainer Review Pending
+
+T008–T016已完成，T017因本階段文件人工核對及合併未完成而保持未勾。請核對本節、quickstart.md及spec／plan／data-model／contracts／tasks的已實作與待辦狀態，確認與新增schema／純順位／connection變更、四份測試及結果一致。依憲章V「AI產生或修改的文件必須由人工審查」與T017，本Phase確認後才能commit／merge main；Phase 1核對不替代本次。
+
+目前分支codex/003-phase-2-foundation，尚未commit／merge，故沒有Phase 2合併hash；未push或部署。CSV端點、結果讀取器、CSV／檔名／資源閘門、教師順位UI及複製按鈕仍未交付，不執行或宣稱Excel／下載性能驗收。維護者核對後才合併本Phase、記實際hash並開始Phase 3。
+
+維護者已回覆「Phase 2 文件已核對，內容一致」，T017人工核對完成，據此提交及合併，實際hash於合併後補記。

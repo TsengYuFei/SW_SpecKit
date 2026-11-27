@@ -35,6 +35,12 @@ const errors: Record<ErrorCode, [number, string, boolean]> = {
   STORAGE_UNAVAILABLE: [503, '儲存暫時無法完成，操作未確認，請檢查儲存空間與權限後重試。', true],
   STORAGE_CORRUPT: [503, '儲存資料無法安全載入，請保留原資料並檢查備份與版本。', false],
   SYSTEM_BUSY: [409, '目前仍有活動或待確認回填，請先完成處理再建立新活動。', true],
+  EXPORT_BUSY: [503, '匯出暫時忙碌或逾時，未產生檔案，請稍後手動重試。', true],
+  EXPORT_TOO_LARGE: [
+    422,
+    '結果超過 Excel 或本機匯出容量限制，未產生檔案；資料已保留且未截斷。',
+    false,
+  ],
 };
 
 export class AppError extends Error {

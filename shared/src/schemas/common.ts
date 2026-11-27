@@ -39,6 +39,8 @@ export const errorCodeSchema = z.enum([
   'STORAGE_UNAVAILABLE',
   'STORAGE_CORRUPT',
   'SYSTEM_BUSY',
+  'EXPORT_BUSY',
+  'EXPORT_TOO_LARGE',
 ]);
 export type ErrorCode = z.infer<typeof errorCodeSchema>;
 export interface PublicError {
